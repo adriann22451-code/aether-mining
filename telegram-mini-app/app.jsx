@@ -3504,9 +3504,12 @@ function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlock
    normal browser), so it's still testable without a live backend.
    ========================================================= */
 
-// TODO: replace with your actual Supabase project ref after deploying
-// the Edge Functions (see backend/README.md, step 5).
-const SUPABASE_FUNCTIONS_URL = "https://YOUR-PROJECT-REF.functions.supabase.co";
+const SUPABASE_FUNCTIONS_URL = "https://vcuvuslybplyhonywicg.supabase.co/functions/v1";
+
+// TODO: paste your Supabase anon/public key here — find it in
+// Project Settings > API > "anon public" key. Edge Functions require this
+// in the request headers even though our own auth is Telegram-based.
+const SUPABASE_ANON_KEY = "YOUR-ANON-KEY-HERE";
 
 function getTelegramWebApp() {
   return typeof window !== "undefined" && window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
@@ -3518,16 +3521,20 @@ function getInitData() {
 }
 
 // true only when both (a) we're inside Telegram with real initData, and
-// (b) the project URL above has actually been filled in
+// (b) the anon key above has actually been filled in
 function isBackendConfigured() {
-  return Boolean(getInitData()) && !SUPABASE_FUNCTIONS_URL.includes("YOUR-PROJECT-REF");
+  return Boolean(getInitData()) && !SUPABASE_ANON_KEY.includes("YOUR-ANON-KEY");
 }
 
 async function callFunction(name, body) {
   const initData = getInitData();
   const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/${name}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+    },
     body: JSON.stringify({ initData, ...body }),
   });
   const data = await res.json().catch(() => ({}));
