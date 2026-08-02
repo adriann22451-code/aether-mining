@@ -3509,7 +3509,7 @@ const SUPABASE_FUNCTIONS_URL = "https://vcuvuslybplyhonywicg.supabase.co/functio
 // TODO: paste your Supabase anon/public key here — find it in
 // Project Settings > API > "anon public" key. Edge Functions require this
 // in the request headers even though our own auth is Telegram-based.
-const SUPABASE_ANON_KEY = "YOUR-ANON-KEY-HERE";
+const SUPABASE_ANON_KEY = "sb_publishable_tbrTHKKV5vpQbB5fT1uQEg_nSMrImb0";
 
 function getTelegramWebApp() {
   return typeof window !== "undefined" && window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
