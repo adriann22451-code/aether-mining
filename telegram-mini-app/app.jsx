@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
+import { TonConnectUIProvider, useTonConnectUI, useTonAddress } from "@tonconnect/ui-react";
 import {
   Zap,
   Gem,
@@ -1429,6 +1430,10 @@ function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name
   const halvingEpoch = miningHalvingEpoch(totalMined);
   const halvingMultiplier = miningHalvingMultiplier(totalMined);
 
+  const [tonConnectUI] = useTonConnectUI();
+  const tonAddress = useTonAddress();
+  const formatTonAddress = (addr) => (addr ? `${addr.slice(0, 4)}…${addr.slice(-4)}` : "");
+
   const INCOME_LABELS = {
     mining: "Mining", offline: "Offline Earnings", dailyStreak: "Daily Streak", missions: "Missions",
     events: "Events", guild: "Guild", lootbox: "Loot Box", marketSales: "Market Sales", autoSell: "Auto-Sell", inbox: "Inbox",
@@ -1592,10 +1597,15 @@ function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name
 
       <button
         type="button"
-        className="mt-4 w-full rounded-2xl bg-blue-600/90 py-3.5 flex items-center justify-center gap-2 text-[13px] font-extrabold text-white tracking-wide active:scale-[0.98] transition shadow-[0_0_18px_rgba(37,99,235,0.4)]"
+        onClick={() => (tonAddress ? tonConnectUI.disconnect() : tonConnectUI.openModal())}
+        className={`mt-4 w-full rounded-2xl py-3.5 flex items-center justify-center gap-2 text-[13px] font-extrabold tracking-wide active:scale-[0.98] transition ${
+          tonAddress
+            ? "bg-emerald-600/90 text-white shadow-[0_0_18px_rgba(16,185,129,0.4)]"
+            : "bg-blue-600/90 text-white shadow-[0_0_18px_rgba(37,99,235,0.4)]"
+        }`}
       >
         <Wallet size={16} />
-        CONNECT WALLET
+        {tonAddress ? `Connected · ${formatTonAddress(tonAddress)}` : "CONNECT WALLET"}
       </button>
     </div>
   );
@@ -3570,7 +3580,15 @@ function inventoryToRows(inventory) {
 
 export default function MiningDashboard() {
   const [screen, setScreen] = useState("dashboard");
-  const [isLoaded, setIsLoaded] = useState(false); // gates render until Telegram CloudStorage / localStorage save data has loaded
+  const [isLoaded, setIsLoaded] = useState(false); // gates render until the backend sync (or offline fallback) has finished
+  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
+  const LOADING_MESSAGES = ["Connecting to Telegram…", "Syncing rig data…", "Warming up the GPUs…", "Loading mining sites…"];
+  useEffect(() => {
+    if (isLoaded) return;
+    const t = setInterval(() => setLoadingMsgIndex((i) => (i + 1) % LOADING_MESSAGES.length), 1100);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded]);
   const [claimPulse, setClaimPulse] = useState(false);
 
   const [core, setCore] = useState(0);
@@ -4410,18 +4428,74 @@ export default function MiningDashboard() {
   if (!isLoaded) {
     return (
       <div
-        className="flex flex-col items-center justify-center w-full max-w-md mx-auto text-white select-none"
+        className="relative flex flex-col items-center justify-center w-full max-w-md mx-auto text-white select-none overflow-hidden"
         style={{
           fontFamily: "'Rajdhani', 'Chakra Petch', 'Segoe UI', sans-serif",
           background: "radial-gradient(ellipse at 50% 0%, #1a1035 0%, #0a0a16 45%, #05050c 100%)",
           height: "100vh",
         }}
       >
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-2xl animate-pulse shadow-[0_0_30px_-4px_rgba(129,140,248,0.6)]">
-          ⚡
+        <style>{`
+          @keyframes loaderOrbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+          @keyframes loaderScan { 0% { transform: translateY(-100%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(100%); opacity: 0; } }
+          @keyframes loaderFloat { 0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; } 50% { transform: translateY(-14px) scale(1.3); opacity: 0.9; } }
+          @keyframes loaderBarFill { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+        `}</style>
+
+        {/* floating background particles */}
+        {[...Array(14)].map((_, i) => (
+          <span
+            key={i}
+            className="absolute rounded-full bg-indigo-300"
+            style={{
+              width: 2 + (i % 3),
+              height: 2 + (i % 3),
+              left: `${(i * 37) % 100}%`,
+              top: `${(i * 53) % 100}%`,
+              opacity: 0.5,
+              animation: `loaderFloat ${2.4 + (i % 5) * 0.4}s ease-in-out infinite`,
+              animationDelay: `${(i % 7) * 0.3}s`,
+            }}
+          />
+        ))}
+
+        {/* orbiting core */}
+        <div className="relative w-24 h-24 flex items-center justify-center">
+          <div
+            className="absolute inset-0 rounded-full border-2 border-transparent"
+            style={{ borderTopColor: "#818cf8", borderRightColor: "#818cf866", animation: "loaderOrbit 1.8s linear infinite" }}
+          />
+          <div
+            className="absolute inset-[6px] rounded-full border-2 border-transparent"
+            style={{ borderBottomColor: "#c084fc", borderLeftColor: "#c084fc55", animation: "loaderOrbit 1.3s linear infinite reverse" }}
+          />
+          <div className="absolute inset-0" style={{ animation: "loaderOrbit 2.2s linear infinite" }}>
+            <div
+              className="absolute rounded-full bg-cyan-300"
+              style={{ width: 6, height: 6, top: -1, left: "50%", transform: "translateX(-50%)", boxShadow: "0 0 10px 3px rgba(103,232,249,0.85)" }}
+            />
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-2xl shadow-[0_0_30px_-2px_rgba(129,140,248,0.85)] animate-pulse">
+            ⚡
+          </div>
         </div>
-        <div className="mt-4 text-[13px] font-extrabold tracking-[0.15em] text-white">AETHER MINING</div>
-        <div className="mt-1 text-[10.5px] text-slate-400">Loading your progress…</div>
+
+        <div className="mt-6 text-[14px] font-extrabold tracking-[0.2em] text-white" style={{ textShadow: "0 0 12px rgba(129,140,248,0.6)" }}>
+          AETHER MINING
+        </div>
+
+        <div className="mt-2.5 h-4 relative overflow-hidden w-full flex items-center justify-center">
+          <div key={loadingMsgIndex} className="text-[10.5px] text-slate-400" style={{ animation: "loaderScan 1.1s ease-in-out" }}>
+            {LOADING_MESSAGES[loadingMsgIndex]}
+          </div>
+        </div>
+
+        <div className="mt-4 w-32 h-1 rounded-full bg-white/10 overflow-hidden relative">
+          <div
+            className="absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-indigo-400 to-cyan-300"
+            style={{ animation: "loaderBarFill 1.4s ease-in-out infinite" }}
+          />
+        </div>
       </div>
     );
   }
@@ -4624,4 +4698,8 @@ export default function MiningDashboard() {
 }
 
 const __root = createRoot(document.getElementById("root"));
-__root.render(<MiningDashboard />);
+__root.render(
+  <TonConnectUIProvider manifestUrl="https://aether-mining.vercel.app/tonconnect-manifest.json">
+    <MiningDashboard />
+  </TonConnectUIProvider>
+);
