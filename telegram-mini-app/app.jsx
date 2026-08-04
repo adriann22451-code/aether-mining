@@ -4067,11 +4067,23 @@ export default function MiningDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoClaimUnlocked, autoClaimActive, pending, isBackendOnline]);
 
-  const handleLevelUpItem = (itemId) => {
+  const handleLevelUpItem = async (itemId) => {
     const found = findPartItem(itemId);
     if (!found) return;
     const lvl = ownedItems[itemId] || 0;
     if (lvl <= 0 || lvl >= MAX_LEVEL) return;
+    if (isBackendOnline) {
+      try {
+        const { player: p } = await callFunction("game-actions", { action: "upgradePart", itemId });
+        setCore(Number(p.core));
+        setOwnedItems(p.owned_items);
+        setSpendStats((s) => ({ ...s, ...p.spend_stats }));
+        setUpgradeCount(p.upgrade_count);
+      } catch (e) {
+        pushToast(e.message || "Upgrade failed.", "warning");
+      }
+      return;
+    }
     const cost = itemLevelUpCost(found.item, lvl);
     if (core < cost) return;
     setCore((c) => c - cost);
@@ -4081,7 +4093,28 @@ export default function MiningDashboard() {
   };
 
   // spend AETHER on the cheapest available upgrade across all owned parts, repeatedly, until funds run out
-  const handleUpgradeAll = () => {
+  const handleUpgradeAll = async () => {
+    if (isBackendOnline) {
+      try {
+        const { totalLevels, totalSpent, player: p } = await callFunction("game-actions", { action: "upgradeAll" });
+        if (p) {
+          setCore(Number(p.core));
+          setOwnedItems(p.owned_items);
+          setSpendStats((s) => ({ ...s, ...p.spend_stats }));
+          setUpgradeCount(p.upgrade_count);
+        }
+        setBulkUpgradeNotice(
+          totalLevels > 0
+            ? `Upgraded ${totalLevels} level${totalLevels === 1 ? "" : "s"} for ${formatInt(totalSpent)} AETHER.`
+            : "Not enough AETHER to upgrade anything right now."
+        );
+      } catch (e) {
+        setBulkUpgradeNotice(e.message || "Bulk upgrade failed.");
+      }
+      setTimeout(() => setBulkUpgradeNotice(""), 4000);
+      return;
+    }
+
     let budget = core;
     const items = { ...ownedItems };
     let totalSpent = 0;
@@ -4118,10 +4151,21 @@ export default function MiningDashboard() {
     setTimeout(() => setBulkUpgradeNotice(""), 4000);
   };
 
-  const handleBuyShopItem = (itemId) => {
+  const handleBuyShopItem = async (itemId) => {
     const found = findPartItem(itemId);
     if (!found) return;
     if (ownedItems[itemId]) return; // already owned
+    if (isBackendOnline) {
+      try {
+        const { player: p } = await callFunction("game-actions", { action: "buyPart", itemId });
+        setCore(Number(p.core));
+        setOwnedItems(p.owned_items);
+        setSpendStats((s) => ({ ...s, ...p.spend_stats }));
+      } catch (e) {
+        pushToast(e.message || "Purchase failed.", "warning");
+      }
+      return;
+    }
     if (core < found.item.buyCost) return;
     setCore((c) => c - found.item.buyCost);
     addSpend("shop", found.item.buyCost);
@@ -4129,9 +4173,30 @@ export default function MiningDashboard() {
   };
 
   // craft a part directly from Materials + AETHER instead of buying it in the Shop
-  const handleCraft = (recipeId) => {
+  const handleCraft = async (recipeId) => {
     const recipe = CRAFT_RECIPES.find((r) => r.id === recipeId);
     if (!recipe) return;
+    if (isBackendOnline) {
+      try {
+        const { player: p } = await callFunction("game-actions", { action: "craftItem", recipeId });
+        setCore(Number(p.core));
+        setOwnedItems(p.owned_items);
+        setSpendStats((s) => ({ ...s, ...p.spend_stats }));
+        setInventory((prev) =>
+          prev
+            .map((it) => {
+              const needed = recipe.materials.find((m) => m.name === it.name);
+              if (!needed) return it;
+              const have = parseInventoryQty(it.tag);
+              return { ...it, tag: `x${Math.max(0, have - needed.qty)}` };
+            })
+            .filter((it) => it.type !== "material" || parseInventoryQty(it.tag) > 0)
+        );
+      } catch (e) {
+        pushToast(e.message || "Crafting failed.", "warning");
+      }
+      return;
+    }
     if (!canCraftRecipe(recipe, inventory, core)) return;
     setCore((c) => c - recipe.aetherCost);
     addSpend("crafting", recipe.aetherCost);
@@ -4150,9 +4215,21 @@ export default function MiningDashboard() {
     });
   };
 
-  const handleUnlockSite = () => {
+  const handleUnlockSite = async () => {
     const next = unlockedIndex + 1;
     if (next >= SITES.length) return;
+    if (isBackendOnline) {
+      try {
+        const { player: p } = await callFunction("game-actions", { action: "unlockSite" });
+        setCore(Number(p.core));
+        setUnlockedIndex(p.unlocked_index);
+        setActiveSiteIndex(p.active_site_index);
+        setSpendStats((s) => ({ ...s, ...p.spend_stats }));
+      } catch (e) {
+        pushToast(e.message || "Couldn't unlock this site.", "warning");
+      }
+      return;
+    }
     const cost = SITES[next].cost;
     if (core < cost) return;
     setCore((c) => c - cost);
