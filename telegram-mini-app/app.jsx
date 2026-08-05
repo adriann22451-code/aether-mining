@@ -545,6 +545,24 @@ const SITES = [
   },
 ];
 
+// Player level is derived from lifetime AETHER earned (totalEarned) — every level
+// requires 40% more than the last, so early levels come fast and later ones are a grind.
+function calcPlayerLevel(totalEarned) {
+  const BASE = 500;
+  const GROWTH = 1.4;
+  let level = 1;
+  let cumulative = 0;
+  let reqForNext = BASE;
+  while (cumulative + reqForNext <= totalEarned && level < 999) {
+    cumulative += reqForNext;
+    level += 1;
+    reqForNext = Math.round(BASE * Math.pow(GROWTH, level - 1));
+  }
+  const intoLevel = Math.max(0, totalEarned - cumulative);
+  const progressPct = Math.min(100, (intoLevel / reqForNext) * 100);
+  return { level, intoLevel, reqForNext, progressPct };
+}
+
 function formatCore(n) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -1429,6 +1447,7 @@ function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name
   const supplyPct = Math.min(100, (totalMined / AETHER_MAX_SUPPLY) * 100);
   const halvingEpoch = miningHalvingEpoch(totalMined);
   const halvingMultiplier = miningHalvingMultiplier(totalMined);
+  const playerLevel = calcPlayerLevel(totalEarned);
 
   const [tonConnectUI] = useTonConnectUI();
   const tonAddress = useTonAddress();
@@ -1502,13 +1521,18 @@ function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name
               </button>
             </div>
           )}
-          <div className="mt-1 text-[12px] font-bold text-slate-300">Lv. 25</div>
+          <div className="mt-1 text-[12px] font-bold text-slate-300">Lv. {playerLevel.level}</div>
           <div className="mt-1.5 flex items-center gap-2">
             <div className="flex-1 h-1.5 rounded-full bg-black/40 overflow-hidden">
-              <div className="h-full w-[71%] rounded-full bg-gradient-to-r from-cyan-400 to-blue-500" />
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500"
+                style={{ width: `${playerLevel.progressPct}%` }}
+              />
             </div>
           </div>
-          <div className="mt-1 text-[10px] text-slate-400 font-mono">12,850 / 18,000</div>
+          <div className="mt-1 text-[10px] text-slate-400 font-mono">
+            {formatInt(playerLevel.intoLevel)} / {formatInt(playerLevel.reqForNext)}
+          </div>
         </div>
       </div>
 
@@ -3172,7 +3196,7 @@ const SNOWFLAKES = [
   { left: 58, size: 3, drift: -13, duration: 5.1, delay: 2.4 },
 ];
 
-function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, onClaim, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed }) {
+function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, onClaim, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned }) {
   const coreDisplay = useTween(core, 700);
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
@@ -3214,7 +3238,7 @@ function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlock
           >
             🧑‍🚀
           </div>
-          <span className="text-[10px] font-extrabold text-indigo-300 tracking-wide whitespace-nowrap">LV.25</span>
+          <span className="text-[10px] font-extrabold text-indigo-300 tracking-wide whitespace-nowrap">LV.{calcPlayerLevel(totalEarned).level}</span>
         </button>
 
         <div className="flex-1 flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 backdrop-blur-sm min-w-0">
@@ -4667,6 +4691,7 @@ export default function MiningDashboard() {
             onActivateMysterySite={handleActivateMysterySite}
             halvingEpoch={halvingEpoch}
             inboxUnclaimed={inboxItems.some((i) => !i.claimed)}
+            totalEarned={totalEarned}
           />
         )}
       </div>
