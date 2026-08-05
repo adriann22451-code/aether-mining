@@ -60,6 +60,23 @@ Deno.serve(async (req) => {
         player.cached_hashrate = hashrate;
       }
 
+      // Compute the *live* pending amount using the same formula the "claim"
+      // action uses (elapsed time since last_synced_at, capped, plus any
+      // already-stored pending). We only compute/return it here — we don't
+      // persist it — so the Claim button always shows the true amount the
+      // player would actually receive if they tapped Claim right now.
+      // This fixes a bug where the button showed a stale/tiny number
+      // (e.g. "3") while the real offline-mining reward (e.g. "2000") only
+      // became visible after tapping Claim.
+      const now = Date.now();
+      const lastSync = new Date(player.last_synced_at).getTime();
+      const elapsedSeconds = Math.max(0, (now - lastSync) / 1000);
+      const cappedSeconds = Math.min(elapsedSeconds, PENDING_CAP_HOURS * 3600);
+      const halving = miningHalvingMultiplier(player.total_mined);
+      const perSecond = (hashrate / INCOME_DIVISOR) * halving;
+      const livePending = Math.max(0, perSecond * cappedSeconds + Number(player.pending || 0));
+      player.pending = livePending;
+
       return json({ player, inventory, guild });
     }
 
