@@ -16,3 +16,12 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
 }
+
+/* Full-screen app shell: 100vh is a safe fallback for older browsers, then
+   100dvh overrides it on anything modern — dvh accounts for the mobile
+   browser's address bar showing/hiding, so the bottom nav never gets pushed
+   off-screen and the page never needs a manual scroll to reveal it. */
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+}
