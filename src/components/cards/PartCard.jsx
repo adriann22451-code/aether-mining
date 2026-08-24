@@ -1,0 +1,91 @@
+import {
+  ChevronRight,
+  Coins,
+} from "lucide-react";
+import { MAX_LEVEL, RARITY_COLORS, itemHpAtLevel, itemLevelUpCost } from "../../data/parts";
+import { formatHashrate, formatInt } from "../../lib/format";
+
+export function PartCard({ item, category, level, core, onUpgrade }) {
+  const Icon = category.icon;
+  const isMax = level >= MAX_LEVEL;
+  const cost = !isMax ? itemLevelUpCost(item, level) : null;
+  const canAfford = !isMax && core >= cost;
+  const currentHp = itemHpAtLevel(item, level);
+  const nextHp = !isMax ? itemHpAtLevel(item, level + 1) : null;
+  const rarityColor = RARITY_COLORS[item.rarity] || category.color;
+  const isShiny = item.rarity === "Epic" || item.rarity === "Legendary";
+
+  return (
+    <div className="rounded-2xl bg-white/5 border border-white/10 p-3 flex items-center gap-3 backdrop-blur-sm">
+      <div
+        className="relative w-14 h-14 shrink-0 rounded-xl flex items-center justify-center overflow-hidden"
+        style={{
+          background: `linear-gradient(160deg, ${rarityColor}40 0%, #0d1420 85%)`,
+          border: `1px solid ${rarityColor}66`,
+          "--rglow": `${rarityColor}${item.rarity === "Legendary" ? "cc" : "99"}`,
+          boxShadow: isShiny ? undefined : `0 0 16px -4px ${rarityColor}99`,
+          animation: isShiny ? `rarityPulse ${item.rarity === "Legendary" ? "1.6s" : "2.2s"} ease-in-out infinite` : undefined,
+        }}
+      >
+        {item.image ? (
+          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+        ) : (
+          <Icon size={40} style={{ color: rarityColor }} />
+        )}
+        {isShiny && (
+          <span
+            className="pointer-events-none absolute -inset-4"
+            style={{
+              background: `linear-gradient(115deg, transparent 40%, ${rarityColor}cc 50%, transparent 60%)`,
+              animation: `rarityShine ${item.rarity === "Legendary" ? "1.8s" : "2.6s"} linear infinite`,
+            }}
+          />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between">
+          <span className="text-[13px] font-bold text-white truncate">{item.name}</span>
+          <span className="text-[10px] font-bold text-slate-400 shrink-0 ml-2">
+            Lv. {level}/{MAX_LEVEL}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] text-slate-400 truncate">{category.label}</span>
+          {item.rarity && (
+            <span className="text-[10px] font-bold shrink-0" style={{ color: rarityColor }}>
+              {item.rarity}
+            </span>
+          )}
+        </div>
+        <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold">
+          <span className="text-cyan-300">{formatHashrate(currentHp)}</span>
+          {!isMax && (
+            <>
+              <ChevronRight size={11} className="text-emerald-400" />
+              <span className="text-emerald-400">{formatHashrate(nextHp)}</span>
+            </>
+          )}
+        </div>
+      </div>
+      {isMax ? (
+        <span className="shrink-0 rounded-lg bg-white/5 border border-amber-400/40 px-3 py-2 text-[11px] font-extrabold text-amber-300">
+          MAX
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onUpgrade(item.id)}
+          disabled={!canAfford}
+          className={`shrink-0 self-stretch rounded-lg px-3 flex items-center justify-center gap-1 text-[12px] font-extrabold transition active:scale-[0.97] ${
+            canAfford
+              ? "bg-gradient-to-b from-emerald-500 to-green-600 text-white shadow-[0_2px_10px_-2px_rgba(34,197,94,0.6)]"
+              : "bg-white/5 text-slate-500"
+          }`}
+        >
+          <Coins size={12} className={canAfford ? "text-amber-300" : "text-slate-600"} />
+          {formatInt(cost)}
+        </button>
+      )}
+    </div>
+  );
+}
