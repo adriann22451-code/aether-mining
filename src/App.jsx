@@ -885,11 +885,10 @@ export default function MiningDashboard() {
   if (!isLoaded) {
     return (
       <div
-        className="relative flex flex-col items-center justify-center w-full max-w-md mx-auto text-white select-none overflow-hidden"
+        className="app-shell relative flex flex-col items-center justify-center w-full max-w-md mx-auto text-white select-none overflow-hidden"
         style={{
           fontFamily: "'Rajdhani', 'Chakra Petch', 'Segoe UI', sans-serif",
           background: "radial-gradient(ellipse at 50% 0%, #1a1035 0%, #0a0a16 45%, #05050c 100%)",
-          height: "100vh",
         }}
       >
         <style>{`
@@ -959,11 +958,10 @@ export default function MiningDashboard() {
 
   return (
     <div
-      className="flex flex-col w-full max-w-md mx-auto text-white select-none"
+      className="app-shell flex flex-col w-full max-w-md mx-auto text-white select-none"
       style={{
         fontFamily: "'Rajdhani', 'Chakra Petch', 'Segoe UI', sans-serif",
         background: "radial-gradient(ellipse at 50% 0%, #1a1035 0%, #0a0a16 45%, #05050c 100%)",
-        height: "100vh",
         WebkitTextSizeAdjust: "100%",
         textSizeAdjust: "100%",
       }}
