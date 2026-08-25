@@ -5,7 +5,13 @@
 // The server is the only thing that ever writes core/total_earned/
 // total_mined/pending — the client just displays what this returns.
 //
-// POST body: { initData: string, action: "init" | "claim" }
+// AETHER_MAX_SUPPLY is a SHARED pool now (see migration 0004): actual
+// claim math (the halving curve + splitting the emission rate by each
+// player's share of currently-active hashrate) lives in the
+// `claim_mining_reward` Postgres function so it can run inside one
+// row-locked transaction — never duplicate that math here.
+//
+// POST body: { initData: string, action: "init" | "claim" | "heartbeat" }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -61,11 +67,10 @@ async function verifyTelegramInitData(initData: string, botToken: string): Promi
   return { user: JSON.parse(userRaw) as TelegramUser, authDate };
 }
 
-// ---------- game data / formulas ----------
+// ---------- game data / formulas (hashrate calc only — reward math now
+//             lives in the claim_mining_reward/preview_emission_share
+//             Postgres functions from migration 0004) ----------
 const LEVEL_HP_GROWTH = 1.06;
-const INCOME_DIVISOR = 5e8;
-const AETHER_MAX_SUPPLY = 100_000_000;
-const PENDING_CAP_HOURS = 6;
 
 const PART_HP: Record<string, { hp: number; category: string }> = {
   gpu_0: { hp: 40e6, category: "gpu" }, gpu_1: { hp: 180e6, category: "gpu" }, gpu_2: { hp: 750e6, category: "gpu" }, gpu_3: { hp: 3200e6, category: "gpu" }, gpu_4: { hp: 14000e6, category: "gpu" },
@@ -87,12 +92,6 @@ function calcHashrate(ownedItems: Record<string, number>): number {
     if (part && level > 0) total += itemHpAtLevel(part.hp, level);
   }
   return total;
-}
-function miningHalvingMultiplier(totalMined: number): number {
-  if (totalMined >= AETHER_MAX_SUPPLY - 1) return Math.pow(0.5, 64);
-  const fractionRemaining = 1 - totalMined / AETHER_MAX_SUPPLY;
-  const epoch = Math.max(0, Math.floor(-Math.log2(fractionRemaining)));
-  return Math.pow(0.5, epoch);
 }
 
 // ---------- handler ----------
@@ -120,59 +119,80 @@ Deno.serve(async (req) => {
       throw error;
     }
 
+    const hashrate = calcHashrate(player.owned_items || {});
+
+    if (action === "heartbeat") {
+      // lightweight "still here" ping — keeps this player counted in the
+      // active-hashrate pool between real claims, WITHOUT touching
+      // core/total_earned/pending. No lock needed: single-row update.
+      const { data: updated, error: hbErr } = await admin
+        .from("players")
+        .update({ cached_hashrate: hashrate, last_synced_at: new Date().toISOString() })
+        .eq("id", player.id)
+        .select("*")
+        .single();
+      if (hbErr) throw hbErr;
+
+      const { data: previewRows } = await admin.rpc("preview_emission_share", { p_hashrate: hashrate });
+      const preview = previewRows?.[0] || { emission_per_second: 0, my_share: 0 };
+
+      return json({ player: updated, myEmissionPerSecond: preview.emission_per_second * preview.my_share });
+    }
+
     if (action === "init") {
       const { data: inventory, error: invErr } = await admin.from("inventory_items").select("name, type, qty").eq("player_id", player.id);
       if (invErr) throw invErr;
 
       const { data: guild } = player.guild_id ? await admin.from("guilds").select("*").eq("id", player.guild_id).single() : { data: null };
+      const { data: gameState } = await admin.from("game_state").select("total_mined").eq("id", true).single();
 
-      const hashrate = calcHashrate(player.owned_items || {});
       if (hashrate !== player.cached_hashrate) {
         await admin.from("players").update({ cached_hashrate: hashrate }).eq("id", player.id);
         player.cached_hashrate = hashrate;
       }
 
-      // preview what a "claim" would award right now, so the Claim button on the
-      // client shows the real accrued amount instead of starting back at 0
-      const elapsedSeconds = Math.max(0, (Date.now() - new Date(player.last_synced_at).getTime()) / 1000);
-      const cappedSeconds = Math.min(elapsedSeconds, PENDING_CAP_HOURS * 3600);
-      const halving = miningHalvingMultiplier(player.total_mined);
-      const perSecond = (hashrate / INCOME_DIVISOR) * halving;
-      player.pending = perSecond * cappedSeconds + Number(player.pending || 0);
+      // live-ish preview so the Claim button shows real accrued-so-far
+      // AETHER instead of starting back at 0 — the actual awarded amount
+      // is always recomputed authoritatively inside claim_mining_reward
+      const { data: previewRows, error: previewErr } = await admin.rpc("preview_emission_share", { p_hashrate: hashrate });
+      if (previewErr) throw previewErr;
+      const preview = previewRows?.[0] || { emission_per_second: 0, my_share: 0, active_hashrate: hashrate };
 
-      return json({ player, inventory, guild });
+      const elapsedSeconds = Math.max(0, (Date.now() - new Date(player.last_synced_at).getTime()) / 1000);
+      const cappedSeconds = Math.min(elapsedSeconds, 6 * 3600);
+      const myEmissionPerSecond = preview.emission_per_second * preview.my_share;
+      player.pending = myEmissionPerSecond * cappedSeconds + Number(player.pending || 0);
+
+      return json({
+        player,
+        inventory,
+        guild,
+        globalTotalMined: Number(gameState?.total_mined || 0),
+        myEmissionPerSecond,
+      });
     }
 
     if (action === "claim") {
-      const now = Date.now();
-      const lastSync = new Date(player.last_synced_at).getTime();
-      const elapsedSeconds = Math.max(0, (now - lastSync) / 1000);
-      const cappedSeconds = Math.min(elapsedSeconds, PENDING_CAP_HOURS * 3600);
+      const { data: rows, error: claimErr } = await admin.rpc("claim_mining_reward", {
+        p_telegram_id: user.id,
+        p_hashrate: hashrate,
+      });
+      if (claimErr) throw claimErr;
+      const result = rows?.[0];
+      if (!result) throw new Error("claim_mining_reward returned no result");
 
-      const hashrate = calcHashrate(player.owned_items || {});
-      const halving = miningHalvingMultiplier(player.total_mined);
-      const perSecond = (hashrate / INCOME_DIVISOR) * halving;
-      const awarded = Math.max(0, perSecond * cappedSeconds + Number(player.pending || 0));
+      const { data: freshPlayer, error: fetchErr } = await admin.from("players").select("*").eq("id", player.id).single();
+      if (fetchErr) throw fetchErr;
 
-      const newTotalMined = Math.min(AETHER_MAX_SUPPLY, Number(player.total_mined) + awarded);
+      const { data: previewRows } = await admin.rpc("preview_emission_share", { p_hashrate: hashrate });
+      const preview = previewRows?.[0] || { emission_per_second: 0, my_share: 0 };
 
-      const updateRes = await admin
-        .from("players")
-        .update({
-          core: Number(player.core) + awarded,
-          total_earned: Number(player.total_earned) + awarded,
-          total_mined: newTotalMined,
-          pending: 0,
-          cached_hashrate: hashrate,
-          last_synced_at: new Date(now).toISOString(),
-          updated_at: new Date(now).toISOString(),
-        })
-        .eq("id", player.id)
-        .select("*")
-        .single();
-      if (updateRes.error) throw updateRes.error;
-
-      return json({ awarded, player: updateRes.data });
+      return json({
+        awarded: Number(result.awarded),
+        player: freshPlayer,
+        globalTotalMined: Number(result.new_global_total_mined),
+        myEmissionPerSecond: preview.emission_per_second * preview.my_share,
+      });
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);
