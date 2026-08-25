@@ -157,10 +157,3 @@ export function RackIcon({ size = 24, style = {}, className = "" }) {
     />
   );
 }
-
-/* =========================================================
-   RACK IMAGES — custom images for rig visuals on the dashboard map
-   ========================================================= */
-__IMPORT_PLACEHOLDER__RACK_IMG_1__ // server rack
-__IMPORT_PLACEHOLDER__RACK_IMG_2__ // battery / capacitor unit
-__IMPORT_PLACEHOLDER__RACK_IMG_3__ // dual-fan cooler unit
