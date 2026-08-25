@@ -19,6 +19,7 @@ import { MAX_LEVEL, PART_CATEGORIES, findPartItem, itemLevelUpCost } from "./dat
 import { SITES } from "./data/sites";
 import { MACHINE_ANIMATION_CSS } from "./data/uiConstants";
 import { callFunction, getTelegramWebApp, inventoryToRows, isBackendConfigured, resolveInventoryRow } from "./lib/api";
+import { loadLocalSave, saveLocalSave } from "./lib/localSave";
 import { formatHashrate, formatInt } from "./lib/format";
 import { AchievementScreen } from "./screens/AchievementScreen";
 import { CodexScreen } from "./screens/CodexScreen";
@@ -209,6 +210,20 @@ export default function MiningDashboard() {
   const boostCost = Math.max(500, Math.round(((hashrateBase * SITES[activeSiteIndex].bonus * prestigeMultiplier) / INCOME_DIVISOR) * 3600 * 1.5));
   const canPrestige = unlockedIndex >= SITES.length - 1;
 
+  // kept fresh on every render so the autosave interval (set up once) always
+  // writes the latest values without needing a giant effect dependency list
+  const gameStateRef = useRef(null);
+  gameStateRef.current = {
+    core, totalEarned, totalMined, incomeStats, spendStats, unlockedIndex, activeSiteIndex,
+    ownedItems, pending, claimCount, dailyClaims, lastClaimDay, upgradeCount, marketVisited,
+    claimedMissionIds, claimedEventIds, inventory, playerName,
+    inboxClaimedIds: inboxItems.filter((i) => i.claimed).map((i) => i.id),
+    guildId, guildPoints, guildMilestoneIndex, loginStreak, lastClaimDate, marketOwned,
+    autoSellEnabled, prestigeCount, boostEndTime, mysterySiteAvailableUntil, mysteryBoostEndTime,
+    autoClaimUnlocked, autoClaimActive, perSecond, savedAt: Date.now(),
+  };
+
+
   // --- offline earnings: credited when the player returns after being away from the tab ---
   const [offlineEarnings, setOfflineEarnings] = useState(0);
   const [offlineDuration, setOfflineDuration] = useState(0);
@@ -241,7 +256,57 @@ export default function MiningDashboard() {
     let cancelled = false;
     (async () => {
       if (!isBackendConfigured()) {
-        if (!cancelled) setIsLoaded(true); // offline mode: just play with the in-memory defaults
+        // No real Telegram launch context (or backend not set up) — fall back
+        // to whatever was last saved locally, so progress survives a reload
+        // instead of always starting from zero.
+        const saved = loadLocalSave();
+        if (saved && !cancelled) {
+          setCore(Number(saved.core) || 0);
+          setTotalEarned(Number(saved.totalEarned) || 0);
+          setTotalMined(Number(saved.totalMined) || 0);
+          if (saved.incomeStats) setIncomeStats((s) => ({ ...s, ...saved.incomeStats }));
+          if (saved.spendStats) setSpendStats((s) => ({ ...s, ...saved.spendStats }));
+          setUnlockedIndex(saved.unlockedIndex || 0);
+          setActiveSiteIndex(saved.activeSiteIndex || 0);
+          setOwnedItems(saved.ownedItems || {});
+          setClaimCount(saved.claimCount || 0);
+          setDailyClaims(saved.dailyClaims || 0);
+          setLastClaimDay(saved.lastClaimDay || null);
+          setUpgradeCount(saved.upgradeCount || 0);
+          setMarketVisited(Boolean(saved.marketVisited));
+          setClaimedMissionIds(Array.isArray(saved.claimedMissionIds) ? saved.claimedMissionIds : []);
+          setClaimedEventIds(Array.isArray(saved.claimedEventIds) ? saved.claimedEventIds : []);
+          if (Array.isArray(saved.inventory)) setInventory(saved.inventory);
+          if (saved.playerName) setPlayerName(saved.playerName);
+          const claimedIds = Array.isArray(saved.inboxClaimedIds) ? saved.inboxClaimedIds : [];
+          if (claimedIds.length) setInboxItems((prev) => prev.map((i) => (claimedIds.includes(i.id) ? { ...i, claimed: true } : i)));
+          setGuildId(saved.guildId || null);
+          setGuildPoints(Number(saved.guildPoints) || 0);
+          setGuildMilestoneIndex(saved.guildMilestoneIndex || 0);
+          setLoginStreak(saved.loginStreak || 0);
+          if (saved.lastClaimDate) setLastClaimDate(saved.lastClaimDate);
+          if (saved.marketOwned) setMarketOwned((s) => ({ ...s, ...saved.marketOwned }));
+          setAutoSellEnabled(Boolean(saved.autoSellEnabled));
+          setPrestigeCount(saved.prestigeCount || 0);
+          if (saved.boostEndTime) setBoostEndTime(saved.boostEndTime);
+          if (saved.mysterySiteAvailableUntil) setMysterySiteAvailableUntil(saved.mysterySiteAvailableUntil);
+          if (saved.mysteryBoostEndTime) setMysteryBoostEndTime(saved.mysteryBoostEndTime);
+          setAutoClaimUnlocked(Boolean(saved.autoClaimUnlocked));
+          setAutoClaimActive(saved.autoClaimActive !== false);
+
+          // catch up on mining income accrued while the tab was closed, using
+          // the hash rate we had at the last save — same 6h cap the live
+          // ticker itself uses, so this can't be abused for infinite offline gains
+          if (saved.savedAt && saved.perSecond > 0) {
+            const elapsedSeconds = Math.max(0, (Date.now() - saved.savedAt) / 1000);
+            const cap = saved.perSecond * 3600 * 6;
+            const caughtUp = Math.min(cap, (Number(saved.pending) || 0) + elapsedSeconds * saved.perSecond);
+            setPending(caughtUp);
+          } else {
+            setPending(Number(saved.pending) || 0);
+          }
+        }
+        if (!cancelled) setIsLoaded(true);
         return;
       }
       try {
@@ -288,6 +353,28 @@ export default function MiningDashboard() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // --- local-save fallback: while there's no backend connection, periodically
+  //     (and on tab-hide / close) write the current state to localStorage so
+  //     progress survives a reload instead of resetting to zero each time ---
+  useEffect(() => {
+    if (!isLoaded) return;
+    const flush = () => {
+      if (!isBackendOnline && gameStateRef.current) saveLocalSave(gameStateRef.current);
+    };
+    const id = setInterval(flush, 4000);
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("beforeunload", flush);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("beforeunload", flush);
+      flush(); // also catch progress made right up until navigating away within the app
+    };
+  }, [isLoaded, isBackendOnline]);
 
   // --- push everything except AETHER balance/pending (those only ever change via
   //     sync-player's claim or marketplace trades) to sync-full-state periodically ---
