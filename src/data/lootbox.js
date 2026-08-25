@@ -4,12 +4,12 @@ import { PART_CATEGORIES } from "./parts";
 export const LOOTBOX_COST = 500;
 
 export const LOOTBOX_REWARDS = [
-  { weight: 35, type: "aether", label: "AETHER", min: 200, max: 800 },
-  { weight: 20, type: "aether", label: "AETHER", min: 1000, max: 3000 },
+  { weight: 35, type: "aether", label: "AETHER", min: 150, max: 600 },
+  { weight: 20, type: "aether", label: "AETHER", min: 750, max: 2200 },
   { weight: 20, type: "material", pool: ["Metal Ingot", "Metal Plate", "Storage Unit", "Fuel Barrel"], min: 3, max: 8 },
   { weight: 12, type: "material", pool: ["Nano Alloy", "Core Crystal", "Carbon Fiber"], min: 1, max: 3 },
   { weight: 5, type: "material", pool: ["Quantum Alloy"], min: 1, max: 2 },
-  { weight: 3, type: "aether", label: "JACKPOT AETHER", min: 8000, max: 15000 },
+  { weight: 3, type: "aether", label: "JACKPOT AETHER", min: 6000, max: 11000 },
   { weight: 5, type: "part" },
 ];
 

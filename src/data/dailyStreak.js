@@ -1,4 +1,4 @@
-export const DAILY_STREAK_REWARDS = [50, 100, 150, 250, 350, 500, 1000];
+export const DAILY_STREAK_REWARDS = [40, 80, 120, 200, 280, 400, 800];
 
 export function daysBetween(dateStrA, dateStrB) {
   const a = new Date(dateStrA);
