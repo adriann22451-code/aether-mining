@@ -216,7 +216,12 @@ export default function MiningDashboard() {
   gameStateRef.current = {
     core, totalEarned, totalMined, incomeStats, spendStats, unlockedIndex, activeSiteIndex,
     ownedItems, pending, claimCount, dailyClaims, lastClaimDay, upgradeCount, marketVisited,
-    claimedMissionIds, claimedEventIds, inventory, playerName,
+    claimedMissionIds, claimedEventIds,
+    // icon/color/desc on each inventory item are React component references —
+    // JSON can't serialize functions, so store the same lightweight
+    // {name, type, qty} shape the backend uses and re-attach the icon via
+    // resolveInventoryRow() on load (see inventoryToRows below)
+    inventory: inventoryToRows(inventory), playerName,
     inboxClaimedIds: inboxItems.filter((i) => i.claimed).map((i) => i.id),
     guildId, guildPoints, guildMilestoneIndex, loginStreak, lastClaimDate, marketOwned,
     autoSellEnabled, prestigeCount, boostEndTime, mysterySiteAvailableUntil, mysteryBoostEndTime,
@@ -276,7 +281,7 @@ export default function MiningDashboard() {
           setMarketVisited(Boolean(saved.marketVisited));
           setClaimedMissionIds(Array.isArray(saved.claimedMissionIds) ? saved.claimedMissionIds : []);
           setClaimedEventIds(Array.isArray(saved.claimedEventIds) ? saved.claimedEventIds : []);
-          if (Array.isArray(saved.inventory)) setInventory(saved.inventory);
+          if (Array.isArray(saved.inventory)) setInventory(saved.inventory.map(resolveInventoryRow));
           if (saved.playerName) setPlayerName(saved.playerName);
           const claimedIds = Array.isArray(saved.inboxClaimedIds) ? saved.inboxClaimedIds : [];
           if (claimedIds.length) setInboxItems((prev) => prev.map((i) => (claimedIds.includes(i.id) ? { ...i, claimed: true } : i)));
