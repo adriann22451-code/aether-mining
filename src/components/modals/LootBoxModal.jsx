@@ -14,6 +14,9 @@ export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
   if (result?.type === "aether") resultColor = "#facc15";
   if (result?.type === "material") resultColor = result.iconColor || "#94a3b8";
   if (result?.type === "part") resultColor = RARITY_COLORS[result.item.rarity] || "#38bdf8";
+  // Epic/Legendary pulls get the extra "big reveal" treatment (rays + flash);
+  // everything else just gets the pop-in.
+  const isBigReveal = result?.type === "part" && (result.item.rarity === "Epic" || result.item.rarity === "Legendary");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-5">
@@ -30,21 +33,39 @@ export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
 
         {phase === "result" && result ? (
           <>
-            <div
-              className="mx-auto mt-4 w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden"
-              style={{
-                background: `linear-gradient(160deg, ${resultColor}40 0%, #0d1420 85%)`,
-                border: `1px solid ${resultColor}66`,
-                boxShadow: `0 0 24px -4px ${resultColor}aa`,
-              }}
-            >
-              {result.type === "aether" && <Coins size={38} style={{ color: resultColor }} />}
-              {result.type === "material" && result.icon && <result.icon size={38} style={{ color: resultColor }} />}
-              {result.type === "part" && (result.item.image ? (
-                <img src={result.item.image} alt={result.item.name} className="w-full h-full object-cover" />
-              ) : (
-                <result.category.icon size={38} style={{ color: resultColor }} />
-              ))}
+            <div className="relative mx-auto mt-4 w-20 h-20">
+              {isBigReveal && (
+                <>
+                  <div
+                    className="absolute left-1/2 top-1/2 w-20 h-20 rounded-full pointer-events-none"
+                    style={{ background: `radial-gradient(circle, ${resultColor}cc 0%, ${resultColor}00 70%)`, animation: "lootFlash 0.6s ease-out forwards" }}
+                  />
+                  <div
+                    className="absolute left-1/2 top-1/2 w-28 h-28 pointer-events-none"
+                    style={{
+                      background: `repeating-conic-gradient(${resultColor}55 0deg 8deg, transparent 8deg 20deg)`,
+                      animation: "lootRaysSpin 5s linear infinite",
+                    }}
+                  />
+                </>
+              )}
+              <div
+                className="relative mx-auto w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden"
+                style={{
+                  background: `linear-gradient(160deg, ${resultColor}40 0%, #0d1420 85%)`,
+                  border: `1px solid ${resultColor}66`,
+                  boxShadow: `0 0 24px -4px ${resultColor}aa`,
+                  animation: "lootRevealPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both",
+                }}
+              >
+                {result.type === "aether" && <Coins size={38} style={{ color: resultColor }} />}
+                {result.type === "material" && result.icon && <result.icon size={38} style={{ color: resultColor }} />}
+                {result.type === "part" && (result.item.image ? (
+                  <img src={result.item.image} alt={result.item.name} className="w-full h-full object-cover" />
+                ) : (
+                  <result.category.icon size={38} style={{ color: resultColor }} />
+                ))}
+              </div>
             </div>
             <div className="mt-3 text-[13px] font-extrabold text-white">
               {result.type === "aether" && `+${formatInt(result.amount)} ${result.label}`}
@@ -72,12 +93,24 @@ export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
           </>
         ) : (
           <>
-            <div
-              className={`mx-auto mt-4 w-20 h-20 rounded-2xl flex items-center justify-center border border-fuchsia-400/40 bg-fuchsia-500/10 ${
-                phase === "opening" ? "animate-bounce" : ""
-              }`}
-            >
-              <Box size={38} className="text-fuchsia-300" />
+            <div className="relative mx-auto mt-4 w-20 h-20">
+              {phase === "opening" && [0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="absolute left-1/2 top-1/2 w-1.5 h-1.5 rounded-full bg-fuchsia-300 pointer-events-none"
+                  style={{ animation: `lootSparkOrbit 1.1s linear infinite`, animationDelay: `${i * 0.37}s` }}
+                />
+              ))}
+              <div
+                className="relative mx-auto w-20 h-20 rounded-2xl flex items-center justify-center border border-fuchsia-400/40 bg-fuchsia-500/10"
+                style={
+                  phase === "opening"
+                    ? { animation: "lootShake 0.45s ease-in-out infinite, lootChargeGlow 0.9s ease-in-out infinite alternate" }
+                    : undefined
+                }
+              >
+                <Box size={38} className="text-fuchsia-300" />
+              </div>
             </div>
             <p className="mt-3 text-[11.5px] text-slate-400">
               Spend AETHER for a random reward — a payout, Materials, or a free Part.
