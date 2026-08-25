@@ -14,7 +14,7 @@ import { AETHER_MAX_SUPPLY, calcPlayerLevel, miningHalvingEpoch, miningHalvingMu
 import { SITES } from "../data/sites";
 import { formatCore, formatHashrate, formatInt } from "../lib/format";
 
-export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name, onRename, totalMined, incomeStats, spendStats }) {
+export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name, onRename, totalMined, isGlobalSupply, incomeStats, spendStats }) {
   const profileStats = [
     { id: 1, label: "TOTAL EARNED", value: `${formatCore(totalEarned)} AETHER`, valueColor: "#facc15", icon: Coins, iconColor: "#facc15" },
     { id: 2, label: "CURRENT HASHRATE", value: formatHashrate(totalHashrate), valueColor: "#38bdf8", icon: Gauge, iconColor: "#facc15" },
@@ -135,7 +135,7 @@ export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedInde
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-[12px] font-extrabold tracking-[0.1em] text-white">
             <Coins size={14} className="text-amber-300" />
-            AETHER SUPPLY
+            {isGlobalSupply ? "GLOBAL AETHER SUPPLY" : "AETHER SUPPLY (LOCAL)"}
           </div>
           <span className="text-[10.5px] font-semibold text-slate-400">Epoch {halvingEpoch}</span>
         </div>
@@ -147,12 +147,14 @@ export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedInde
         </div>
         <div className="mt-1.5 flex items-center justify-between text-[10.5px]">
           <span className="text-slate-400">
-            {formatCore(totalMined)} / {formatInt(AETHER_MAX_SUPPLY)} mined
+            {formatCore(totalMined)} / {formatInt(AETHER_MAX_SUPPLY)} {isGlobalSupply ? "mined network-wide" : "mined (this device)"}
           </span>
           <span className="font-bold text-amber-300">{(halvingMultiplier * 100).toFixed(halvingMultiplier < 0.01 ? 3 : 0)}% rate</span>
         </div>
         <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-          Mining rate halves every time the supply crosses a milestone — Bitcoin-style. Missions, Events, Guild, and Loot Box rewards aren't affected.
+          {isGlobalSupply
+            ? "The 100M supply is shared by every miner — your AETHER/sec is your share of the network's active hashrate, split like real mining difficulty. Missions, Events, Guild, and Loot Box rewards aren't affected."
+            : "Not connected to the shared network right now, so this is a local-only estimate using just your own hashrate. Missions, Events, Guild, and Loot Box rewards aren't affected."}
         </p>
       </div>
 
