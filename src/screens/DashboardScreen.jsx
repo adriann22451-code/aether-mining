@@ -132,36 +132,54 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
       </div>
 
       {/* MYSTERY SITE — rare temporary event with a huge hashrate surge */}
-      {mysterySiteAvailable && (
-        <button
-          type="button"
-          onClick={onActivateMysterySite}
-          className="shrink-0 mt-1.5 w-full rounded-xl px-3 py-2 flex items-center gap-2 text-left active:scale-[0.98] transition animate-pulse"
-          style={{
-            background: "linear-gradient(90deg, rgba(217,70,239,0.25), rgba(99,102,241,0.25))",
-            border: "1px solid rgba(217,70,239,0.5)",
-            boxShadow: "0 0 16px -2px rgba(217,70,239,0.5)",
-          }}
-        >
-          <Sparkles size={16} className="text-fuchsia-300 shrink-0" />
-          <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-extrabold text-white">Mysterious Site Detected!</div>
-            <div className="text-[9.5px] text-fuchsia-200">Tap to activate a 5x hashrate surge before it vanishes</div>
-          </div>
-          <span className="shrink-0 text-[9px] font-mono font-bold text-fuchsia-200">
-            {Math.max(0, Math.ceil((mysterySiteAvailableUntil - Date.now()) / 1000))}s
-          </span>
-        </button>
-      )}
+      {mysterySiteAvailable && (() => {
+        const secsLeft = Math.max(0, Math.ceil((mysterySiteAvailableUntil - Date.now()) / 1000));
+        return (
+          <button
+            type="button"
+            onClick={onActivateMysterySite}
+            className="relative shrink-0 mt-1.5 w-full rounded-xl px-3 py-2 flex items-center gap-2 text-left active:scale-[0.98] transition overflow-hidden"
+            style={{
+              background: "linear-gradient(90deg, rgba(217,70,239,0.25), rgba(99,102,241,0.25))",
+              border: "1px solid rgba(217,70,239,0.5)",
+              animation: "portalBorderPulse 1.4s ease-in-out infinite",
+            }}
+          >
+            <div
+              className="pointer-events-none absolute inset-y-0 w-1/3"
+              style={{
+                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)",
+                animation: "portalShimmerSweep 2.2s ease-in-out infinite",
+              }}
+            />
+            <Sparkles size={16} className="text-fuchsia-300 shrink-0" style={{ animation: "sparkleTwinkle 1.1s ease-in-out infinite" }} />
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-extrabold text-white">Mysterious Site Detected!</div>
+              <div className="text-[9.5px] text-fuchsia-200">Tap to activate a 5x hashrate surge before it vanishes</div>
+            </div>
+            <span
+              className="shrink-0 text-[9px] font-mono font-bold"
+              style={secsLeft <= 5 ? { animation: "urgentCountdown 0.5s ease-in-out infinite" } : { color: "#f5d0fe" }}
+            >
+              {secsLeft}s
+            </span>
+          </button>
+        );
+      })()}
       {mysteryBoostActive && (
         <div
           className="shrink-0 mt-1.5 w-full rounded-xl px-3 py-2 flex items-center gap-2"
           style={{
             background: "linear-gradient(90deg, rgba(217,70,239,0.2), rgba(99,102,241,0.2))",
             border: "1px solid rgba(217,70,239,0.4)",
+            animation: "portalBorderPulse 1.8s ease-in-out infinite",
           }}
         >
-          <Zap size={16} className="text-fuchsia-300 shrink-0" style={{ filter: "drop-shadow(0 0 5px rgba(217,70,239,0.9))" }} />
+          <Zap
+            size={16}
+            className="text-fuchsia-300 shrink-0"
+            style={{ filter: "drop-shadow(0 0 5px rgba(217,70,239,0.9))", animation: "surgeFlicker 2.4s linear infinite" }}
+          />
           <div className="flex-1 min-w-0 text-[11px] font-extrabold text-white">Mysterious Surge Active — 5x Hashrate!</div>
           <span className="shrink-0 text-[9px] font-mono font-bold text-fuchsia-200">
             {Math.max(0, Math.ceil((mysteryBoostEndTime - Date.now()) / 60000))}m left
