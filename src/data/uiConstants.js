@@ -7,6 +7,16 @@ export const MACHINE_ANIMATION_CSS = `
 @keyframes coreHubPulse { 0%, 100% { box-shadow: 0 0 18px var(--glow); } 50% { box-shadow: 0 0 32px var(--glow); } }
 @keyframes rarityPulse { 0%, 100% { box-shadow: 0 0 14px -2px var(--rglow), 0 0 3px 0 var(--rglow) inset; } 50% { box-shadow: 0 0 30px 3px var(--rglow), 0 0 12px 1px var(--rglow) inset; } }
 @keyframes rarityShine { 0% { transform: translateX(-130%) translateY(-130%) rotate(35deg); } 100% { transform: translateX(130%) translateY(130%) rotate(35deg); } }
+@keyframes claimFloatUp {
+  0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+  15% { transform: translate(-50%, -6px) scale(1.15); opacity: 1; }
+  30% { transform: translate(-50%, -14px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -68px) scale(1); opacity: 0; }
+}
+@keyframes claimBurstRing {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.55; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
 `;
 
 export const SNOWFLAKES = [
