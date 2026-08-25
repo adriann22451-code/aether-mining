@@ -18,6 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import { DroneIcon } from "../components/icons/CustomIcons";
+import { FloatingClaimNumbers } from "../components/layout/FloatingClaimNumbers";
 import ROOM_BG_IMG from "../assets/images/room-bg.webp";
 import { calcPlayerLevel } from "../data/economy";
 import { SITES, SITE_BG_IMAGES } from "../data/sites";
@@ -25,7 +26,7 @@ import { SNOWFLAKES } from "../data/uiConstants";
 import { formatCore, formatHashrate, formatInt } from "../lib/format";
 import { useTween } from "../lib/hooks";
 
-export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, onClaim, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned }) {
+export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned }) {
   const coreDisplay = useTween(core, 700);
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
@@ -312,11 +313,12 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
 
       {/* CLAIM + BOOST BUTTONS */}
       <div className="shrink-0 flex gap-2">
+        <div className="relative flex-1">
         <button
           type="button"
           onClick={onClaim}
           disabled={pending < 0.01}
-          className={`relative flex-1 rounded-xl py-3 flex items-center justify-center gap-2 font-extrabold text-[14px] text-amber-950 transition-transform active:scale-[0.98] ${
+          className={`relative w-full rounded-xl py-3 flex items-center justify-center gap-2 font-extrabold text-[14px] text-amber-950 transition-transform active:scale-[0.98] ${
             pending < 0.01 ? "opacity-50" : claimPulse ? "shadow-[0_0_30px_rgba(251,191,36,0.55)]" : "shadow-[0_0_18px_rgba(251,191,36,0.3)]"
           }`}
           style={{ background: "linear-gradient(180deg, #ffe27a 0%, #fbbf24 45%, #f59e0b 100%)" }}
@@ -338,6 +340,8 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             {formatCore(pendingDisplay)} AETHER
           </span>
         </button>
+        <FloatingClaimNumbers items={floatingGains} />
+        </div>
         <button
           type="button"
           onClick={onBoost}
