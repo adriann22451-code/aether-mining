@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Crown,
   Gift,
@@ -6,7 +7,10 @@ import { ScreenHeader } from "../components/layout/ScreenHeader";
 import { GUILDS, guildMilestoneFor, guildRewardFor } from "../data/guild";
 import { formatHashrate, formatInt } from "../lib/format";
 
+const CONFETTI_COLORS = ["#facc15", "#22d3ee", "#c084fc", "#4ade80", "#f472b6"];
+
 export function GuildScreen({ onBack, playerName, totalHashrate, guildId, guildPoints, milestoneIndex, onJoinGuild, onClaimMilestone }) {
+  const [celebrate, setCelebrate] = useState(false);
   const guild = GUILDS.find((g) => g.id === guildId);
   const milestone = guildMilestoneFor(milestoneIndex);
   const reward = guildRewardFor(milestoneIndex);
@@ -75,7 +79,35 @@ export function GuildScreen({ onBack, playerName, totalHashrate, guildId, guildP
         </div>
       </div>
 
-      <div className="mt-4 rounded-2xl bg-white/5 border border-white/10 p-3.5">
+      <div className="relative mt-4 rounded-2xl bg-white/5 border border-white/10 p-3.5 overflow-hidden">
+        {celebrate && (
+          <div className="pointer-events-none absolute inset-0 z-10">
+            <div
+              className="absolute inset-0"
+              style={{ background: `linear-gradient(90deg, transparent, ${guild.color}cc, transparent)`, animation: "milestoneBarFlash 0.7s ease-out forwards" }}
+            />
+            {Array.from({ length: 16 }).map((_, i) => {
+              const cx = Math.round((Math.random() - 0.5) * 140);
+              const cr = Math.round(Math.random() * 360 + 180);
+              const delay = Math.random() * 0.15;
+              const left = 10 + Math.random() * 80;
+              return (
+                <span
+                  key={i}
+                  className="absolute top-2 w-1.5 h-2.5 rounded-sm"
+                  style={{
+                    left: `${left}%`,
+                    background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+                    "--cx": `${cx}px`,
+                    "--cr": `${cr}deg`,
+                    animation: `confettiFall 0.9s ease-in forwards`,
+                    animationDelay: `${delay}s`,
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-extrabold tracking-[0.1em] text-white">WEEKLY MILESTONE #{milestoneIndex + 1}</span>
           <span className="text-[10.5px] font-semibold text-slate-400">{formatInt(guildPoints)} / {formatInt(milestone)}</span>
@@ -94,7 +126,12 @@ export function GuildScreen({ onBack, playerName, totalHashrate, guildId, guildP
           <button
             type="button"
             disabled={!canClaim}
-            onClick={onClaimMilestone}
+            onClick={() => {
+              if (!canClaim) return;
+              setCelebrate(true);
+              onClaimMilestone();
+              setTimeout(() => setCelebrate(false), 1000);
+            }}
             className={`rounded-lg px-3 py-1.5 text-[11px] font-extrabold transition active:scale-[0.97] ${
               canClaim
                 ? "bg-gradient-to-b from-emerald-500 to-green-600 text-white shadow-[0_2px_10px_-2px_rgba(34,197,94,0.6)]"
