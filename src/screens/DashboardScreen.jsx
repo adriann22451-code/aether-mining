@@ -54,7 +54,16 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
   const SiteIcon = site.icon;
 
   return (
-    <div className="px-4 pt-3 pb-3 h-full flex flex-col gap-2">
+    <div className="relative px-4 pt-3 pb-3 h-full flex flex-col gap-2">
+      {isOverheating && (
+        <div
+          className="pointer-events-none absolute inset-0 z-40"
+          style={{
+            boxShadow: "inset 0 0 90px 10px rgba(239,68,68,0.55)",
+            animation: "overheatVignette 1.3s ease-in-out infinite",
+          }}
+        />
+      )}
       {/* TOP BAR */}
       <div className="shrink-0 flex items-center gap-2">
         <button
@@ -82,8 +91,15 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             <span className="text-[11px] font-extrabold text-amber-200 whitespace-nowrap truncate">{formatInt(coreDisplay)}</span>
           </div>
           <div className="w-px h-3.5 bg-white/15 shrink-0" />
-          <div className="flex items-center gap-1 min-w-0">
-            <Gem size={11} className="text-indigo-300 shrink-0" />
+          <div
+            className={`flex items-center gap-1 min-w-0 ${boostActive ? "rounded-full border px-1.5 -my-0.5" : ""}`}
+            style={boostActive ? { animation: "boostGlowPulse 1.1s ease-in-out infinite" } : undefined}
+          >
+            {boostActive ? (
+              <Zap size={11} className="text-amber-300 shrink-0" style={{ animation: "boostSparkle 1.1s ease-in-out infinite" }} />
+            ) : (
+              <Gem size={11} className="text-indigo-300 shrink-0" />
+            )}
             <span className="text-[11px] font-extrabold text-slate-200 whitespace-nowrap truncate">{formatHashrate(totalHashrate)}</span>
           </div>
         </div>
@@ -192,6 +208,15 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
         onPointerMove={handleParallaxMove}
         onPointerLeave={resetParallax}
       >
+        {isOverheating && (
+          <div
+            className="pointer-events-none absolute inset-0 z-30"
+            style={{
+              background: "radial-gradient(ellipse at 50% 60%, rgba(248,113,113,0.35) 0%, rgba(248,113,113,0) 65%)",
+              animation: "heatHaze 1.8s ease-in-out infinite",
+            }}
+          />
+        )}
         <div
           className="absolute inset-0"
           style={{
