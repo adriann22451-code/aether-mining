@@ -47,6 +47,17 @@ export default function MiningDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
   const [claimPulse, setClaimPulse] = useState(false);
+  const [floatingGains, setFloatingGains] = useState([]);
+  const floatingGainIdRef = useRef(0);
+  const spawnFloatingGain = (amount) => {
+    if (!amount || amount < 0.01) return;
+    const id = ++floatingGainIdRef.current;
+    const drift = Math.round((Math.random() - 0.5) * 36); // slight left/right scatter so rapid claims don't stack exactly
+    setFloatingGains((list) => [...list, { id, amount, drift }]);
+    setTimeout(() => {
+      setFloatingGains((list) => list.filter((g) => g.id !== id));
+    }, 1200);
+  };
 
   const [core, setCore] = useState(0);
   const [totalEarned, setTotalEarned] = useState(0);
@@ -438,6 +449,7 @@ export default function MiningDashboard() {
 
   const handleClaim = async () => {
     if (pending < 0.01 && !isBackendOnline) return;
+    const claimedAmount = pending;
     if (isBackendOnline) {
       try {
         const { awarded, player: p } = await callFunction("sync-player", { action: "claim" });
@@ -446,6 +458,7 @@ export default function MiningDashboard() {
         setTotalMined(Number(p.total_mined));
         addIncome("mining", awarded);
         setPending(0);
+        spawnFloatingGain(awarded);
       } catch (e) {
         console.error("claim failed:", e);
         return;
@@ -456,6 +469,7 @@ export default function MiningDashboard() {
       setTotalMined((m) => Math.min(AETHER_MAX_SUPPLY, m + pending));
       addIncome("mining", pending);
       setPending(0);
+      spawnFloatingGain(claimedAmount);
     }
     setClaimCount((c) => c + 1);
     const today = new Date().toDateString();
@@ -1104,6 +1118,7 @@ export default function MiningDashboard() {
             siteIndex={activeSiteIndex}
             unlockedIndex={unlockedIndex}
             claimPulse={claimPulse}
+            floatingGains={floatingGains}
             onClaim={handleClaim}
             onNavigate={setScreen}
             boostActive={boostActive}
