@@ -86,6 +86,15 @@ export const MACHINE_ANIMATION_CSS = `
   0%, 100% { color: #f5d0fe; transform: scale(1); }
   50% { color: #fca5a5; transform: scale(1.12); }
 }
+@keyframes confettiFall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--cx, 0px), 90px) rotate(var(--cr, 180deg)); opacity: 0; }
+}
+@keyframes milestoneBarFlash {
+  0% { opacity: 0; }
+  30% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
 `;
 
 export const SNOWFLAKES = [
