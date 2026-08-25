@@ -639,14 +639,22 @@ export default function MiningDashboard() {
     }, 900);
   };
 
+  // kept fresh every render so the auto-claim interval below always calls the
+  // CURRENT handleClaim (with up-to-date pending/isBackendOnline/etc in its
+  // closure) instead of a stale one captured back when the interval was
+  // first set up — the interval itself is only created once per on/off
+  // toggle, not every second, so without this it would keep re-checking
+  // whatever `pending` happened to be at that one moment forever
+  const handleClaimRef = useRef(null);
+  handleClaimRef.current = handleClaim;
+
   useEffect(() => {
     if (!autoClaimUnlocked || !autoClaimActive) return;
     const t = setInterval(() => {
-      if (pending >= 0.01 || isBackendOnline) handleClaim();
+      handleClaimRef.current();
     }, 5000);
     return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoClaimUnlocked, autoClaimActive, pending, isBackendOnline]);
+  }, [autoClaimUnlocked, autoClaimActive]);
 
   const handleLevelUpItem = async (itemId) => {
     const found = findPartItem(itemId);
