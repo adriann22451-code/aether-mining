@@ -101,7 +101,7 @@ export const MAX_LEVEL = 50;
 
 export const LEVEL_HP_GROWTH = 1.06; // +6% hashrate per level
 
-export const LEVEL_COST_GROWTH = 1.12; // +12% cost per level
+export const LEVEL_COST_GROWTH = 1.16; // +16% cost per level (was 1.12 — higher levels now cost noticeably more relative to the hashrate they give, so over-leveling one part stops being the obviously-best move)
 
 export const LEVEL_COST_BASE_RATIO = 0.08; // initial level-up cost = base * this ratio
 
