@@ -18,7 +18,7 @@ import { AUTO_CLAIM_COST, AUTO_SELL_CAP, MARKET_FEE_RATE, TRADE_BASE_PRICES, TRA
 import { MAX_LEVEL, PART_CATEGORIES, findPartItem, itemLevelUpCost } from "./data/parts";
 import { SITES } from "./data/sites";
 import { MACHINE_ANIMATION_CSS } from "./data/uiConstants";
-import { getTelegramWebApp, inventoryToRows, isBackendConfigured, resolveInventoryRow } from "./lib/api";
+import { callFunction, getTelegramWebApp, inventoryToRows, isBackendConfigured, resolveInventoryRow } from "./lib/api";
 import { formatHashrate, formatInt } from "./lib/format";
 import { AchievementScreen } from "./screens/AchievementScreen";
 import { CodexScreen } from "./screens/CodexScreen";
