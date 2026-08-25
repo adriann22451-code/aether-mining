@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTonConnectUI, useTonAddress } from "@tonconnect/ui-react";
 import {
   Box,
   Coins,
