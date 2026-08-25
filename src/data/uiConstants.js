@@ -48,6 +48,22 @@ export const MACHINE_ANIMATION_CSS = `
   0% { transform: translate(-50%, -50%) rotate(0deg); opacity: 0.55; }
   100% { transform: translate(-50%, -50%) rotate(360deg); opacity: 0.55; }
 }
+@keyframes overheatVignette {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+}
+@keyframes heatHaze {
+  0%, 100% { transform: scale(1) translateY(0); opacity: 0.5; }
+  50% { transform: scale(1.02) translateY(-2px); opacity: 0.8; }
+}
+@keyframes boostGlowPulse {
+  0%, 100% { box-shadow: 0 0 8px 0px rgba(251,191,36,0.5); border-color: rgba(251,191,36,0.6); }
+  50% { box-shadow: 0 0 16px 2px rgba(236,72,153,0.65); border-color: rgba(236,72,153,0.7); }
+}
+@keyframes boostSparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.25) rotate(15deg); }
+}
 `;
 
 export const SNOWFLAKES = [
