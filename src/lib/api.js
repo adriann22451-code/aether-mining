@@ -28,7 +28,7 @@ export function isBackendConfigured() {
   return Boolean(getInitData()) && !SUPABASE_ANON_KEY.includes("YOUR-ANON-KEY");
 }
 
-async function callFunction(name, body) {
+export async function callFunction(name, body) {
   const initData = getInitData();
   const res = await fetch(`${SUPABASE_FUNCTIONS_URL}/${name}`, {
     method: "POST",
