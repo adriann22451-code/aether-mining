@@ -1,6 +1,6 @@
 import { PART_CATEGORIES, itemHpAtLevel } from "./parts";
 
-export const INCOME_DIVISOR = 5e8; // tunes how much Hash Power (HP) converts to AETHER/sec
+export const INCOME_DIVISOR = 6.5e8; // tunes how much Hash Power (HP) converts to AETHER/sec
 
 export const AETHER_MAX_SUPPLY = 100_000_000;
 
