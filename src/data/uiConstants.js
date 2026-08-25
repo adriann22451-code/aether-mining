@@ -17,6 +17,37 @@ export const MACHINE_ANIMATION_CSS = `
   0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.55; }
   100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
 }
+@keyframes lootShake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-3px, 1px) rotate(-4deg); }
+  40% { transform: translate(3px, -1px) rotate(4deg); }
+  60% { transform: translate(-4px, 0) rotate(-5deg); }
+  80% { transform: translate(4px, 1px) rotate(5deg); }
+}
+@keyframes lootChargeGlow {
+  0% { box-shadow: 0 0 10px 0px rgba(217,70,239,0.35); }
+  100% { box-shadow: 0 0 34px 8px rgba(217,70,239,0.85); }
+}
+@keyframes lootSparkOrbit {
+  0% { transform: rotate(0deg) translateX(38px) rotate(0deg); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: rotate(360deg) translateX(38px) rotate(-360deg); opacity: 0; }
+}
+@keyframes lootRevealPop {
+  0% { transform: scale(0.4) rotate(-8deg); opacity: 0; }
+  55% { transform: scale(1.16) rotate(3deg); opacity: 1; }
+  75% { transform: scale(0.96) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes lootFlash {
+  0% { opacity: 0.9; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(2.6); }
+}
+@keyframes lootRaysSpin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); opacity: 0.55; }
+  100% { transform: translate(-50%, -50%) rotate(360deg); opacity: 0.55; }
+}
 `;
 
 export const SNOWFLAKES = [
