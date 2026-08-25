@@ -1,6 +1,11 @@
+import { Zap } from "lucide-react";
+import { marketCatalog } from "../../data/market";
+import { formatHashrate } from "../../lib/format";
+
 export function ItemDetailModal({ item, onClose }) {
   if (!item) return null;
   const Icon = item.icon;
+  const marketRef = marketCatalog.find((m) => m.name === item.name);
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
@@ -29,6 +34,16 @@ export function ItemDetailModal({ item, onClose }) {
             </div>
           </div>
         </div>
+
+        {marketRef && (
+          <div className="mt-4 rounded-xl bg-emerald-500/10 border border-emerald-400/40 px-3 py-2.5 flex items-center gap-2.5">
+            <Zap size={16} className="text-emerald-300 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-extrabold text-emerald-300">Permanent bonus active</div>
+              <div className="text-[10px] text-emerald-200/80">Adding +{formatHashrate(marketRef.hpBonus)} to your total hashrate right now.</div>
+            </div>
+          </div>
+        )}
 
         <p className="mt-4 text-[12.5px] leading-relaxed text-slate-300">
           {item.desc || "No description available for this item."}
