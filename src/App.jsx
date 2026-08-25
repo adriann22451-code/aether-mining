@@ -63,6 +63,11 @@ export default function MiningDashboard() {
   const [core, setCore] = useState(0);
   const [totalEarned, setTotalEarned] = useState(0);
   const [totalMined, setTotalMined] = useState(0); // AETHER earned specifically via passive mining (subject to the halving supply cap)
+  // shared/global side of the difficulty pool (see migration 0004) — only
+  // meaningful once synced to the backend; local/offline mode has no
+  // concept of other players so it keeps using the personal totalMined above
+  const [globalTotalMined, setGlobalTotalMined] = useState(0);
+  const [myEmissionPerSecond, setMyEmissionPerSecond] = useState(null);
 
   // --- AETHER economy tracking: breakdown of income by source and spending by category ---
   const [incomeStats, setIncomeStats] = useState({
@@ -203,9 +208,15 @@ export default function MiningDashboard() {
   const totalMarketBonus = marketCatalog.reduce((sum, item) => sum + item.hpBonus * (marketOwned[item.id] || 0), 0);
   const hashrateBase = calcHashrate(ownedItems) + totalMarketBonus;
   const totalHashrate = hashrateBase * SITES[activeSiteIndex].bonus * prestigeMultiplier * boostMultiplier * heatMultiplier * mysteryMultiplier;
-  const halvingEpoch = miningHalvingEpoch(totalMined);
-  const halvingMultiplier = miningHalvingMultiplier(totalMined);
-  const perSecond = (totalHashrate / INCOME_DIVISOR) * halvingMultiplier;
+  // once synced, the halving curve + actual AETHER/sec both come from the
+  // shared global pool (server-authoritative — see migration 0004) instead
+  // of this player's own hashrate/INCOME_DIVISOR; offline/local-save mode
+  // has no concept of other players so it keeps the old personal formula
+  const halvingEpoch = isBackendOnline ? miningHalvingEpoch(globalTotalMined) : miningHalvingEpoch(totalMined);
+  const halvingMultiplier = isBackendOnline ? miningHalvingMultiplier(globalTotalMined) : miningHalvingMultiplier(totalMined);
+  const perSecond = isBackendOnline && myEmissionPerSecond != null
+    ? myEmissionPerSecond
+    : (totalHashrate / INCOME_DIVISOR) * halvingMultiplier;
   const pendingCap = perSecond * 3600 * 6; // 6 hours max accumulation
   const boostCost = Math.max(500, Math.round(((hashrateBase * SITES[activeSiteIndex].bonus * prestigeMultiplier) / INCOME_DIVISOR) * 3600 * 1.5));
   const canPrestige = unlockedIndex >= SITES.length - 1;
@@ -315,12 +326,14 @@ export default function MiningDashboard() {
         return;
       }
       try {
-        const { player: p, inventory: inv, guild } = await callFunction("sync-player", { action: "init" });
+        const { player: p, inventory: inv, guild, globalTotalMined: gtm, myEmissionPerSecond: eps } = await callFunction("sync-player", { action: "init" });
         if (cancelled) return;
 
         setCore(Number(p.core));
         setTotalEarned(Number(p.total_earned));
         setTotalMined(Number(p.total_mined));
+        setGlobalTotalMined(Number(gtm) || 0);
+        if (typeof eps === "number") setMyEmissionPerSecond(eps);
         if (p.income_stats && Object.keys(p.income_stats).length) setIncomeStats((s) => ({ ...s, ...p.income_stats }));
         if (p.spend_stats && Object.keys(p.spend_stats).length) setSpendStats((s) => ({ ...s, ...p.spend_stats }));
         setUnlockedIndex(p.unlocked_index);
@@ -421,6 +434,25 @@ export default function MiningDashboard() {
     claimedMissionIds, claimedEventIds, inboxItems, marketOwned, autoSellEnabled, autoClaimUnlocked,
     autoClaimActive, prestigeCount, boostEndTime, loginStreak, lastClaimDate, guildId, guildPoints, playerName,
   ]);
+
+  // --- shared/global supply pool (migration 0004): ping the server every
+  //     ~20s so this player stays counted in the ACTIVE hashrate pool
+  //     between real claims, and pick up the latest emission-per-second
+  //     share (which shifts as other players join/leave) along the way ---
+  useEffect(() => {
+    if (!isLoaded || !isBackendOnline) return;
+    const beat = async () => {
+      try {
+        const { myEmissionPerSecond: eps } = await callFunction("sync-player", { action: "heartbeat" });
+        if (typeof eps === "number") setMyEmissionPerSecond(eps);
+      } catch (e) {
+        // a missed heartbeat just means one fewer active-hashrate tick —
+        // harmless, the next one will pick it back up
+      }
+    };
+    const t = setInterval(beat, 20000);
+    return () => clearInterval(t);
+  }, [isLoaded, isBackendOnline]);
 
   // --- also push immediately when the Mini App is closed/backgrounded, not just every 8s ---
   useEffect(() => {
@@ -544,10 +576,12 @@ export default function MiningDashboard() {
     const claimedAmount = pending;
     if (isBackendOnline) {
       try {
-        const { awarded, player: p } = await callFunction("sync-player", { action: "claim" });
+        const { awarded, player: p, globalTotalMined: gtm, myEmissionPerSecond: eps } = await callFunction("sync-player", { action: "claim" });
         setCore(Number(p.core));
         setTotalEarned(Number(p.total_earned));
         setTotalMined(Number(p.total_mined));
+        if (typeof gtm === "number") setGlobalTotalMined(gtm);
+        if (typeof eps === "number") setMyEmissionPerSecond(eps);
         addIncome("mining", awarded);
         setPending(0);
         spawnFloatingGain(awarded);
@@ -1172,7 +1206,8 @@ export default function MiningDashboard() {
             unlockedIndex={unlockedIndex}
             name={playerName}
             onRename={setPlayerName}
-            totalMined={totalMined}
+            totalMined={isBackendOnline ? globalTotalMined : totalMined}
+            isGlobalSupply={isBackendOnline}
             incomeStats={incomeStats}
             spendStats={spendStats}
           />
