@@ -64,6 +64,28 @@ export const MACHINE_ANIMATION_CSS = `
   0%, 100% { transform: scale(1) rotate(0deg); }
   50% { transform: scale(1.25) rotate(15deg); }
 }
+@keyframes portalShimmerSweep {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
+@keyframes portalBorderPulse {
+  0%, 100% { box-shadow: 0 0 16px -2px rgba(217,70,239,0.5); border-color: rgba(217,70,239,0.5); }
+  50% { box-shadow: 0 0 26px 2px rgba(129,140,248,0.7); border-color: rgba(129,140,248,0.75); }
+}
+@keyframes sparkleTwinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.3) rotate(20deg); opacity: 0.7; }
+}
+@keyframes surgeFlicker {
+  0%, 19%, 21%, 100% { opacity: 1; }
+  20% { opacity: 0.35; }
+  60%, 62% { opacity: 0.5; }
+  61% { opacity: 1; }
+}
+@keyframes urgentCountdown {
+  0%, 100% { color: #f5d0fe; transform: scale(1); }
+  50% { color: #fca5a5; transform: scale(1.12); }
+}
 `;
 
 export const SNOWFLAKES = [
