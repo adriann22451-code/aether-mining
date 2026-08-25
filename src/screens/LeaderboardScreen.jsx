@@ -3,6 +3,7 @@ import {
   Crown,
 } from "lucide-react";
 import { ScreenHeader } from "../components/layout/ScreenHeader";
+import { callFunction } from "../lib/api";
 import { RIVAL_MINERS } from "../data/guild";
 import { formatHashrate, formatInt } from "../lib/format";
 
