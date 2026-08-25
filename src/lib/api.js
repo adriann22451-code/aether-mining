@@ -49,11 +49,15 @@ export async function callFunction(name, body) {
 
 export function resolveInventoryRow(row) {
   const ref = TRADE_ITEM_POOL.find((p) => p.name === row.name);
+  // `qty` is the backend/local-save shape; older/corrupted local saves may
+  // instead carry a UI-shaped "xN" tag — fall back to parsing that so a
+  // stale save doesn't render as "xundefined".
+  const qty = row.qty != null ? row.qty : parseInventoryQty(row.tag) || 1;
   return {
     id: row.name,
     name: row.name,
     type: row.type,
-    tag: `x${row.qty}`,
+    tag: `x${qty}`,
     icon: ref ? ref.icon : Package,
     iconColor: ref ? ref.iconColor : "#94a3b8",
     selected: false,
