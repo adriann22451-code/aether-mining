@@ -201,6 +201,8 @@ export default function MiningDashboard() {
   const heatRatio = heatGen / Math.max(1, coolingCap * COOLING_EFFICIENCY);
   const heatMultiplier = isOverheating ? 0.7 : 1;
 
+  const [isBackendOnline, setIsBackendOnline] = useState(false); // true once sync-player init succeeds
+
   const prestigeMultiplier = 1 + prestigeCount * 0.1;
   const boostActive = now < boostEndTime;
   const boostMultiplier = boostActive ? 2 : 1;
@@ -263,8 +265,6 @@ export default function MiningDashboard() {
       // running outside Telegram, or an older client — safe to ignore
     }
   }, []);
-
-  const [isBackendOnline, setIsBackendOnline] = useState(false); // true once sync-player init succeeds
 
   // --- load from the server once on mount (falls back to local-only "offline mode" if
   //     there's no Telegram context or the backend URL hasn't been configured yet) ---
