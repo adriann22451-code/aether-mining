@@ -70,15 +70,22 @@ async function verifyTelegramInitData(initData: string, botToken: string): Promi
 // ---------- game data / formulas (hashrate calc only — reward math now
 //             lives in the claim_mining_reward/preview_emission_share
 //             Postgres functions from migration 0004) ----------
+//
+// Rebalance: NOT every rig category boosts hashrate anymore — only GPU and
+// Rack do. Processor is now a % MULTIPLIER on top of GPU+Rack (matches
+// data/parts.js statType on the client — keep both in sync if either
+// changes). Cooling/Battery/Drone don't affect hashrate at all client-side
+// (heat management, claim-cap, and bonus reward income respectively), so
+// they're intentionally left out of this server-side hashrate calc too.
 const LEVEL_HP_GROWTH = 1.06;
 
-const PART_HP: Record<string, { hp: number; category: string }> = {
-  gpu_0: { hp: 40e6, category: "gpu" }, gpu_1: { hp: 180e6, category: "gpu" }, gpu_2: { hp: 750e6, category: "gpu" }, gpu_3: { hp: 3200e6, category: "gpu" }, gpu_4: { hp: 14000e6, category: "gpu" },
-  rack_0: { hp: 10e6, category: "rack" }, rack_1: { hp: 45e6, category: "rack" }, rack_2: { hp: 190e6, category: "rack" }, rack_3: { hp: 800e6, category: "rack" }, rack_4: { hp: 3400e6, category: "rack" },
-  cooling_0: { hp: 5e6, category: "cooling" }, cooling_1: { hp: 22e6, category: "cooling" }, cooling_2: { hp: 95e6, category: "cooling" }, cooling_3: { hp: 400e6, category: "cooling" }, cooling_4: { hp: 1700e6, category: "cooling" },
-  battery_0: { hp: 5e6, category: "battery" }, battery_1: { hp: 22e6, category: "battery" }, battery_2: { hp: 95e6, category: "battery" }, battery_3: { hp: 400e6, category: "battery" }, battery_4: { hp: 1700e6, category: "battery" },
-  processor_0: { hp: 8e6, category: "processor" }, processor_1: { hp: 36e6, category: "processor" }, processor_2: { hp: 150e6, category: "processor" }, processor_3: { hp: 640e6, category: "processor" }, processor_4: { hp: 2700e6, category: "processor" },
-  drone_0: { hp: 6e6, category: "drone" }, drone_1: { hp: 60e6, category: "drone" }, drone_2: { hp: 500e6, category: "drone" },
+const HASHRATE_PARTS: Record<string, number> = {
+  gpu_0: 40e6, gpu_1: 180e6, gpu_2: 750e6, gpu_3: 3200e6, gpu_4: 14000e6,
+  rack_0: 10e6, rack_1: 45e6, rack_2: 190e6, rack_3: 800e6, rack_4: 3400e6,
+};
+
+const HASHRATE_MULT_PARTS: Record<string, number> = {
+  processor_0: 0.05, processor_1: 0.12, processor_2: 0.25, processor_3: 0.45, processor_4: 0.80,
 };
 
 function itemHpAtLevel(baseHp: number, level: number): number {
@@ -88,10 +95,15 @@ function itemHpAtLevel(baseHp: number, level: number): number {
 function calcHashrate(ownedItems: Record<string, number>): number {
   let total = 0;
   for (const [id, level] of Object.entries(ownedItems || {})) {
-    const part = PART_HP[id];
-    if (part && level > 0) total += itemHpAtLevel(part.hp, level);
+    const base = HASHRATE_PARTS[id];
+    if (base && level > 0) total += itemHpAtLevel(base, level);
   }
-  return total;
+  let multBonus = 0;
+  for (const [id, level] of Object.entries(ownedItems || {})) {
+    const base = HASHRATE_MULT_PARTS[id];
+    if (base && level > 0) multBonus += itemHpAtLevel(base, level);
+  }
+  return total * (1 + multBonus);
 }
 
 // ---------- handler ----------
