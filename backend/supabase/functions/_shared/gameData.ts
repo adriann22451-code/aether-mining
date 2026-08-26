@@ -16,7 +16,24 @@ export const INCOME_DIVISOR = 5e8;
 export const AETHER_MAX_SUPPLY = 100_000_000;
 export const PENDING_CAP_HOURS = 6;
 
+// NOTE (migration 0004+): INCOME_DIVISOR/AETHER_MAX_SUPPLY/miningHalving*
+// below describe the OLD per-player-supply model and are no longer what
+// actually decides claim payouts. sync-player.ts's "claim" action now
+// calls the `claim_mining_reward` Postgres function, which implements the
+// shared-pool/difficulty-split math directly in SQL (see
+// supabase/migrations/0004_global_supply.sql). Nothing in this codebase
+// currently imports the exports below except calcHashrate() itself —
+// they're kept only so old callers/docs referencing them don't break.
+
 // id -> { hp, buyCost, category }. category is only used for the heat system.
+//
+// Rebalance: only GPU + Rack contribute hashrate directly now. Processor is
+// a % MULTIPLIER on top of GPU+Rack (its `hp` here is a fraction, e.g. 0.25
+// = +25%), applied in calcHashrate below. Cooling/Battery/Drone don't
+// affect hashrate at all (heat management, claim-cap bonus, and bonus
+// reward income respectively — all client-side only), so they're excluded
+// from calcHashrate's sum entirely. Keep this in sync with
+// PART_CATEGORIES/statType in the client's src/data/parts.js.
 export const PART_HP: Record<string, { hp: number; buyCost: number; category: "gpu" | "rack" | "cooling" | "battery" | "processor" | "drone" }> = {
   gpu_0: { hp: 40e6, buyCost: 0, category: "gpu" },
   gpu_1: { hp: 180e6, buyCost: 2000, category: "gpu" },
@@ -36,21 +53,21 @@ export const PART_HP: Record<string, { hp: number; buyCost: number; category: "g
   cooling_3: { hp: 400e6, buyCost: 26000, category: "cooling" },
   cooling_4: { hp: 1700e6, buyCost: 120000, category: "cooling" },
 
-  battery_0: { hp: 5e6, buyCost: 0, category: "battery" },
-  battery_1: { hp: 22e6, buyCost: 1200, category: "battery" },
-  battery_2: { hp: 95e6, buyCost: 5500, category: "battery" },
-  battery_3: { hp: 400e6, buyCost: 26000, category: "battery" },
-  battery_4: { hp: 1700e6, buyCost: 120000, category: "battery" },
+  battery_0: { hp: 0.25, buyCost: 0, category: "battery" },
+  battery_1: { hp: 0.75, buyCost: 1200, category: "battery" },
+  battery_2: { hp: 2, buyCost: 5500, category: "battery" },
+  battery_3: { hp: 5, buyCost: 26000, category: "battery" },
+  battery_4: { hp: 12, buyCost: 120000, category: "battery" },
 
-  processor_0: { hp: 8e6, buyCost: 0, category: "processor" },
-  processor_1: { hp: 36e6, buyCost: 1800, category: "processor" },
-  processor_2: { hp: 150e6, buyCost: 8200, category: "processor" },
-  processor_3: { hp: 640e6, buyCost: 38000, category: "processor" },
-  processor_4: { hp: 2700e6, buyCost: 175000, category: "processor" },
+  processor_0: { hp: 0.05, buyCost: 0, category: "processor" },
+  processor_1: { hp: 0.12, buyCost: 1800, category: "processor" },
+  processor_2: { hp: 0.25, buyCost: 8200, category: "processor" },
+  processor_3: { hp: 0.45, buyCost: 38000, category: "processor" },
+  processor_4: { hp: 0.80, buyCost: 175000, category: "processor" },
 
-  drone_0: { hp: 6e6, buyCost: 0, category: "drone" },
-  drone_1: { hp: 60e6, buyCost: 4000, category: "drone" },
-  drone_2: { hp: 500e6, buyCost: 60000, category: "drone" },
+  drone_0: { hp: 0.03, buyCost: 0, category: "drone" },
+  drone_1: { hp: 0.15, buyCost: 4000, category: "drone" },
+  drone_2: { hp: 0.40, buyCost: 60000, category: "drone" },
 };
 
 export const SITE_BONUS: number[] = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0, 2.35, 2.75, 3.25, 3.9, 5.0];
@@ -68,11 +85,18 @@ export function itemLevelUpCost(buyCost: number, level: number): number {
 
 export function calcHashrate(ownedItems: Record<string, number>): number {
   let total = 0;
+  let multBonus = 0;
   for (const [id, level] of Object.entries(ownedItems || {})) {
     const part = PART_HP[id];
-    if (part && level > 0) total += itemHpAtLevel(part.hp, level);
+    if (!part || level <= 0) continue;
+    if (part.category === "gpu" || part.category === "rack") {
+      total += itemHpAtLevel(part.hp, level);
+    } else if (part.category === "processor") {
+      multBonus += itemHpAtLevel(part.hp, level);
+    }
+    // cooling/battery/drone intentionally don't affect hashrate — see note above PART_HP
   }
-  return total;
+  return total * (1 + multBonus);
 }
 
 export function calcCategoryHp(ownedItems: Record<string, number>, category: string): number {
