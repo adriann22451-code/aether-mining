@@ -3,7 +3,7 @@ import {
   Coins,
 } from "lucide-react";
 import { MAX_LEVEL, RARITY_COLORS, itemHpAtLevel, itemLevelUpCost } from "../../data/parts";
-import { formatHashrate, formatInt } from "../../lib/format";
+import { formatInt, formatStatValue } from "../../lib/format";
 
 export function PartCard({ item, category, level, core, onUpgrade }) {
   const Icon = category.icon;
@@ -58,11 +58,11 @@ export function PartCard({ item, category, level, core, onUpgrade }) {
           )}
         </div>
         <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold">
-          <span className="text-cyan-300">{formatHashrate(currentHp)}</span>
+          <span className="text-cyan-300">{formatStatValue(category.statType, currentHp)}</span>
           {!isMax && (
             <>
               <ChevronRight size={11} className="text-emerald-400" />
-              <span className="text-emerald-400">{formatHashrate(nextHp)}</span>
+              <span className="text-emerald-400">{formatStatValue(category.statType, nextHp)}</span>
             </>
           )}
         </div>
