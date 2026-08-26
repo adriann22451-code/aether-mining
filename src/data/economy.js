@@ -37,6 +37,49 @@ export function calcPlayerLevel(totalEarned) {
 export function calcHashrate(ownedItems) {
   let total = 0;
   for (const cat of PART_CATEGORIES) {
+    if (cat.statType !== "hashrate") continue; // GPU + Rack only — see statType per category in data/parts.js
+    for (const item of cat.items) {
+      const lvl = ownedItems[item.id] || 0;
+      if (lvl > 0) total += itemHpAtLevel(item, lvl);
+    }
+  }
+  return total;
+}
+
+// Processor no longer adds flat hashrate — it's a % multiplier applied on
+// top of GPU+Rack hashrate (see calcHashrate). Returns e.g. 0.35 for +35%.
+export function calcHashrateMultiplier(ownedItems) {
+  let total = 0;
+  for (const cat of PART_CATEGORIES) {
+    if (cat.statType !== "hashrateMult") continue;
+    for (const item of cat.items) {
+      const lvl = ownedItems[item.id] || 0;
+      if (lvl > 0) total += itemHpAtLevel(item, lvl);
+    }
+  }
+  return total;
+}
+
+// Battery's role: extend how many hours of AETHER can accumulate before
+// hitting the claim cap. Returns bonus HOURS on top of the base cap.
+export function calcPendingCapBonusHours(ownedItems) {
+  let total = 0;
+  for (const cat of PART_CATEGORIES) {
+    if (cat.statType !== "pendingCap") continue;
+    for (const item of cat.items) {
+      const lvl = ownedItems[item.id] || 0;
+      if (lvl > 0) total += itemHpAtLevel(item, lvl);
+    }
+  }
+  return total;
+}
+
+// Drone's role: % bonus applied to non-mining AETHER (Missions, Events,
+// Guild, Daily Streak, Loot Box) — NOT passive mining itself.
+export function calcIncomeBonusPct(ownedItems) {
+  let total = 0;
+  for (const cat of PART_CATEGORIES) {
+    if (cat.statType !== "incomeBonus") continue;
     for (const item of cat.items) {
       const lvl = ownedItems[item.id] || 0;
       if (lvl > 0) total += itemHpAtLevel(item, lvl);
@@ -67,8 +110,10 @@ export function calcCategoryHp(ownedItems, categoryKey) {
   return total;
 }
 
+// Only GPUs generate heat now (Rack is structural, doesn't run hot itself —
+// see generatesHeat per category in data/parts.js)
 export function calcHeatGen(ownedItems) {
-  return calcCategoryHp(ownedItems, "gpu") + calcCategoryHp(ownedItems, "processor");
+  return calcCategoryHp(ownedItems, "gpu");
 }
 
 export function calcCoolingCapacity(ownedItems) {
