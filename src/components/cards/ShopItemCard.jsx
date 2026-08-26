@@ -2,7 +2,7 @@ import {
   Coins,
 } from "lucide-react";
 import { RARITY_COLORS } from "../../data/parts";
-import { formatHashrate, formatInt } from "../../lib/format";
+import { formatInt, formatStatValue } from "../../lib/format";
 
 export function ShopItemCard({ item, category, core, onBuy }) {
   const Icon = category.icon;
@@ -45,7 +45,7 @@ export function ShopItemCard({ item, category, core, onBuy }) {
             {item.rarity}
           </span>
         )}
-        <div className="mt-0.5 text-[10.5px] font-semibold text-cyan-300 truncate">{formatHashrate(item.hp)}</div>
+        <div className="mt-0.5 text-[10.5px] font-semibold text-cyan-300 truncate">{formatStatValue(category.statType, item.hp)}</div>
       </div>
 
       <button
