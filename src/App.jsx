@@ -9,7 +9,7 @@ import { LootBoxModal } from "./components/modals/LootBoxModal";
 import { OfflineEarningsModal } from "./components/modals/OfflineEarningsModal";
 import { CRAFT_RECIPES, canCraftRecipe } from "./data/craft";
 import { DAILY_STREAK_REWARDS, daysBetween } from "./data/dailyStreak";
-import { AETHER_MAX_SUPPLY, COOLING_EFFICIENCY, INCOME_DIVISOR, calcCoolingCapacity, calcHashrate, calcHeatGen, miningHalvingEpoch, miningHalvingMultiplier } from "./data/economy";
+import { AETHER_MAX_SUPPLY, COOLING_EFFICIENCY, INCOME_DIVISOR, calcCoolingCapacity, calcHashrate, calcHashrateMultiplier, calcHeatGen, calcIncomeBonusPct, calcPendingCapBonusHours, miningHalvingEpoch, miningHalvingMultiplier } from "./data/economy";
 import { GUILDS, guildMilestoneFor, guildRewardFor } from "./data/guild";
 import { INBOX_TEMPLATE } from "./data/inbox";
 import { bumpInventoryTag, parseInventoryQty } from "./data/inventory";
@@ -125,7 +125,7 @@ export default function MiningDashboard() {
   const handleClaimDaily = () => {
     if (!dailyUnclaimed) return;
     const cycleDay = ((pendingStreakDay - 1) % 7) + 1;
-    const reward = DAILY_STREAK_REWARDS[cycleDay - 1];
+    const reward = applyDroneBonus(DAILY_STREAK_REWARDS[cycleDay - 1]);
     setCore((c) => c + reward);
     setTotalEarned((t) => t + reward);
     addIncome("dailyStreak", reward);
@@ -138,9 +138,10 @@ export default function MiningDashboard() {
     const item = inboxItems.find((i) => i.id === id);
     if (!item || item.claimed) return;
     if (item.aether > 0) {
-      setCore((c) => c + item.aether);
-      setTotalEarned((t) => t + item.aether);
-      addIncome("inbox", item.aether);
+      const amount = applyDroneBonus(item.aether);
+      setCore((c) => c + amount);
+      setTotalEarned((t) => t + amount);
+      addIncome("inbox", amount);
     }
     if (item.partIds && item.partIds.length > 0) {
       setOwnedItems((prev) => {
@@ -208,7 +209,10 @@ export default function MiningDashboard() {
   const boostMultiplier = boostActive ? 2 : 1;
 
   const totalMarketBonus = marketCatalog.reduce((sum, item) => sum + item.hpBonus * (marketOwned[item.id] || 0), 0);
-  const hashrateBase = calcHashrate(ownedItems) + totalMarketBonus;
+  // Processor no longer adds flat hashrate — it's a % multiplier on top of
+  // GPU+Rack+Market hashrate (see calcHashrateMultiplier)
+  const hashrateMultiplier = 1 + calcHashrateMultiplier(ownedItems);
+  const hashrateBase = (calcHashrate(ownedItems) + totalMarketBonus) * hashrateMultiplier;
   const totalHashrate = hashrateBase * SITES[activeSiteIndex].bonus * prestigeMultiplier * boostMultiplier * heatMultiplier * mysteryMultiplier;
   // once synced, the halving curve + actual AETHER/sec both come from the
   // shared global pool (server-authoritative — see migration 0004) instead
@@ -219,9 +223,14 @@ export default function MiningDashboard() {
   const perSecond = isBackendOnline && myEmissionPerSecond != null
     ? myEmissionPerSecond
     : (totalHashrate / INCOME_DIVISOR) * halvingMultiplier;
-  const pendingCap = perSecond * 3600 * 6; // 6 hours max accumulation
+  // Battery extends the claim cap beyond the base 6h (see calcPendingCapBonusHours)
+  const pendingCap = perSecond * 3600 * (6 + calcPendingCapBonusHours(ownedItems));
   const boostCost = Math.max(500, Math.round(((hashrateBase * SITES[activeSiteIndex].bonus * prestigeMultiplier) / INCOME_DIVISOR) * 3600 * 1.5));
   const canPrestige = unlockedIndex >= SITES.length - 1;
+  // Drone's role: % bonus on Missions/Events/Guild/Daily Streak/Loot Box
+  // AETHER rewards — deliberately NOT applied to passive mining or the
+  // offline-mining catch-up, and not to auto-sell (that's a trade, not a reward)
+  const applyDroneBonus = (amount) => amount * (1 + calcIncomeBonusPct(ownedItems));
 
   // kept fresh on every render so the autosave interval (set up once) always
   // writes the latest values without needing a giant effect dependency list
@@ -626,7 +635,7 @@ export default function MiningDashboard() {
   const handleClaimGuildMilestone = () => {
     const milestone = guildMilestoneFor(guildMilestoneIndex);
     if (guildPoints < milestone) return;
-    const reward = guildRewardFor(guildMilestoneIndex);
+    const reward = applyDroneBonus(guildRewardFor(guildMilestoneIndex));
     setCore((c) => c + reward);
     setTotalEarned((t) => t + reward);
     addIncome("guild", reward);
@@ -642,9 +651,11 @@ export default function MiningDashboard() {
     setTimeout(() => {
       const result = rollLootbox(ownedItems);
       if (result.type === "aether") {
-        setCore((c) => c + result.amount);
-        setTotalEarned((t) => t + result.amount);
-        addIncome("lootbox", result.amount);
+        const amount = applyDroneBonus(result.amount);
+        result.amount = amount; // keep the modal's displayed number in sync with what's actually credited
+        setCore((c) => c + amount);
+        setTotalEarned((t) => t + amount);
+        addIncome("lootbox", amount);
       } else if (result.type === "material") {
         setInventory((prev) => {
           const existing = prev.find((it) => it.name === result.name && it.type !== "rig");
@@ -868,17 +879,19 @@ export default function MiningDashboard() {
 
   const handleClaimMission = (id, reward) => {
     if (claimedMissionIds.includes(id)) return;
-    setCore((c) => c + reward);
-    setTotalEarned((t) => t + reward);
-    addIncome("missions", reward);
+    const amount = applyDroneBonus(reward);
+    setCore((c) => c + amount);
+    setTotalEarned((t) => t + amount);
+    addIncome("missions", amount);
     setClaimedMissionIds((ids) => [...ids, id]);
   };
 
   const handleClaimEvent = (id, reward) => {
     if (claimedEventIds.includes(id)) return;
-    setCore((c) => c + reward);
-    setTotalEarned((t) => t + reward);
-    addIncome("events", reward);
+    const amount = applyDroneBonus(reward);
+    setCore((c) => c + amount);
+    setTotalEarned((t) => t + amount);
+    addIncome("events", amount);
     setClaimedEventIds((ids) => [...ids, id]);
   };
 
