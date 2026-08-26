@@ -24,6 +24,8 @@ export const PART_CATEGORIES = [
     label: "GPU",
     icon: GpuIcon,
     color: "#38bdf8",
+    statType: "hashrate", // raw hashrate — the core mining muscle
+    generatesHeat: true,
     items: [
       { id: "gpu_0", name: "GTX 1660", hp: 40e6, buyCost: 0, rarity: "Common", desc: "A budget graphics card, reliable enough to get your first rig hashing." },
       { id: "gpu_1", name: "RTX 3060", hp: 180e6, buyCost: 2000, image: RTX3060_IMG, rarity: "Uncommon", desc: "A solid mid-range GPU with a big step up in hashrate over the basics." },
@@ -37,6 +39,8 @@ export const PART_CATEGORIES = [
     label: "Server Rack",
     icon: RackIcon,
     color: "#a78bfa",
+    statType: "hashrate", // more/better racks = more GPUs housed = more raw hashrate
+    generatesHeat: false,
     items: [
       { id: "rack_0", name: "Starter Rack", hp: 10e6, buyCost: 0, rarity: "Common", desc: "A simple frame to mount your first few GPUs." },
       { id: "rack_1", name: "Basic Rack", hp: 45e6, buyCost: 1500, rarity: "Uncommon", desc: "A sturdier rack with room for more hardware and better airflow." },
@@ -50,6 +54,8 @@ export const PART_CATEGORIES = [
     label: "Cooling",
     icon: CoolingIcon,
     color: "#38bdf8",
+    statType: "cooling", // NOT hashrate anymore — purely manages heat, see calcCoolingCapacity
+    generatesHeat: false,
     items: [
       { id: "cooling_0", name: "Air Cooler", hp: 5e6, buyCost: 0, rarity: "Common", desc: "A basic fan setup to keep temperatures from spiking too fast." },
       { id: "cooling_1", name: "Dual Fan Cooler", hp: 22e6, buyCost: 1200, rarity: "Uncommon", image: DUAL_FAN_COOLER_IMG, desc: "Twin fans working together for noticeably better heat control." },
@@ -63,12 +69,14 @@ export const PART_CATEGORIES = [
     label: "Battery",
     icon: BatteryIcon,
     color: "#facc15",
+    statType: "pendingCap", // NOT hashrate — extends how many hours of AETHER can pile up before you hit the claim cap
+    generatesHeat: false,
     items: [
-      { id: "battery_0", name: "Lithium Battery", hp: 5e6, buyCost: 0, rarity: "Common", desc: "A standard battery pack for stable, uninterrupted power." },
-      { id: "battery_1", name: "Power Cell", hp: 22e6, buyCost: 1200, rarity: "Uncommon", desc: "A higher-capacity cell that smooths out power spikes." },
-      { id: "battery_2", name: "Energy Core", hp: 95e6, buyCost: 5500, rarity: "Rare", desc: "A dense energy core delivering steady, reliable output." },
-      { id: "battery_3", name: "Fusion Battery", hp: 400e6, buyCost: 26000, rarity: "Epic", desc: "Cutting-edge fusion tech packed into a compact power cell." },
-      { id: "battery_4", name: "Quantum Battery", hp: 1700e6, buyCost: 120000, rarity: "Legendary", desc: "Near-limitless power density from quantum-scale energy storage." },
+      { id: "battery_0", name: "Lithium Battery", hp: 0.25, buyCost: 0, rarity: "Common", desc: "A standard battery pack — stores a bit of extra unclaimed AETHER before you hit the cap." },
+      { id: "battery_1", name: "Power Cell", hp: 0.75, buyCost: 1200, rarity: "Uncommon", desc: "A higher-capacity cell that lets AETHER pile up longer between claims." },
+      { id: "battery_2", name: "Energy Core", hp: 2, buyCost: 5500, rarity: "Rare", desc: "A dense energy core that meaningfully raises your claim cap." },
+      { id: "battery_3", name: "Fusion Battery", hp: 5, buyCost: 26000, rarity: "Epic", desc: "Cutting-edge fusion tech — go most of a day without claiming and lose nothing." },
+      { id: "battery_4", name: "Quantum Battery", hp: 12, buyCost: 120000, rarity: "Legendary", desc: "Near-limitless power density — the claim cap barely matters anymore." },
     ],
   },
   {
@@ -76,12 +84,14 @@ export const PART_CATEGORIES = [
     label: "Processor",
     icon: ProcessorIcon,
     color: "#22d3ee",
+    statType: "hashrateMult", // NOT flat hashrate — a % multiplier applied on top of your GPU+Rack hashrate
+    generatesHeat: false,
     items: [
-      { id: "processor_0", name: "Basic Processor", hp: 8e6, buyCost: 0, rarity: "Common", desc: "An entry-level chip that handles basic mining calculations." },
-      { id: "processor_1", name: "AI Processor", hp: 36e6, buyCost: 1800, rarity: "Uncommon", desc: "A smarter chip that optimizes workloads on the fly." },
-      { id: "processor_2", name: "Quantum Chip", hp: 150e6, buyCost: 8200, rarity: "Rare", desc: "A chip leveraging early quantum techniques for faster processing." },
-      { id: "processor_3", name: "Neural Core", hp: 640e6, buyCost: 38000, rarity: "Epic", desc: "A neural-network-driven core that adapts to squeeze out more hashrate." },
-      { id: "processor_4", name: "Genesis Processor", hp: 2700e6, buyCost: 175000, rarity: "Legendary", desc: "The most advanced processor ever built for mining operations." },
+      { id: "processor_0", name: "Basic Processor", hp: 0.05, buyCost: 0, rarity: "Common", desc: "An entry-level chip that squeezes a little more out of your GPUs." },
+      { id: "processor_1", name: "AI Processor", hp: 0.12, buyCost: 1800, rarity: "Uncommon", desc: "A smarter chip that optimizes workloads on the fly." },
+      { id: "processor_2", name: "Quantum Chip", hp: 0.25, buyCost: 8200, rarity: "Rare", desc: "A chip leveraging early quantum techniques for faster processing." },
+      { id: "processor_3", name: "Neural Core", hp: 0.45, buyCost: 38000, rarity: "Epic", desc: "A neural-network-driven core that adapts to squeeze out more hashrate." },
+      { id: "processor_4", name: "Genesis Processor", hp: 0.80, buyCost: 175000, rarity: "Legendary", desc: "The most advanced processor ever built — nearly doubles your GPU+Rack output." },
     ],
   },
   {
@@ -89,10 +99,12 @@ export const PART_CATEGORIES = [
     label: "Drone",
     icon: DroneIcon,
     color: "#c084fc",
+    statType: "incomeBonus", // NOT hashrate — boosts AETHER from Missions/Events/Guild/Daily/Loot Box (not passive mining itself)
+    generatesHeat: false,
     items: [
-      { id: "drone_0", name: "Worker Drone", hp: 6e6, buyCost: 0, rarity: "Common", desc: "A small automated helper that assists around the rig floor." },
-      { id: "drone_1", name: "Carrier Drone", hp: 60e6, buyCost: 4000, rarity: "Rare", image: CARRIER_DRONE_IMG, desc: "A sturdier drone that hauls parts and keeps operations efficient." },
-      { id: "drone_2", name: "Quantum Drone", hp: 500e6, buyCost: 60000, rarity: "Legendary", desc: "An elite drone with quantum-assisted precision and top-tier output." },
+      { id: "drone_0", name: "Worker Drone", hp: 0.03, buyCost: 0, rarity: "Common", desc: "A small automated helper that hauls in a little extra from every reward." },
+      { id: "drone_1", name: "Carrier Drone", hp: 0.15, buyCost: 4000, rarity: "Rare", image: CARRIER_DRONE_IMG, desc: "A sturdier drone that noticeably boosts Missions, Events, Guild, and Loot Box payouts." },
+      { id: "drone_2", name: "Quantum Drone", hp: 0.40, buyCost: 60000, rarity: "Legendary", desc: "An elite drone fleet that dramatically boosts every reward except passive mining." },
     ],
   },
 ];
@@ -105,6 +117,9 @@ export const LEVEL_COST_GROWTH = 1.16; // +16% cost per level (was 1.12 — high
 
 export const LEVEL_COST_BASE_RATIO = 0.08; // initial level-up cost = base * this ratio
 
+// Generic level-scaling curve — used for every category's stat now, not
+// just raw hashrate (see PART_CATEGORIES statType above for what the
+// number actually represents per category).
 export function itemHpAtLevel(item, level) {
   if (level <= 0) return 0;
   return item.hp * Math.pow(LEVEL_HP_GROWTH, level - 1);
