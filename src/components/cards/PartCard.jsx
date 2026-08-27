@@ -28,7 +28,7 @@ export function PartCard({ item, category, level, core, onUpgrade }) {
         }}
       >
         {item.image ? (
-          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+          <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
         ) : (
           <Icon size={40} style={{ color: rarityColor }} />
         )}

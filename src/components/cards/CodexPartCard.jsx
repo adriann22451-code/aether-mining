@@ -18,7 +18,7 @@ export function CodexPartCard({ item, category, index }) {
         }}
       >
         {item.image ? (
-          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+          <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
         ) : (
           <Icon size={28} style={{ color: rarityColor }} />
         )}

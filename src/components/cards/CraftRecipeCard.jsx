@@ -24,7 +24,7 @@ export function CraftRecipeCard({ recipe, inventory, core, onCraft }) {
           border: `1px solid ${rarityColor}66`,
         }}
       >
-        {item.image ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" /> : <Icon size={32} style={{ color: rarityColor }} />}
+        {item.image ? <img src={item.image} alt={item.name} className="w-full h-full object-contain" /> : <Icon size={32} style={{ color: rarityColor }} />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">

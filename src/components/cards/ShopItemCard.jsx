@@ -23,7 +23,7 @@ export function ShopItemCard({ item, category, core, onBuy }) {
         }}
       >
         {item.image ? (
-          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+          <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
         ) : (
           <Icon size={42} style={{ color: rarityColor }} />
         )}
