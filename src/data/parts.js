@@ -5,6 +5,7 @@ import { BatteryIcon, CoolingIcon, DroneIcon, GpuIcon, ProcessorIcon, RackIcon }
 import CARRIER_DRONE_IMG from "../assets/images/carrier-drone.png";
 import DUAL_FAN_COOLER_IMG from "../assets/images/dual-fan-cooler.png";
 import QUANTUM_COOLING_IMG from "../assets/images/quantum-cooling.png";
+import GTX1660_IMG from "../assets/images/gtx1660.png";
 import RTX3060_IMG from "../assets/images/rtx3060.png";
 import RTX4060_IMG from "../assets/images/rtx4060.png";
 import RTX4090_IMG from "../assets/images/rtx4090.png";
@@ -27,7 +28,7 @@ export const PART_CATEGORIES = [
     statType: "hashrate", // raw hashrate — the core mining muscle
     generatesHeat: true,
     items: [
-      { id: "gpu_0", name: "GTX 1660", hp: 40e6, buyCost: 0, rarity: "Common", desc: "A budget graphics card, reliable enough to get your first rig hashing." },
+      { id: "gpu_0", name: "GTX 1660", hp: 40e6, buyCost: 0, image: GTX1660_IMG, rarity: "Common", desc: "A budget graphics card, reliable enough to get your first rig hashing." },
       { id: "gpu_1", name: "RTX 3060", hp: 180e6, buyCost: 2000, image: RTX3060_IMG, rarity: "Uncommon", desc: "A solid mid-range GPU with a big step up in hashrate over the basics." },
       { id: "gpu_2", name: "RTX 4060", hp: 750e6, buyCost: 9000, image: RTX4060_IMG, rarity: "Rare", desc: "A newer-gen card with improved efficiency and serious mining muscle." },
       { id: "gpu_3", name: "RTX 4090", hp: 3200e6, buyCost: 42000, image: RTX4090_IMG, rarity: "Epic", desc: "A flagship-class GPU that dominates any rig it's installed in." },
