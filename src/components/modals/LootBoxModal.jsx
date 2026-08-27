@@ -61,7 +61,7 @@ export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
                 {result.type === "aether" && <Coins size={38} style={{ color: resultColor }} />}
                 {result.type === "material" && result.icon && <result.icon size={38} style={{ color: resultColor }} />}
                 {result.type === "part" && (result.item.image ? (
-                  <img src={result.item.image} alt={result.item.name} className="w-full h-full object-cover" />
+                  <img src={result.item.image} alt={result.item.name} className="w-full h-full object-contain" />
                 ) : (
                   <result.category.icon size={38} style={{ color: resultColor }} />
                 ))}
