@@ -10,6 +10,11 @@ import RTX3060_IMG from "../assets/images/rtx3060.png";
 import RTX4060_IMG from "../assets/images/rtx4060.png";
 import RTX4090_IMG from "../assets/images/rtx4090.png";
 import RTX5090_IMG from "../assets/images/rtx5090.png";
+import STARTER_RACK_IMG from "../assets/images/starter-rack.png";
+import BASIC_RACK_IMG from "../assets/images/basic-rack.png";
+import PRO_RACK_IMG from "../assets/images/pro-rack.png";
+import HYPER_RACK_IMG from "../assets/images/hyper-rack.png";
+import QUANTUM_RACK_IMG from "../assets/images/quantum-rack.png";
 
 export const RARITY_COLORS = {
   Common: "#94a3b8",
@@ -43,11 +48,11 @@ export const PART_CATEGORIES = [
     statType: "hashrate", // more/better racks = more GPUs housed = more raw hashrate
     generatesHeat: false,
     items: [
-      { id: "rack_0", name: "Starter Rack", hp: 10e6, buyCost: 0, rarity: "Common", desc: "A simple frame to mount your first few GPUs." },
-      { id: "rack_1", name: "Basic Rack", hp: 45e6, buyCost: 1500, rarity: "Uncommon", desc: "A sturdier rack with room for more hardware and better airflow." },
-      { id: "rack_2", name: "Pro Rack", hp: 190e6, buyCost: 7000, rarity: "Rare", desc: "An industrial-grade rack built for dense, high-uptime setups." },
-      { id: "rack_3", name: "Hyper Rack", hp: 800e6, buyCost: 32000, rarity: "Epic", desc: "A reinforced rack engineered to house serious mining hardware." },
-      { id: "rack_4", name: "Quantum Rack", hp: 3400e6, buyCost: 150000, rarity: "Legendary", desc: "An advanced rack architecture that maximizes every watt of power." },
+      { id: "rack_0", name: "Starter Rack", hp: 10e6, buyCost: 0, image: STARTER_RACK_IMG, rarity: "Common", desc: "A simple frame to mount your first few GPUs." },
+      { id: "rack_1", name: "Basic Rack", hp: 45e6, buyCost: 1500, image: BASIC_RACK_IMG, rarity: "Uncommon", desc: "A sturdier rack with room for more hardware and better airflow." },
+      { id: "rack_2", name: "Pro Rack", hp: 190e6, buyCost: 7000, image: PRO_RACK_IMG, rarity: "Rare", desc: "An industrial-grade rack built for dense, high-uptime setups." },
+      { id: "rack_3", name: "Hyper Rack", hp: 800e6, buyCost: 32000, image: HYPER_RACK_IMG, rarity: "Epic", desc: "A reinforced rack engineered to house serious mining hardware." },
+      { id: "rack_4", name: "Quantum Rack", hp: 3400e6, buyCost: 150000, image: QUANTUM_RACK_IMG, rarity: "Legendary", desc: "An advanced rack architecture that maximizes every watt of power." },
     ],
   },
   {
