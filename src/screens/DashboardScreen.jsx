@@ -57,7 +57,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
   const SiteIcon = site.icon;
 
   return (
-    <div className="relative px-4 pt-3 pb-3 h-full flex flex-col gap-2">
+    <div className="relative px-3 pt-2 pb-2 h-full flex flex-col gap-1.5 overflow-hidden">
       {isOverheating && (
         <div
           className="pointer-events-none absolute inset-0 z-40"
@@ -109,7 +109,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
       </div>
 
       {/* QUICK ACCESS TOOLBAR — Missions / Event / Achievements / Daily / Leaderboard / Guild / Codex */}
-      <div className="shrink-0 grid grid-cols-8 gap-1 bg-white/5 border border-white/10 rounded-xl p-1 backdrop-blur-sm">
+      <div className="shrink-0 grid grid-cols-8 gap-1 bg-white/5 border border-white/10 rounded-xl p-0.5 backdrop-blur-sm">
         {[
           { icon: Inbox, key: "inbox", badge: inboxUnclaimed },
           ...sideItems,
@@ -222,9 +222,12 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
         )}
       </div>
 
-      {/* MINING RIG VISUAL AREA — themed by current Mining Site */}
+      {/* MINING RIG VISUAL AREA — themed by current Mining Site, locked to a 9:16
+          portrait frame (matches the site animations) and centered in whatever
+          space is left after the header/toolbar/buttons above and below it */}
+      <div className="relative flex-1 min-h-0 flex items-center justify-center">
       <div
-        className="relative flex-1 min-h-0 rounded-xl overflow-hidden border"
+        className="relative h-full max-w-full aspect-[9/16] rounded-xl overflow-hidden border"
         style={{ borderColor: `${site.theme.accent}33` }}
         onPointerMove={handleParallaxMove}
         onPointerLeave={resetParallax}
@@ -347,9 +350,10 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           }}
         />
       </div>
+      </div>
 
       {/* NEXT MINING SITE PROGRESS */}
-      <div className="shrink-0 rounded-xl bg-white/5 border border-white/10 px-3.5 py-2 flex items-center gap-3 backdrop-blur-sm">
+      <div className="shrink-0 rounded-xl bg-white/5 border border-white/10 px-3.5 py-1.5 flex items-center gap-3 backdrop-blur-sm">
         <div className="flex-1 min-w-0">
           <div className="text-[11px] font-semibold text-slate-200 truncate">
             {nextSite ? `Heading to ${nextSite.name}` : "Genesis Core — Top Site"}
