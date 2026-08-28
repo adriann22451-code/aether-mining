@@ -18,10 +18,13 @@ import {
   Zap,
 } from "lucide-react";
 import { DroneIcon } from "../components/icons/CustomIcons";
+import AnimatedSprite from "../components/layout/AnimatedSprite";
 import { FloatingClaimNumbers } from "../components/layout/FloatingClaimNumbers";
 import ROOM_BG_IMG from "../assets/images/room-bg.webp";
+import SMALL_WAREHOUSE_SPRITE_IMG from "../assets/images/small-warehouse-sprite.webp";
 import { calcPlayerLevel } from "../data/economy";
 import { SITES, SITE_BG_IMAGES } from "../data/sites";
+import { SMALL_WAREHOUSE_SPRITE_FRAMES, SMALL_WAREHOUSE_SPRITE_META } from "../data/spriteFrames";
 import { SNOWFLAKES } from "../data/uiConstants";
 import { formatCore, formatHashrate, formatInt } from "../lib/format";
 import { useTween } from "../lib/hooks";
@@ -244,19 +247,40 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           }}
         />
 
-        {/* one full isometric mining room image (AI-generated) */}
-        <img
-          src={SITE_BG_IMAGES[siteIndex] || ROOM_BG_IMG}
-          alt="Mining Room"
-          draggable={false}
-          className="absolute inset-0 w-full h-full"
-          style={{
-            objectFit: "contain",
-            objectPosition: "center",
-            transform: `translate3d(${parallax.x * 8}px, ${parallax.y * 8}px, 0) scale(1.06)`,
-            transition: "transform 0.15s ease-out",
-          }}
-        />
+        {/* one full isometric mining room image (AI-generated), or an animated
+            sprite scene for sites that have one (e.g. Small Warehouse) */}
+        {siteIndex === 1 ? (
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              transform: `translate3d(${parallax.x * 8}px, ${parallax.y * 8}px, 0) scale(1.06)`,
+              transition: "transform 0.15s ease-out",
+            }}
+          >
+            <AnimatedSprite
+              src={SMALL_WAREHOUSE_SPRITE_IMG}
+              frames={SMALL_WAREHOUSE_SPRITE_FRAMES}
+              frameWidth={SMALL_WAREHOUSE_SPRITE_META.frameWidth}
+              frameHeight={SMALL_WAREHOUSE_SPRITE_META.frameHeight}
+              sheetWidth={SMALL_WAREHOUSE_SPRITE_META.sheetWidth}
+              sheetHeight={SMALL_WAREHOUSE_SPRITE_META.sheetHeight}
+              style={{ maxWidth: "100%", maxHeight: "100%", width: "auto", height: "100%" }}
+            />
+          </div>
+        ) : (
+          <img
+            src={SITE_BG_IMAGES[siteIndex] || ROOM_BG_IMG}
+            alt="Mining Room"
+            draggable={false}
+            className="absolute inset-0 w-full h-full"
+            style={{
+              objectFit: "contain",
+              objectPosition: "center",
+              transform: `translate3d(${parallax.x * 8}px, ${parallax.y * 8}px, 0) scale(1.06)`,
+              transition: "transform 0.15s ease-out",
+            }}
+          />
+        )}
 
         <div
           className="absolute top-2 left-2 z-10 flex items-center gap-1.5 bg-black/30 rounded-lg px-2 py-1 backdrop-blur-sm"
