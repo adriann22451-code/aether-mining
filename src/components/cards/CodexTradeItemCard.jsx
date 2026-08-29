@@ -9,7 +9,11 @@ export function CodexTradeItemCard({ poolItem }) {
           border: `1px solid ${poolItem.iconColor}55`,
         }}
       >
-        <Icon size={26} style={{ color: poolItem.iconColor }} />
+        {poolItem.image ? (
+          <img src={poolItem.image} alt={poolItem.name} className="w-full h-full object-contain" />
+        ) : (
+          <Icon size={26} style={{ color: poolItem.iconColor }} />
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <span className="text-[12.5px] font-bold text-white truncate block">{poolItem.name}</span>
