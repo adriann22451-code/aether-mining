@@ -1289,6 +1289,11 @@ export default function MiningDashboard() {
             halvingEpoch={halvingEpoch}
             inboxUnclaimed={inboxItems.some((i) => !i.claimed)}
             totalEarned={totalEarned}
+            // TEMP DEV/TEST CONTROL — lets you preview every site's visual without
+            // actually unlocking it (doesn't touch unlockedIndex or progress/save).
+            // Safe to delete this line + the prev/next arrows in DashboardScreen
+            // once you're done reviewing site art.
+            onDevPreviewSite={setActiveSiteIndex}
           />
         )}
       </div>
