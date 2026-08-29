@@ -13,6 +13,8 @@ import NANO_ALLOY_IMG from "../../assets/images/nano-alloy.png";
 import PROCESSOR_IMG from "../../assets/images/processor.png";
 import QUANTUM_ALLOY_IMG from "../../assets/images/quantum-alloy.png";
 import RACK_ICON_IMG from "../../assets/images/rack-icon.png";
+import FUEL_BARREL_IMG from "../../assets/images/fuel-barrel.png";
+import STORAGE_UNIT_IMG from "../../assets/images/storage-unit.png";
 import AETHER_COIN_IMG from "../../assets/images/aether-coin.png";
 
 export function AetherCoinIcon({ size = 24, style = {}, className = "", dim = false }) {
@@ -137,6 +139,30 @@ export function MetalIngotIcon({ size = 24, style = {}, className = "" }) {
     <img
       src={METAL_INGOT_IMG}
       alt="Metal Ingot"
+      draggable={false}
+      className={className}
+      style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
+    />
+  );
+}
+
+export function FuelBarrelIcon({ size = 24, style = {}, className = "" }) {
+  return (
+    <img
+      src={FUEL_BARREL_IMG}
+      alt="Fuel Barrel"
+      draggable={false}
+      className={className}
+      style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
+    />
+  );
+}
+
+export function StorageUnitIcon({ size = 24, style = {}, className = "" }) {
+  return (
+    <img
+      src={STORAGE_UNIT_IMG}
+      alt="Storage Unit"
       draggable={false}
       className={className}
       style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
