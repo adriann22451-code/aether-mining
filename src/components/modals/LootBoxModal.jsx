@@ -1,7 +1,7 @@
 import {
   Box,
-  Coins,
 } from "lucide-react";
+import { AetherCoinIcon } from "../icons/CustomIcons";
 import { LOOTBOX_COST } from "../../data/lootbox";
 import { RARITY_COLORS } from "../../data/parts";
 import { formatInt } from "../../lib/format";
@@ -58,7 +58,7 @@ export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
                   animation: "lootRevealPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both",
                 }}
               >
-                {result.type === "aether" && <Coins size={38} style={{ color: resultColor }} />}
+                {result.type === "aether" && <AetherCoinIcon size={38} />}
                 {result.type === "material" && result.icon && <result.icon size={38} style={{ color: resultColor }} />}
                 {result.type === "part" && (result.item.image ? (
                   <img src={result.item.image} alt={result.item.name} className="w-full h-full object-contain" />
