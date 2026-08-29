@@ -16,7 +16,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import { AetherCoinIcon, DroneIcon } from "../components/icons/CustomIcons";
+import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import AnimatedSprite from "../components/layout/AnimatedSprite";
 import { FloatingClaimNumbers } from "../components/layout/FloatingClaimNumbers";
 import ROOM_BG_IMG from "../assets/images/room-bg.webp";
@@ -329,22 +329,6 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           <span className="text-[9px] font-bold" style={{ color: site.theme.accent, textShadow: `0 0 6px ${site.theme.accent}88` }}>
             {site.name}
           </span>
-        </div>
-
-        {/* drone patrolling between two points, stays as an animated layer above the room image */}
-        <div
-          className="absolute z-10"
-          style={{
-            left: "62%",
-            top: "42%",
-            "--dx": "-70px",
-            "--dy": "38px",
-            animation: "droneFly 4.5s ease-in-out infinite",
-            transform: `translate3d(${parallax.x * 18}px, ${parallax.y * 18}px, 0)`,
-            transition: "transform 0.1s ease-out",
-          }}
-        >
-          <DroneIcon size={16} className="drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]" />
         </div>
 
         {/* SNOWFALL — Arctic Facility only */}
