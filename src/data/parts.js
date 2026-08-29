@@ -3,6 +3,11 @@ import {
 } from "lucide-react";
 import { BatteryIcon, CoolingIcon, DroneIcon, GpuIcon, ProcessorIcon, RackIcon } from "../components/icons/CustomIcons";
 import CARRIER_DRONE_IMG from "../assets/images/carrier-drone.png";
+import BASIC_PROCESSOR_IMG from "../assets/images/basic-processor.png";
+import AI_PROCESSOR_IMG from "../assets/images/ai-processor.png";
+import QUANTUM_CHIP_IMG from "../assets/images/quantum-chip.png";
+import NEURAL_CORE_IMG from "../assets/images/neural-core.png";
+import GENESIS_PROCESSOR_IMG from "../assets/images/genesis-processor.png";
 import LITHIUM_BATTERY_IMG from "../assets/images/lithium-battery.png";
 import POWER_CELL_IMG from "../assets/images/power-cell.png";
 import ENERGY_CORE_IMG from "../assets/images/energy-core.png";
@@ -101,11 +106,11 @@ export const PART_CATEGORIES = [
     statType: "hashrateMult", // NOT flat hashrate — a % multiplier applied on top of your GPU+Rack hashrate
     generatesHeat: false,
     items: [
-      { id: "processor_0", name: "Basic Processor", hp: 0.05, buyCost: 0, rarity: "Common", desc: "An entry-level chip that squeezes a little more out of your GPUs." },
-      { id: "processor_1", name: "AI Processor", hp: 0.12, buyCost: 1800, rarity: "Uncommon", desc: "A smarter chip that optimizes workloads on the fly." },
-      { id: "processor_2", name: "Quantum Chip", hp: 0.25, buyCost: 8200, rarity: "Rare", desc: "A chip leveraging early quantum techniques for faster processing." },
-      { id: "processor_3", name: "Neural Core", hp: 0.45, buyCost: 38000, rarity: "Epic", desc: "A neural-network-driven core that adapts to squeeze out more hashrate." },
-      { id: "processor_4", name: "Genesis Processor", hp: 0.80, buyCost: 175000, rarity: "Legendary", desc: "The most advanced processor ever built — nearly doubles your GPU+Rack output." },
+      { id: "processor_0", name: "Basic Processor", hp: 0.05, buyCost: 0, rarity: "Common", image: BASIC_PROCESSOR_IMG, desc: "An entry-level chip that squeezes a little more out of your GPUs." },
+      { id: "processor_1", name: "AI Processor", hp: 0.12, buyCost: 1800, rarity: "Uncommon", image: AI_PROCESSOR_IMG, desc: "A smarter chip that optimizes workloads on the fly." },
+      { id: "processor_2", name: "Quantum Chip", hp: 0.25, buyCost: 8200, rarity: "Rare", image: QUANTUM_CHIP_IMG, desc: "A chip leveraging early quantum techniques for faster processing." },
+      { id: "processor_3", name: "Neural Core", hp: 0.45, buyCost: 38000, rarity: "Epic", image: NEURAL_CORE_IMG, desc: "A neural-network-driven core that adapts to squeeze out more hashrate." },
+      { id: "processor_4", name: "Genesis Processor", hp: 0.80, buyCost: 175000, rarity: "Legendary", image: GENESIS_PROCESSOR_IMG, desc: "The most advanced processor ever built — nearly doubles your GPU+Rack output." },
     ],
   },
   {
