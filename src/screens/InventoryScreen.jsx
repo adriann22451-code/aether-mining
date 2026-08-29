@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
-  Coins,
   Inbox,
 } from "lucide-react";
+import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import { InventoryItemCard } from "../components/cards/InventoryItemCard";
 import { PartCard } from "../components/cards/PartCard";
 import { ScreenHeader } from "../components/layout/ScreenHeader";
@@ -63,7 +63,7 @@ export function InventoryScreen({ onBack, inventory, autoSellEnabled, onToggleAu
           {tab === "material" && (
             <div className="mt-4 rounded-2xl bg-white/5 border border-white/10 p-3 flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-emerald-400/15 border border-emerald-400/40 flex items-center justify-center shrink-0">
-                <Coins size={15} className="text-emerald-300" />
+                <AetherCoinIcon size={15} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[12px] font-bold text-white">Auto-Sell Excess</div>

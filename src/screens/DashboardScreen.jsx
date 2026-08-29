@@ -3,7 +3,6 @@ import {
   BookOpen,
   Calendar,
   ChevronRight,
-  Coins,
   Cpu,
   Crown,
   Flame,
@@ -17,7 +16,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import { DroneIcon } from "../components/icons/CustomIcons";
+import { AetherCoinIcon, DroneIcon } from "../components/icons/CustomIcons";
 import AnimatedSprite from "../components/layout/AnimatedSprite";
 import { FloatingClaimNumbers } from "../components/layout/FloatingClaimNumbers";
 import ROOM_BG_IMG from "../assets/images/room-bg.webp";
@@ -369,7 +368,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
         </div>
         {nextSite && (
           <div className="flex items-center gap-1 pl-2 border-l border-white/10 shrink-0">
-            <Coins size={13} className="text-amber-300" />
+            <AetherCoinIcon size={13} />
             <span className="text-[12px] font-bold text-amber-200">{formatInt(nextSite.cost)}</span>
           </div>
         )}

@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useTonConnectUI, useTonAddress } from "@tonconnect/ui-react";
 import {
   Box,
-  Coins,
   Gauge,
   Inbox,
   MapPinned,
   Pencil,
   Wallet,
 } from "lucide-react";
+import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import { ScreenHeader } from "../components/layout/ScreenHeader";
 import { AETHER_MAX_SUPPLY, calcPlayerLevel, miningHalvingEpoch, miningHalvingMultiplier } from "../data/economy";
 import { SITES } from "../data/sites";
@@ -16,7 +16,7 @@ import { formatCore, formatHashrate, formatInt } from "../lib/format";
 
 export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name, onRename, totalMined, isGlobalSupply, incomeStats, spendStats }) {
   const profileStats = [
-    { id: 1, label: "TOTAL EARNED", value: `${formatCore(totalEarned)} AETHER`, valueColor: "#facc15", icon: Coins, iconColor: "#facc15" },
+    { id: 1, label: "TOTAL EARNED", value: `${formatCore(totalEarned)} AETHER`, valueColor: "#facc15", icon: AetherCoinIcon, iconColor: "#facc15" },
     { id: 2, label: "CURRENT HASHRATE", value: formatHashrate(totalHashrate), valueColor: "#38bdf8", icon: Gauge, iconColor: "#facc15" },
     { id: 3, label: "MINING SITE", value: `${unlockedIndex + 1} / ${SITES.length}`, valueColor: "#e2e8f0", icon: MapPinned, iconColor: "#38bdf8" },
   ];
@@ -134,7 +134,7 @@ export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedInde
       <div className="mt-4 rounded-2xl bg-gradient-to-br from-indigo-950/70 via-[#140a2e]/80 to-purple-950/60 border border-indigo-400/20 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-[12px] font-extrabold tracking-[0.1em] text-white">
-            <Coins size={14} className="text-amber-300" />
+            <AetherCoinIcon size={14} />
             {isGlobalSupply ? "GLOBAL AETHER SUPPLY" : "AETHER SUPPLY (LOCAL)"}
           </div>
           <span className="text-[10.5px] font-semibold text-slate-400">Epoch {halvingEpoch}</span>

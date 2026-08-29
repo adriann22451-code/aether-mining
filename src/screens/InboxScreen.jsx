@@ -1,7 +1,7 @@
 import {
-  Coins,
   Gift,
 } from "lucide-react";
+import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import { ScreenHeader } from "../components/layout/ScreenHeader";
 import { findPartItem } from "../data/parts";
 import { formatInt } from "../lib/format";
@@ -43,7 +43,7 @@ export function InboxScreen({ onBack, inboxItems, onClaimInboxItem }) {
               <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
                 {item.aether > 0 && (
                   <span className="flex items-center gap-1 bg-amber-400/10 border border-amber-400/30 rounded-full px-2 py-0.5 text-[10px] font-bold text-amber-300">
-                    <Coins size={10} />
+                    <AetherCoinIcon size={10} />
                     {formatInt(item.aether)} AETHER
                   </span>
                 )}

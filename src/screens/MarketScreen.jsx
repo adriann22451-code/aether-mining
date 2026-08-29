@@ -1,7 +1,5 @@
 import { useState } from "react";
-import {
-  Coins,
-} from "lucide-react";
+import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import { BuyListingCard } from "../components/cards/BuyListingCard";
 import { MyListingCard } from "../components/cards/MyListingCard";
 import { ScreenHeader } from "../components/layout/ScreenHeader";
@@ -33,7 +31,7 @@ export function MarketScreen({ onBack, core, marketListings, myListings, saleNot
 
       <div className="mt-3 flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-[12px] font-bold text-amber-300">
-          <Coins size={13} />
+          <AetherCoinIcon size={13} />
           {formatInt(core)} AETHER
         </div>
         <div className="text-[10.5px] text-slate-500">5% fee on every successful trade</div>

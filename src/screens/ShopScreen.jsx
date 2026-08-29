@@ -1,12 +1,12 @@
 import {
   Box,
   ChevronLeft,
-  Coins,
   Cpu,
   HelpCircle,
   Sparkles,
   Zap,
 } from "lucide-react";
+import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import { MarketItemCard } from "../components/cards/MarketItemCard";
 import { ShopItemCard } from "../components/cards/ShopItemCard";
 import { LOOTBOX_COST } from "../data/lootbox";
@@ -88,7 +88,7 @@ export function ShopScreen({ onBack, ownedItems, core, totalHashrate, onBuy, mar
                     : "bg-white/5 text-slate-500"
                 }`}
               >
-                <Coins size={11} className={core >= AUTO_CLAIM_COST ? "text-amber-300" : "text-slate-600"} />
+                <AetherCoinIcon size={11} dim={core < AUTO_CLAIM_COST} />
                 {formatInt(AUTO_CLAIM_COST)}
               </button>
             )}
