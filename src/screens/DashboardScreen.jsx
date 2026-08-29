@@ -3,7 +3,6 @@ import {
   BookOpen,
   Calendar,
   ChevronRight,
-  Cpu,
   Crown,
   Flame,
   Gem,
@@ -84,12 +83,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
 
         <div className="flex-1 flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 backdrop-blur-sm min-w-0">
           <div className="flex items-center gap-1 min-w-0">
-            <div
-              className="rounded-full bg-gradient-to-br from-yellow-300 to-amber-600 flex items-center justify-center shrink-0"
-              style={{ width: 16, height: 16 }}
-            >
-              <Cpu size={9} className="text-amber-950" />
-            </div>
+            <AetherCoinIcon size={16} />
             <span className="text-[11px] font-extrabold text-amber-200 whitespace-nowrap truncate">{formatInt(coreDisplay)}</span>
           </div>
           <div className="w-px h-3.5 bg-white/15 shrink-0" />
@@ -406,7 +400,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           )}
           <span className="tracking-wide">CLAIM</span>
           <span className="flex items-center gap-1.5 bg-black/15 rounded-full px-2.5 py-0.5">
-            <Cpu size={13} />
+            <AetherCoinIcon size={13} />
             {formatCore(pendingDisplay)} AETHER
           </span>
         </button>
