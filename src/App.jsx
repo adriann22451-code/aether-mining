@@ -670,6 +670,7 @@ export default function MiningDashboard() {
               type: "material",
               tag: `x${result.qty}`,
               icon: result.icon,
+              image: result.image,
               iconColor: result.iconColor,
               selected: false,
               desc: "Won from a Loot Box.",
@@ -904,7 +905,7 @@ export default function MiningDashboard() {
     setMarketOwned((o) => ({ ...o, [item.id]: o[item.id] + 1 }));
     setInventory((inv) => [
       ...inv,
-      { id: `market-${item.id}-${Date.now()}`, name: item.name, type: "item", tag: "x1", icon: item.icon, iconColor: item.iconColor, selected: false, desc: `Bought from the Marketplace (${item.rarity}). Grants +${formatHashrate(item.hpBonus)} permanent hashrate.` },
+      { id: `market-${item.id}-${Date.now()}`, name: item.name, type: "item", tag: "x1", icon: item.icon, image: item.image, iconColor: item.iconColor, selected: false, desc: `Bought from the Marketplace (${item.rarity}). Grants +${formatHashrate(item.hpBonus)} permanent hashrate.` },
     ]);
   };
 
@@ -929,6 +930,7 @@ export default function MiningDashboard() {
           price: Number(l.price),
           seller: l.seller ? l.seller.username : "Unknown",
           icon: poolItem ? poolItem.icon : Package,
+          image: poolItem ? poolItem.image : undefined,
           iconColor: poolItem ? poolItem.iconColor : "#94a3b8",
         };
       });
@@ -966,6 +968,7 @@ export default function MiningDashboard() {
             type: listing.type,
             tag: "x1",
             icon: listing.icon,
+            image: listing.image,
             iconColor: listing.iconColor,
             selected: false,
             desc: `Traded from another miner (${listing.seller}) via the Marketplace.`,
