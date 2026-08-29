@@ -3,7 +3,10 @@ import {
 } from "lucide-react";
 import { BatteryIcon, CoolingIcon, DroneIcon, GpuIcon, ProcessorIcon, RackIcon } from "../components/icons/CustomIcons";
 import CARRIER_DRONE_IMG from "../assets/images/carrier-drone.png";
+import AIR_COOLER_IMG from "../assets/images/air-cooler.png";
 import DUAL_FAN_COOLER_IMG from "../assets/images/dual-fan-cooler.png";
+import LIQUID_COOLING_IMG from "../assets/images/liquid-cooling.png";
+import CRYO_COOLING_IMG from "../assets/images/cryo-cooling.png";
 import QUANTUM_COOLING_IMG from "../assets/images/quantum-cooling.png";
 import GTX1660_IMG from "../assets/images/gtx1660.png";
 import RTX3060_IMG from "../assets/images/rtx3060.png";
@@ -63,10 +66,10 @@ export const PART_CATEGORIES = [
     statType: "cooling", // NOT hashrate anymore — purely manages heat, see calcCoolingCapacity
     generatesHeat: false,
     items: [
-      { id: "cooling_0", name: "Air Cooler", hp: 5e6, buyCost: 0, rarity: "Common", desc: "A basic fan setup to keep temperatures from spiking too fast." },
+      { id: "cooling_0", name: "Air Cooler", hp: 5e6, buyCost: 0, rarity: "Common", image: AIR_COOLER_IMG, desc: "A basic fan setup to keep temperatures from spiking too fast." },
       { id: "cooling_1", name: "Dual Fan Cooler", hp: 22e6, buyCost: 1200, rarity: "Uncommon", image: DUAL_FAN_COOLER_IMG, desc: "Twin fans working together for noticeably better heat control." },
-      { id: "cooling_2", name: "Liquid Cooling", hp: 95e6, buyCost: 5500, rarity: "Rare", desc: "A closed-loop liquid system that keeps hot rigs running smoothly." },
-      { id: "cooling_3", name: "Cryo Cooling", hp: 400e6, buyCost: 26000, rarity: "Epic", desc: "Sub-zero cooling tech that lets hardware push far past normal limits." },
+      { id: "cooling_2", name: "Liquid Cooling", hp: 95e6, buyCost: 5500, rarity: "Rare", image: LIQUID_COOLING_IMG, desc: "A closed-loop liquid system that keeps hot rigs running smoothly." },
+      { id: "cooling_3", name: "Cryo Cooling", hp: 400e6, buyCost: 26000, rarity: "Epic", image: CRYO_COOLING_IMG, desc: "Sub-zero cooling tech that lets hardware push far past normal limits." },
       { id: "cooling_4", name: "Quantum Cooling", hp: 1700e6, buyCost: 120000, rarity: "Legendary", image: QUANTUM_COOLING_IMG, desc: "Experimental cooling that keeps even the hottest rigs ice-cold." },
     ],
   },
