@@ -13,7 +13,11 @@ export function BuyListingCard({ listing, core, onBuy }) {
           border: `1px solid ${listing.iconColor}55`,
         }}
       >
-        <Icon size={38} style={{ color: listing.iconColor }} />
+        {listing.image ? (
+          <img src={listing.image} alt={listing.name} className="w-full h-full object-contain" />
+        ) : (
+          <Icon size={38} style={{ color: listing.iconColor }} />
+        )}
       </div>
       <div className="w-full min-w-0">
         <span className="text-[12px] font-bold text-white truncate block leading-tight">{listing.name}</span>

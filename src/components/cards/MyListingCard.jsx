@@ -16,7 +16,11 @@ export function MyListingCard({ listing, onCancel }) {
           border: `1px solid ${listing.iconColor}55`,
         }}
       >
-        <Icon size={28} style={{ color: listing.iconColor }} />
+        {listing.image ? (
+          <img src={listing.image} alt={listing.name} className="w-full h-full object-contain" />
+        ) : (
+          <Icon size={28} style={{ color: listing.iconColor }} />
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-[12.5px] font-bold text-white truncate">{listing.name}</div>
