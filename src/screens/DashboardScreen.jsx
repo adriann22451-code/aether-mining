@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   BookOpen,
   Calendar,
+  ChevronLeft,
   ChevronRight,
   Crown,
   Flame,
@@ -35,7 +36,7 @@ const SITE_SPRITES = {
   10: { src: GENESIS_CORE_SPRITE_IMG, frames: GENESIS_CORE_SPRITE_FRAMES, meta: GENESIS_CORE_SPRITE_META },
 };
 
-export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned }) {
+export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, onDevPreviewSite }) {
   const coreDisplay = useTween(core, 700);
   const [visualWrapRef, visualSize] = useContainSize(16, 9);
   const pendingDisplay = useTween(pending, 350);
@@ -293,6 +294,29 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
               transition: "transform 0.15s ease-out",
             }}
           />
+        )}
+
+        {/* TEMP DEV/TEST CONTROL — cycles the visual through every site (locked
+            or not) so you can preview all the art. Doesn't touch unlockedIndex,
+            so real progress/save is untouched. Delete this block + the
+            onDevPreviewSite prop once you're done reviewing site art. */}
+        {onDevPreviewSite && (
+          <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onDevPreviewSite((siteIndex - 1 + SITES.length) % SITES.length)}
+              className="w-6 h-6 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center active:scale-90 transition"
+            >
+              <ChevronLeft size={13} className="text-white" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onDevPreviewSite((siteIndex + 1) % SITES.length)}
+              className="w-6 h-6 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center active:scale-90 transition"
+            >
+              <ChevronRight size={13} className="text-white" />
+            </button>
+          </div>
         )}
 
         <div
