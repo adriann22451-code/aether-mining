@@ -25,7 +25,11 @@ export function ItemDetailModal({ item, onClose }) {
               boxShadow: `0 0 18px -3px ${item.iconColor}99`,
             }}
           >
-            <Icon size={44} style={{ color: item.iconColor }} />
+            {item.image ? (
+              <img src={item.image} alt={item.name} className="w-full h-full object-contain rounded-lg" />
+            ) : (
+              <Icon size={44} style={{ color: item.iconColor }} />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[15px] font-extrabold text-white truncate">{item.name}</div>
