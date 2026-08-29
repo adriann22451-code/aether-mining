@@ -39,7 +39,7 @@ export const TRADE_BASE_PRICES = {
 
 export const TRADE_ITEM_POOL = inventoryCatalog
   .filter((i) => i.type !== "rig")
-  .map((i) => ({ name: i.name, icon: i.icon, iconColor: i.iconColor, type: i.type, desc: i.desc, basePrice: TRADE_BASE_PRICES[i.name] || 300 }));
+  .map((i) => ({ name: i.name, icon: i.icon, image: i.image, iconColor: i.iconColor, type: i.type, desc: i.desc, basePrice: TRADE_BASE_PRICES[i.name] || 300 }));
 
 export const BOT_SELLER_NAMES = ["ZeroCool", "Nyx_Miner", "Kappa88", "GhostRig", "BlokAtomic", "IronCore", "Vexen", "Miru", "Skyfall", "RustyByte", "Pixe1", "Overclockd"];
 
@@ -56,6 +56,7 @@ export function makeBotListing() {
     seller,
     name: poolItem.name,
     icon: poolItem.icon,
+    image: poolItem.image,
     iconColor: poolItem.iconColor,
     type: poolItem.type,
     price: randomListingPrice(poolItem.basePrice),
