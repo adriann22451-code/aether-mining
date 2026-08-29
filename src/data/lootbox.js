@@ -33,7 +33,7 @@ export function rollLootbox(ownedItems) {
     const name = chosen.pool[Math.floor(Math.random() * chosen.pool.length)];
     const qty = Math.round(chosen.min + Math.random() * (chosen.max - chosen.min));
     const poolItem = TRADE_ITEM_POOL.find((p) => p.name === name);
-    return { type: "material", name, qty, icon: poolItem?.icon, iconColor: poolItem?.iconColor };
+    return { type: "material", name, qty, icon: poolItem?.icon, image: poolItem?.image, iconColor: poolItem?.iconColor };
   }
   // type === "part": pick a random currently-unowned part
   const unowned = [];
