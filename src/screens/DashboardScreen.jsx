@@ -65,159 +65,11 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           }}
         />
       )}
-      {/* TOP BAR */}
-      <div className="shrink-0 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => onNavigate("profile")}
-          className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl pl-1 pr-2.5 py-1 backdrop-blur-sm active:scale-95 transition"
-        >
-          <div
-            className="relative rounded-lg bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-[13px] overflow-hidden ring-1 ring-indigo-300/40"
-            style={{ width: 26, height: 26 }}
-          >
-            🧑‍🚀
-          </div>
-          <span className="text-[10px] font-extrabold text-indigo-300 tracking-wide whitespace-nowrap">LV.{calcPlayerLevel(totalEarned).level}</span>
-        </button>
-
-        <div className="flex-1 flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 backdrop-blur-sm min-w-0">
-          <div className="flex items-center gap-1 min-w-0">
-            <AetherCoinIcon size={16} />
-            <span className="text-[11px] font-extrabold text-amber-200 whitespace-nowrap truncate">{formatInt(coreDisplay)}</span>
-          </div>
-          <div className="w-px h-3.5 bg-white/15 shrink-0" />
-          <div
-            className={`flex items-center gap-1 min-w-0 ${boostActive ? "rounded-full border px-1.5 -my-0.5" : ""}`}
-            style={boostActive ? { animation: "boostGlowPulse 1.1s ease-in-out infinite" } : undefined}
-          >
-            {boostActive ? (
-              <Zap size={11} className="text-amber-300 shrink-0" style={{ animation: "boostSparkle 1.1s ease-in-out infinite" }} />
-            ) : (
-              <Gem size={11} className="text-indigo-300 shrink-0" />
-            )}
-            <span className="text-[11px] font-extrabold text-slate-200 whitespace-nowrap truncate">{formatHashrate(totalHashrate)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* QUICK ACCESS TOOLBAR — Missions / Event / Achievements / Daily / Leaderboard / Guild / Codex */}
-      <div className="shrink-0 grid grid-cols-8 gap-1 bg-white/5 border border-white/10 rounded-xl p-0.5 backdrop-blur-sm">
-        {[
-          { icon: Inbox, key: "inbox", badge: inboxUnclaimed },
-          ...sideItems,
-          { icon: Calendar, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
-          { icon: Crown, key: "leaderboard" },
-          { icon: Users, key: "guild" },
-          { icon: BookOpen, key: "codex" },
-        ].map((item, i) => (
-          <button
-            type="button"
-            key={item.key || i}
-            onClick={() => (item.onPress ? item.onPress() : onNavigate(item.key))}
-            className="relative aspect-square rounded-lg flex items-center justify-center active:scale-90 transition hover:bg-white/5"
-          >
-            <item.icon
-              size={16}
-              className="text-amber-300"
-              style={{ filter: "drop-shadow(0 0 4px rgba(251,191,36,0.6))" }}
-            />
-            {item.badge && <span className="absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-1 ring-black/60" />}
-          </button>
-        ))}
-      </div>
-
-      {/* MYSTERY SITE — rare temporary event with a huge hashrate surge */}
-      {mysterySiteAvailable && (() => {
-        const secsLeft = Math.max(0, Math.ceil((mysterySiteAvailableUntil - Date.now()) / 1000));
-        return (
-          <button
-            type="button"
-            onClick={onActivateMysterySite}
-            className="relative shrink-0 mt-1.5 w-full rounded-xl px-3 py-2 flex items-center gap-2 text-left active:scale-[0.98] transition overflow-hidden"
-            style={{
-              background: "linear-gradient(90deg, rgba(217,70,239,0.25), rgba(99,102,241,0.25))",
-              border: "1px solid rgba(217,70,239,0.5)",
-              animation: "portalBorderPulse 1.4s ease-in-out infinite",
-            }}
-          >
-            <div
-              className="pointer-events-none absolute inset-y-0 w-1/3"
-              style={{
-                background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)",
-                animation: "portalShimmerSweep 2.2s ease-in-out infinite",
-              }}
-            />
-            <Sparkles size={16} className="text-fuchsia-300 shrink-0" style={{ animation: "sparkleTwinkle 1.1s ease-in-out infinite" }} />
-            <div className="flex-1 min-w-0">
-              <div className="text-[11px] font-extrabold text-white">Mysterious Site Detected!</div>
-              <div className="text-[9.5px] text-fuchsia-200">Tap to activate a 5x hashrate surge before it vanishes</div>
-            </div>
-            <span
-              className="shrink-0 text-[9px] font-mono font-bold"
-              style={secsLeft <= 5 ? { animation: "urgentCountdown 0.5s ease-in-out infinite" } : { color: "#f5d0fe" }}
-            >
-              {secsLeft}s
-            </span>
-          </button>
-        );
-      })()}
-      {mysteryBoostActive && (
-        <div
-          className="shrink-0 mt-1.5 w-full rounded-xl px-3 py-2 flex items-center gap-2"
-          style={{
-            background: "linear-gradient(90deg, rgba(217,70,239,0.2), rgba(99,102,241,0.2))",
-            border: "1px solid rgba(217,70,239,0.4)",
-            animation: "portalBorderPulse 1.8s ease-in-out infinite",
-          }}
-        >
-          <Zap
-            size={16}
-            className="text-fuchsia-300 shrink-0"
-            style={{ filter: "drop-shadow(0 0 5px rgba(217,70,239,0.9))", animation: "surgeFlicker 2.4s linear infinite" }}
-          />
-          <div className="flex-1 min-w-0 text-[11px] font-extrabold text-white">Mysterious Surge Active — 5x Hashrate!</div>
-          <span className="shrink-0 text-[9px] font-mono font-bold text-fuchsia-200">
-            {Math.max(0, Math.ceil((mysteryBoostEndTime - Date.now()) / 60000))}m left
-          </span>
-        </div>
-      )}
-
-      {/* HEAT GAUGE — GPU/Processor heat vs Cooling capacity */}
-      <div className="shrink-0 mt-1.5">
-        <div className="flex items-center gap-2">
-          <Thermometer
-            size={12}
-            className={isOverheating ? "text-red-400" : heatLevel > 70 ? "text-amber-400" : "text-cyan-300"}
-          />
-          <div className="flex-1 h-1.5 rounded-full bg-black/40 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${Math.min(100, heatLevel)}%`,
-                background: isOverheating
-                  ? "linear-gradient(90deg, #f87171, #ef4444)"
-                  : heatLevel > 70
-                  ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
-                  : "linear-gradient(90deg, #22d3ee, #38bdf8)",
-              }}
-            />
-          </div>
-          <span className={`text-[9px] font-bold shrink-0 ${isOverheating ? "text-red-400" : "text-slate-400"}`}>
-            {Math.round(heatLevel)}%
-          </span>
-        </div>
-        {isOverheating && (
-          <div className="mt-1 flex items-center gap-1 text-[9.5px] font-bold text-red-400 animate-pulse">
-            <Flame size={10} />
-            OVERHEATING — hashrate reduced by 30%. Upgrade Cooling to fix it!
-          </div>
-        )}
-      </div>
-
       {/* MINING RIG VISUAL AREA — themed by current Mining Site, locked to a 9:16
-          portrait frame (matches the site animations) and centered in whatever
-          space is left after the header/toolbar/buttons above and below it */}
+          portrait frame (matches the site animations). The header, quick-access
+          toolbar, mystery-site banner and heat gauge now float as a HUD overlay
+          on top of it (instead of separate rows) so the visual itself gets almost
+          the entire screen. */}
       <div className="relative flex-1 min-h-0 flex items-center justify-center">
       <div
         className="relative h-full max-w-full aspect-[9/16] rounded-xl overflow-hidden border"
@@ -242,6 +94,158 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             transition: "transform 0.15s ease-out",
           }}
         />
+
+        {/* HUD OVERLAY — profile/balance, quick-access toolbar, mystery-site
+            banner and heat gauge float on top of the visual instead of taking
+            up separate rows, so the site art fills nearly the whole screen */}
+        <div
+          className="absolute top-0 left-0 right-0 z-20 px-2.5 pt-2.5 pb-4 flex flex-col gap-1.5 pointer-events-none"
+          style={{ background: "linear-gradient(180deg, rgba(4,6,16,0.75) 0%, rgba(4,6,16,0.45) 55%, transparent 100%)" }}
+        >
+          <div className="flex items-center gap-2 pointer-events-auto">
+            <button
+              type="button"
+              onClick={() => onNavigate("profile")}
+              className="flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-xl pl-1 pr-2.5 py-1 backdrop-blur-sm active:scale-95 transition"
+            >
+              <div
+                className="relative rounded-lg bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-[13px] overflow-hidden ring-1 ring-indigo-300/40"
+                style={{ width: 26, height: 26 }}
+              >
+                🧑‍🚀
+              </div>
+              <span className="text-[10px] font-extrabold text-indigo-300 tracking-wide whitespace-nowrap">LV.{calcPlayerLevel(totalEarned).level}</span>
+            </button>
+
+            <div className="flex-1 flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 backdrop-blur-sm min-w-0">
+              <div className="flex items-center gap-1 min-w-0">
+                <AetherCoinIcon size={16} />
+                <span className="text-[11px] font-extrabold text-amber-200 whitespace-nowrap truncate">{formatInt(coreDisplay)}</span>
+              </div>
+              <div className="w-px h-3.5 bg-white/15 shrink-0" />
+              <div
+                className={`flex items-center gap-1 min-w-0 ${boostActive ? "rounded-full border px-1.5 -my-0.5" : ""}`}
+                style={boostActive ? { animation: "boostGlowPulse 1.1s ease-in-out infinite" } : undefined}
+              >
+                {boostActive ? (
+                  <Zap size={11} className="text-amber-300 shrink-0" style={{ animation: "boostSparkle 1.1s ease-in-out infinite" }} />
+                ) : (
+                  <Gem size={11} className="text-indigo-300 shrink-0" />
+                )}
+                <span className="text-[11px] font-extrabold text-slate-200 whitespace-nowrap truncate">{formatHashrate(totalHashrate)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-8 gap-1 bg-white/10 border border-white/15 rounded-xl p-0.5 backdrop-blur-sm pointer-events-auto">
+            {[
+              { icon: Inbox, key: "inbox", badge: inboxUnclaimed },
+              ...sideItems,
+              { icon: Calendar, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
+              { icon: Crown, key: "leaderboard" },
+              { icon: Users, key: "guild" },
+              { icon: BookOpen, key: "codex" },
+            ].map((item, i) => (
+              <button
+                type="button"
+                key={item.key || i}
+                onClick={() => (item.onPress ? item.onPress() : onNavigate(item.key))}
+                className="relative aspect-square rounded-lg flex items-center justify-center active:scale-90 transition hover:bg-white/10"
+              >
+                <item.icon
+                  size={16}
+                  className="text-amber-300"
+                  style={{ filter: "drop-shadow(0 0 4px rgba(251,191,36,0.6))" }}
+                />
+                {item.badge && <span className="absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-1 ring-black/60" />}
+              </button>
+            ))}
+          </div>
+
+          {mysterySiteAvailable && (() => {
+            const secsLeft = Math.max(0, Math.ceil((mysterySiteAvailableUntil - Date.now()) / 1000));
+            return (
+              <button
+                type="button"
+                onClick={onActivateMysterySite}
+                className="relative w-full rounded-xl px-3 py-2 flex items-center gap-2 text-left active:scale-[0.98] transition overflow-hidden pointer-events-auto"
+                style={{
+                  background: "linear-gradient(90deg, rgba(217,70,239,0.3), rgba(99,102,241,0.3))",
+                  border: "1px solid rgba(217,70,239,0.5)",
+                  animation: "portalBorderPulse 1.4s ease-in-out infinite",
+                }}
+              >
+                <div
+                  className="pointer-events-none absolute inset-y-0 w-1/3"
+                  style={{
+                    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)",
+                    animation: "portalShimmerSweep 2.2s ease-in-out infinite",
+                  }}
+                />
+                <Sparkles size={16} className="text-fuchsia-300 shrink-0" style={{ animation: "sparkleTwinkle 1.1s ease-in-out infinite" }} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-extrabold text-white">Mysterious Site Detected!</div>
+                  <div className="text-[9.5px] text-fuchsia-200">Tap to activate a 5x hashrate surge before it vanishes</div>
+                </div>
+                <span
+                  className="shrink-0 text-[9px] font-mono font-bold"
+                  style={secsLeft <= 5 ? { animation: "urgentCountdown 0.5s ease-in-out infinite" } : { color: "#f5d0fe" }}
+                >
+                  {secsLeft}s
+                </span>
+              </button>
+            );
+          })()}
+          {mysteryBoostActive && (
+            <div
+              className="w-full rounded-xl px-3 py-2 flex items-center gap-2 pointer-events-auto"
+              style={{
+                background: "linear-gradient(90deg, rgba(217,70,239,0.25), rgba(99,102,241,0.25))",
+                border: "1px solid rgba(217,70,239,0.4)",
+                animation: "portalBorderPulse 1.8s ease-in-out infinite",
+              }}
+            >
+              <Zap
+                size={16}
+                className="text-fuchsia-300 shrink-0"
+                style={{ filter: "drop-shadow(0 0 5px rgba(217,70,239,0.9))", animation: "surgeFlicker 2.4s linear infinite" }}
+              />
+              <div className="flex-1 min-w-0 text-[11px] font-extrabold text-white">Mysterious Surge Active — 5x Hashrate!</div>
+              <span className="shrink-0 text-[9px] font-mono font-bold text-fuchsia-200">
+                {Math.max(0, Math.ceil((mysteryBoostEndTime - Date.now()) / 60000))}m left
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 pointer-events-auto">
+            <Thermometer
+              size={12}
+              className={isOverheating ? "text-red-400" : heatLevel > 70 ? "text-amber-400" : "text-cyan-300"}
+            />
+            <div className="flex-1 h-1.5 rounded-full bg-black/40 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.min(100, heatLevel)}%`,
+                  background: isOverheating
+                    ? "linear-gradient(90deg, #f87171, #ef4444)"
+                    : heatLevel > 70
+                    ? "linear-gradient(90deg, #fbbf24, #f59e0b)"
+                    : "linear-gradient(90deg, #22d3ee, #38bdf8)",
+                }}
+              />
+            </div>
+            <span className={`text-[9px] font-bold shrink-0 ${isOverheating ? "text-red-400" : "text-slate-400"}`}>
+              {Math.round(heatLevel)}%
+            </span>
+          </div>
+          {isOverheating && (
+            <div className="flex items-center gap-1 text-[9.5px] font-bold text-red-400 animate-pulse pointer-events-auto">
+              <Flame size={10} />
+              OVERHEATING — hashrate reduced by 30%. Upgrade Cooling to fix it!
+            </div>
+          )}
+        </div>
 
         {/* one full isometric mining room image (AI-generated), or an animated
             sprite scene for sites that have one (e.g. Small Warehouse) */}
@@ -270,7 +274,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             draggable={false}
             className="absolute inset-0 w-full h-full"
             style={{
-              objectFit: "contain",
+              objectFit: "cover",
               objectPosition: "center",
               transform: `translate3d(${parallax.x * 8}px, ${parallax.y * 8}px, 0) scale(1.06)`,
               transition: "transform 0.15s ease-out",
@@ -279,7 +283,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
         )}
 
         <div
-          className="absolute top-2 left-2 z-10 flex items-center gap-1.5 bg-black/30 rounded-lg px-2 py-1 backdrop-blur-sm"
+          className="absolute bottom-2 left-2 z-10 flex items-center gap-1.5 bg-black/30 rounded-lg px-2 py-1 backdrop-blur-sm"
           style={{ transform: `translate3d(${parallax.x * 14}px, ${parallax.y * 14}px, 0)`, transition: "transform 0.12s ease-out" }}
         >
           <SiteIcon
@@ -299,7 +303,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           className="absolute z-10"
           style={{
             left: "62%",
-            top: "18%",
+            top: "42%",
             "--dx": "-70px",
             "--dy": "38px",
             animation: "droneFly 4.5s ease-in-out infinite",
