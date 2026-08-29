@@ -20,15 +20,24 @@ import AnimatedSprite from "../components/layout/AnimatedSprite";
 import { FloatingClaimNumbers } from "../components/layout/FloatingClaimNumbers";
 import ROOM_BG_IMG from "../assets/images/room-bg.webp";
 import SMALL_WAREHOUSE_SPRITE_IMG from "../assets/images/small-warehouse-sprite.webp";
+import GENESIS_CORE_SPRITE_IMG from "../assets/images/genesis-core-sprite.webp";
 import { calcPlayerLevel } from "../data/economy";
 import { SITES, SITE_BG_IMAGES } from "../data/sites";
 import { SMALL_WAREHOUSE_SPRITE_FRAMES, SMALL_WAREHOUSE_SPRITE_META } from "../data/spriteFrames";
+import { GENESIS_CORE_SPRITE_FRAMES, GENESIS_CORE_SPRITE_META } from "../data/genesisCoreSpriteFrames";
 import { SNOWFLAKES } from "../data/uiConstants";
 import { formatCore, formatHashrate, formatInt } from "../lib/format";
-import { useTween } from "../lib/hooks";
+import { useContainSize, useTween } from "../lib/hooks";
+
+// sites that have an animated sprite scene instead of a static background image
+const SITE_SPRITES = {
+  1: { src: SMALL_WAREHOUSE_SPRITE_IMG, frames: SMALL_WAREHOUSE_SPRITE_FRAMES, meta: SMALL_WAREHOUSE_SPRITE_META },
+  10: { src: GENESIS_CORE_SPRITE_IMG, frames: GENESIS_CORE_SPRITE_FRAMES, meta: GENESIS_CORE_SPRITE_META },
+};
 
 export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned }) {
   const coreDisplay = useTween(core, 700);
+  const [visualWrapRef, visualSize] = useContainSize(16, 9);
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const handleParallaxMove = (e) => {
@@ -65,15 +74,19 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           }}
         />
       )}
-      {/* MINING RIG VISUAL AREA — themed by current Mining Site, locked to a 9:16
-          portrait frame (matches the site animations). The header, quick-access
+      {/* MINING RIG VISUAL AREA — themed by current Mining Site, locked to a 16:9
+          landscape frame (matches the site animations). The header, quick-access
           toolbar, mystery-site banner and heat gauge now float as a HUD overlay
           on top of it (instead of separate rows) so the visual itself gets almost
           the entire screen. */}
-      <div className="relative flex-1 min-h-0 flex items-center justify-center">
+      <div ref={visualWrapRef} className="relative flex-1 min-h-0 flex items-center justify-center">
       <div
-        className="relative h-full max-w-full aspect-[9/16] rounded-xl overflow-hidden border"
-        style={{ borderColor: `${site.theme.accent}33` }}
+        className="relative rounded-xl overflow-hidden border"
+        style={{
+          width: visualSize.width || "100%",
+          height: visualSize.height || "100%",
+          borderColor: `${site.theme.accent}33`,
+        }}
         onPointerMove={handleParallaxMove}
         onPointerLeave={resetParallax}
       >
@@ -248,8 +261,8 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
         </div>
 
         {/* one full isometric mining room image (AI-generated), or an animated
-            sprite scene for sites that have one (e.g. Small Warehouse) */}
-        {siteIndex === 1 ? (
+            sprite scene for sites that have one (e.g. Small Warehouse, Genesis Core) */}
+        {SITE_SPRITES[siteIndex] ? (
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{
@@ -258,12 +271,12 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             }}
           >
             <AnimatedSprite
-              src={SMALL_WAREHOUSE_SPRITE_IMG}
-              frames={SMALL_WAREHOUSE_SPRITE_FRAMES}
-              frameWidth={SMALL_WAREHOUSE_SPRITE_META.frameWidth}
-              frameHeight={SMALL_WAREHOUSE_SPRITE_META.frameHeight}
-              sheetWidth={SMALL_WAREHOUSE_SPRITE_META.sheetWidth}
-              sheetHeight={SMALL_WAREHOUSE_SPRITE_META.sheetHeight}
+              src={SITE_SPRITES[siteIndex].src}
+              frames={SITE_SPRITES[siteIndex].frames}
+              frameWidth={SITE_SPRITES[siteIndex].meta.frameWidth}
+              frameHeight={SITE_SPRITES[siteIndex].meta.frameHeight}
+              sheetWidth={SITE_SPRITES[siteIndex].meta.sheetWidth}
+              sheetHeight={SITE_SPRITES[siteIndex].meta.sheetHeight}
               style={{ maxWidth: "100%", maxHeight: "100%", width: "auto", height: "100%" }}
             />
           </div>
