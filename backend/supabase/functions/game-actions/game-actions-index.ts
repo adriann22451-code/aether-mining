@@ -77,7 +77,7 @@ const PART_DATA: Record<string, { hp: number; buyCost: number; category: "gpu" |
   drone_0: { hp: 0.03, buyCost: 0, category: "drone" }, drone_1: { hp: 0.15, buyCost: 4000, category: "drone" }, drone_2: { hp: 0.40, buyCost: 60000, category: "drone" },
 };
 
-const SITE_COST: number[] = [0, 5000, 25000, 90000, 300000, 900000, 2500000, 7000000, 20000000, 60000000, 200000000];
+const SITE_COST: number[] = [0, 3000, 10000, 30000, 80000, 180000, 350000, 650000, 1100000, 1800000, 3000000];
 
 const CRAFT_RECIPES: Record<string, { targetId: string; materials: { name: string; qty: number }[]; aetherCost: number }> = {
   craft_cooling2: { targetId: "cooling_2", materials: [{ name: "Metal Plate", qty: 4 }, { name: "Nano Alloy", qty: 2 }], aetherCost: 500 },
