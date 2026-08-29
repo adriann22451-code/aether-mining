@@ -1,8 +1,37 @@
 import { PART_CATEGORIES, itemHpAtLevel } from "./parts";
 
-export const INCOME_DIVISOR = 6.5e8; // tunes how much Hash Power (HP) converts to AETHER/sec
+export const INCOME_DIVISOR = 6.5e8; // tunes how much Hash Power (HP) converts to AETHER/sec (OFFLINE/local-save mode only — see note below)
 
 export const AETHER_MAX_SUPPLY = 100_000_000;
+
+/* =========================================================
+   TOKENOMICS (mirrors backend/supabase/migrations/0005_block_reward_tokenomics.sql
+   — that SQL is the actual source of truth whenever the backend is online;
+   these constants exist so the client's UI/copy and the OFFLINE fallback
+   below stay honest about the same numbers).
+
+     MAX_SUPPLY            = 100,000,000 AETHER
+     BLOCK_TIME             = 60 seconds        (1 "block" = 1 minute)
+     INITIAL_BLOCK_REWARD   = 500 AETHER/block  (epoch 0, network-wide)
+     HALVING_INTERVAL       = 100,000 blocks    (~69 days / ~2.3 months
+                               at the reference hashrate below)
+     GHOST_HASHRATE          = 20 TH/s           ("network difficulty
+                               floor" — always padded into the active-
+                               hashrate denominator server-side so a lone
+                               small-hashrate player can't auto-claim the
+                               entire fixed block reward just by being
+                               the only one online; see the SQL migration
+                               header for the full explanation)
+
+   500 AETHER/block / 60s = 8.3333.. AETHER/sec at epoch 0, halving every
+   100,000 blocks (500 -> 250 -> 125 -> ...). Like Bitcoin, summing every
+   halving era (reward * interval * 2) totals exactly MAX_SUPPLY, so
+   supply asymptotically approaches but never exceeds 100M.
+   ========================================================= */
+export const BLOCK_TIME_SECONDS = 60;
+export const INITIAL_BLOCK_REWARD = 500; // AETHER/block, network-wide, epoch 0
+export const HALVING_INTERVAL_BLOCKS = 100_000;
+export const GHOST_HASHRATE = 20e12; // 20 TH/s reference/"difficulty floor"
 
 // how many halvings have occurred by the time `totalMined` AETHER has been mined
 
