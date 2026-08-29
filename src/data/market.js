@@ -1,11 +1,15 @@
 import { BatteryIcon, CoolingIcon, DroneIcon, RackIcon } from "../components/icons/CustomIcons";
+import COOLING_SYSTEM_XL_IMG from "../assets/images/cooling-system-xl.png";
+import ENERGY_BATTERY_SPECIAL_IMG from "../assets/images/energy-battery-special.png";
+import MINING_DRONE_MK1_IMG from "../assets/images/mining-drone-mk1.png";
+import RTX_CORE_X9_IMG from "../assets/images/rtx-core-x9.png";
 import { inventoryCatalog } from "./inventory";
 
 export const marketCatalog = [
-  { id: 1, name: "RTX CORE X9", rarity: "Epic", price: 15000, stock: 24, hpBonus: 120e6, icon: RackIcon, iconColor: "#c084fc", desc: "A limited-run overclocked rack module built for serious hashrate gains." },
-  { id: 2, name: "Cooling System XL", rarity: "Rare", price: 3250, stock: 18, hpBonus: 25e6, icon: CoolingIcon, iconColor: "#38bdf8", desc: "An oversized cooling unit that squeezes extra stable performance out of any rig." },
-  { id: 3, name: "Energy Battery", rarity: "Rare", price: 2150, stock: 32, hpBonus: 18e6, icon: BatteryIcon, iconColor: "#38bdf8", desc: "A specialty battery pack offering a small but permanent power boost." },
-  { id: 4, name: "Mining Drone Mk.1", rarity: "Epic", price: 6500, stock: 7, hpBonus: 55e6, icon: DroneIcon, iconColor: "#c084fc", desc: "A rare drone model, hand-tuned for maximum mining assistance." },
+  { id: 1, name: "RTX CORE X9", rarity: "Epic", price: 15000, stock: 24, hpBonus: 120e6, icon: RackIcon, image: RTX_CORE_X9_IMG, iconColor: "#c084fc", desc: "A limited-run overclocked rack module built for serious hashrate gains." },
+  { id: 2, name: "Cooling System XL", rarity: "Rare", price: 3250, stock: 18, hpBonus: 25e6, icon: CoolingIcon, image: COOLING_SYSTEM_XL_IMG, iconColor: "#38bdf8", desc: "An oversized cooling unit that squeezes extra stable performance out of any rig." },
+  { id: 3, name: "Energy Battery", rarity: "Rare", price: 2150, stock: 32, hpBonus: 18e6, icon: BatteryIcon, image: ENERGY_BATTERY_SPECIAL_IMG, iconColor: "#38bdf8", desc: "A specialty battery pack offering a small but permanent power boost." },
+  { id: 4, name: "Mining Drone Mk.1", rarity: "Epic", price: 6500, stock: 7, hpBonus: 55e6, icon: DroneIcon, image: MINING_DRONE_MK1_IMG, iconColor: "#c084fc", desc: "A rare drone model, hand-tuned for maximum mining assistance." },
 ];
 
 export const rarityStyles = {

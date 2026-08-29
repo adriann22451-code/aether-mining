@@ -3,6 +3,8 @@ import {
 } from "lucide-react";
 import { BatteryIcon, CoolingIcon, DroneIcon, GpuIcon, ProcessorIcon, RackIcon } from "../components/icons/CustomIcons";
 import CARRIER_DRONE_IMG from "../assets/images/carrier-drone.png";
+import WORKER_DRONE_IMG from "../assets/images/worker-drone.png";
+import QUANTUM_DRONE_IMG from "../assets/images/quantum-drone.png";
 import BASIC_PROCESSOR_IMG from "../assets/images/basic-processor.png";
 import AI_PROCESSOR_IMG from "../assets/images/ai-processor.png";
 import QUANTUM_CHIP_IMG from "../assets/images/quantum-chip.png";
@@ -121,9 +123,9 @@ export const PART_CATEGORIES = [
     statType: "incomeBonus", // NOT hashrate — boosts AETHER from Missions/Events/Guild/Daily/Loot Box (not passive mining itself)
     generatesHeat: false,
     items: [
-      { id: "drone_0", name: "Worker Drone", hp: 0.03, buyCost: 0, rarity: "Common", desc: "A small automated helper that hauls in a little extra from every reward." },
+      { id: "drone_0", name: "Worker Drone", hp: 0.03, buyCost: 0, rarity: "Common", image: WORKER_DRONE_IMG, desc: "A small automated helper that hauls in a little extra from every reward." },
       { id: "drone_1", name: "Carrier Drone", hp: 0.15, buyCost: 4000, rarity: "Rare", image: CARRIER_DRONE_IMG, desc: "A sturdier drone that noticeably boosts Missions, Events, Guild, and Loot Box payouts." },
-      { id: "drone_2", name: "Quantum Drone", hp: 0.40, buyCost: 60000, rarity: "Legendary", desc: "An elite drone fleet that dramatically boosts every reward except passive mining." },
+      { id: "drone_2", name: "Quantum Drone", hp: 0.40, buyCost: 60000, rarity: "Legendary", image: QUANTUM_DRONE_IMG, desc: "An elite drone fleet that dramatically boosts every reward except passive mining." },
     ],
   },
 ];
