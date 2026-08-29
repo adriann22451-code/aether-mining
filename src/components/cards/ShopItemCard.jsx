@@ -1,6 +1,4 @@
-import {
-  Coins,
-} from "lucide-react";
+import { AetherCoinIcon } from "../icons/CustomIcons";
 import { RARITY_COLORS } from "../../data/parts";
 import { formatInt, formatStatValue } from "../../lib/format";
 
@@ -58,7 +56,7 @@ export function ShopItemCard({ item, category, core, onBuy }) {
             : "bg-white/5 text-slate-500"
         }`}
       >
-        <Coins size={11} className={canAfford ? "text-amber-300" : "text-slate-600"} />
+        <AetherCoinIcon size={11} dim={!canAfford} />
         {item.buyCost === 0 ? "FREE" : formatInt(item.buyCost)}
       </button>
     </div>

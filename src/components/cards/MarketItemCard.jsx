@@ -1,6 +1,4 @@
-import {
-  Coins,
-} from "lucide-react";
+import { AetherCoinIcon } from "../icons/CustomIcons";
 import { rarityStyles } from "../../data/market";
 import { formatHashrate } from "../../lib/format";
 
@@ -49,7 +47,7 @@ export function MarketItemCard({ item, stock, owned, core, onBuy }) {
             : "bg-white/5 text-slate-500"
         }`}
       >
-        <Coins size={11} className={canAfford ? "text-amber-300" : "text-slate-600"} />
+        <AetherCoinIcon size={11} dim={!canAfford} />
         {stock <= 0 ? "SOLD OUT" : item.price.toLocaleString()}
       </button>
     </div>

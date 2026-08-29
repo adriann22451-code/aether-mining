@@ -1,6 +1,4 @@
-import {
-  Coins,
-} from "lucide-react";
+import { AetherCoinIcon } from "../icons/CustomIcons";
 import { formatInt } from "../../lib/format";
 
 export function BuyListingCard({ listing, core, onBuy }) {
@@ -21,7 +19,7 @@ export function BuyListingCard({ listing, core, onBuy }) {
         <span className="text-[12px] font-bold text-white truncate block leading-tight">{listing.name}</span>
         <span className="text-[9.5px] text-slate-500 truncate block">sold by {listing.seller}</span>
         <div className="mt-0.5 flex items-center justify-center gap-1 text-[11px] font-extrabold text-amber-300">
-          <Coins size={10} />
+          <AetherCoinIcon size={10} />
           {formatInt(listing.price)}
         </div>
       </div>

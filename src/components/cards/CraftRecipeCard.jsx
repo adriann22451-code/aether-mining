@@ -1,6 +1,4 @@
-import {
-  Coins,
-} from "lucide-react";
+import { AetherCoinIcon } from "../icons/CustomIcons";
 import { canCraftRecipe } from "../../data/craft";
 import { getInventoryQty } from "../../data/inventory";
 import { RARITY_COLORS, findPartItem } from "../../data/parts";
@@ -45,7 +43,7 @@ export function CraftRecipeCard({ recipe, inventory, core, onCraft }) {
           })}
         </div>
         <div className={`mt-0.5 text-[10px] font-semibold flex items-center gap-1 ${canAffordAether ? "text-amber-300" : "text-rose-400"}`}>
-          <Coins size={10} />
+          <AetherCoinIcon size={10} />
           {formatInt(recipe.aetherCost)} AETHER
         </div>
       </div>

@@ -1,8 +1,8 @@
 import {
   CheckCircle2,
-  Coins,
   Lock,
 } from "lucide-react";
+import { AetherCoinIcon } from "../icons/CustomIcons";
 import { formatInt } from "../../lib/format";
 
 export function SiteCard({ site, index, unlockedIndex, activeSiteIndex, core, onUnlock, onSelect }) {
@@ -73,7 +73,7 @@ export function SiteCard({ site, index, unlockedIndex, activeSiteIndex, core, on
         >
           <span>UNLOCK</span>
           <span className="flex items-center gap-1">
-            <Coins size={10} className="text-amber-300" />
+            <AetherCoinIcon size={10} />
             {formatInt(site.cost)}
           </span>
         </button>

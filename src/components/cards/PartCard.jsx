@@ -1,7 +1,7 @@
 import {
   ChevronRight,
-  Coins,
 } from "lucide-react";
+import { AetherCoinIcon } from "../icons/CustomIcons";
 import { MAX_LEVEL, RARITY_COLORS, itemHpAtLevel, itemLevelUpCost } from "../../data/parts";
 import { formatInt, formatStatValue } from "../../lib/format";
 
@@ -82,7 +82,7 @@ export function PartCard({ item, category, level, core, onUpgrade }) {
               : "bg-white/5 text-slate-500"
           }`}
         >
-          <Coins size={12} className={canAfford ? "text-amber-300" : "text-slate-600"} />
+          <AetherCoinIcon size={12} dim={!canAfford} />
           {formatInt(cost)}
         </button>
       )}
