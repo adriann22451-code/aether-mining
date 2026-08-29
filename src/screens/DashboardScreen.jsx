@@ -28,7 +28,7 @@ import { SMALL_WAREHOUSE_SPRITE_FRAMES, SMALL_WAREHOUSE_SPRITE_META } from "../d
 import { GENESIS_CORE_SPRITE_FRAMES, GENESIS_CORE_SPRITE_META } from "../data/genesisCoreSpriteFrames";
 import { SNOWFLAKES } from "../data/uiConstants";
 import { formatCore, formatHashrate, formatInt } from "../lib/format";
-import { useContainSize, useTween } from "../lib/hooks";
+import { useTween } from "../lib/hooks";
 
 // sites that have an animated sprite scene instead of a static background image
 const SITE_SPRITES = {
@@ -38,7 +38,6 @@ const SITE_SPRITES = {
 
 export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, onDevPreviewSite }) {
   const coreDisplay = useTween(core, 700);
-  const [visualWrapRef, visualSize] = useContainSize(16, 9);
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const handleParallaxMove = (e) => {
@@ -75,17 +74,14 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           }}
         />
       )}
-      {/* MINING RIG VISUAL AREA — themed by current Mining Site, locked to a 16:9
-          landscape frame (matches the site animations). The header, quick-access
-          toolbar, mystery-site banner and heat gauge now float as a HUD overlay
-          on top of it (instead of separate rows) so the visual itself gets almost
-          the entire screen. */}
-      <div ref={visualWrapRef} className="relative flex-1 min-h-0 flex items-center justify-center">
+      {/* MINING RIG VISUAL AREA — themed by current Mining Site. Fills the
+          entire remaining screen space (no more 16:9 letterboxing on tall
+          phone screens). The header, quick-access toolbar, mystery-site
+          banner and heat gauge float as a HUD overlay on top of it. */}
+      <div className="relative flex-1 min-h-0">
       <div
-        className="relative rounded-xl overflow-hidden border"
+        className="relative w-full h-full rounded-xl overflow-hidden border"
         style={{
-          width: visualSize.width || "100%",
-          height: visualSize.height || "100%",
           borderColor: `${site.theme.accent}33`,
         }}
         onPointerMove={handleParallaxMove}
@@ -265,20 +261,20 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             sprite scene for sites that have one (e.g. Small Warehouse, Genesis Core) */}
         {SITE_SPRITES[siteIndex] ? (
           <div
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0"
             style={{
               transform: `translate3d(${parallax.x * 8}px, ${parallax.y * 8}px, 0) scale(1.06)`,
               transition: "transform 0.15s ease-out",
             }}
           >
             <AnimatedSprite
+              fill
               src={SITE_SPRITES[siteIndex].src}
               frames={SITE_SPRITES[siteIndex].frames}
               frameWidth={SITE_SPRITES[siteIndex].meta.frameWidth}
               frameHeight={SITE_SPRITES[siteIndex].meta.frameHeight}
               sheetWidth={SITE_SPRITES[siteIndex].meta.sheetWidth}
               sheetHeight={SITE_SPRITES[siteIndex].meta.sheetHeight}
-              style={{ maxWidth: "100%", maxHeight: "100%", width: "auto", height: "100%" }}
             />
           </div>
         ) : (
