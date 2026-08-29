@@ -63,7 +63,7 @@ export const PART_HP: Record<string, { hp: number; buyCost: number; category: "g
 };
 
 export const SITE_BONUS: number[] = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0, 2.35, 2.75, 3.25, 3.9, 5.0];
-export const SITE_COST: number[] = [0, 5000, 25000, 90000, 300000, 900000, 2500000, 7000000, 20000000, 60000000, 200000000];
+export const SITE_COST: number[] = [0, 3000, 10000, 30000, 80000, 180000, 350000, 650000, 1100000, 1800000, 3000000];
 
 export function itemHpAtLevel(baseHp: number, level: number): number {
   if (level <= 0) return 0;
