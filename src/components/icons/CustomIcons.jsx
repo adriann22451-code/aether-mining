@@ -13,6 +13,28 @@ import NANO_ALLOY_IMG from "../../assets/images/nano-alloy.png";
 import PROCESSOR_IMG from "../../assets/images/processor.png";
 import QUANTUM_ALLOY_IMG from "../../assets/images/quantum-alloy.png";
 import RACK_ICON_IMG from "../../assets/images/rack-icon.png";
+import AETHER_COIN_IMG from "../../assets/images/aether-coin.png";
+
+export function AetherCoinIcon({ size = 24, style = {}, className = "", dim = false }) {
+  return (
+    <img
+      src={AETHER_COIN_IMG}
+      alt="AETHER"
+      draggable={false}
+      className={className}
+      style={{
+        width: size,
+        height: size,
+        objectFit: "contain",
+        display: "inline-block",
+        filter: dim ? "grayscale(85%) brightness(0.65)" : "none",
+        opacity: dim ? 0.65 : 1,
+        transition: "filter 0.15s ease, opacity 0.15s ease",
+        ...style,
+      }}
+    />
+  );
+}
 
 export function CoolingIcon({ size = 24, style = {}, className = "" }) {
   return (
