@@ -28,7 +28,11 @@ export function InventoryItemCard({ item, onSelect }) {
           boxShadow: `0 0 14px -4px ${item.iconColor}88`,
         }}
       >
-        <Icon size={32} style={{ color: item.iconColor }} />
+        {item.image ? (
+          <img src={item.image} alt={item.name} className="w-full h-full object-contain rounded-lg" />
+        ) : (
+          <Icon size={32} style={{ color: item.iconColor }} />
+        )}
       </div>
       <span className="text-[10px] font-bold text-slate-200">{item.tag}</span>
       {marketRef && <span className="text-[9px] font-semibold text-emerald-300">+{formatHashrate(marketRef.hpBonus)}</span>}

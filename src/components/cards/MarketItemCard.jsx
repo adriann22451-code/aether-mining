@@ -18,7 +18,11 @@ export function MarketItemCard({ item, stock, owned, core, onBuy }) {
           animation: isShiny ? `rarityPulse ${item.rarity === "Legendary" ? "1.6s" : "2.2s"} ease-in-out infinite` : undefined,
         }}
       >
-        <Icon size={42} style={{ color: item.iconColor }} />
+        {item.image ? (
+          <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+        ) : (
+          <Icon size={42} style={{ color: item.iconColor }} />
+        )}
         {isShiny && (
           <span
             className="pointer-events-none absolute -inset-4"

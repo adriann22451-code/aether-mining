@@ -15,7 +15,11 @@ export function CodexMarketCard({ item }) {
           animation: isShiny ? `rarityPulse ${item.rarity === "Legendary" ? "1.6s" : "2.2s"} ease-in-out infinite` : undefined,
         }}
       >
-        <item.icon size={28} style={{ color: item.iconColor }} />
+        {item.image ? (
+          <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+        ) : (
+          <item.icon size={28} style={{ color: item.iconColor }} />
+        )}
         {isShiny && (
           <span
             className="pointer-events-none absolute -inset-4"
