@@ -3,6 +3,11 @@ import {
 } from "lucide-react";
 import { BatteryIcon, CoolingIcon, DroneIcon, GpuIcon, ProcessorIcon, RackIcon } from "../components/icons/CustomIcons";
 import CARRIER_DRONE_IMG from "../assets/images/carrier-drone.png";
+import LITHIUM_BATTERY_IMG from "../assets/images/lithium-battery.png";
+import POWER_CELL_IMG from "../assets/images/power-cell.png";
+import ENERGY_CORE_IMG from "../assets/images/energy-core.png";
+import FUSION_BATTERY_IMG from "../assets/images/fusion-battery.png";
+import QUANTUM_BATTERY_IMG from "../assets/images/quantum-battery.png";
 import AIR_COOLER_IMG from "../assets/images/air-cooler.png";
 import DUAL_FAN_COOLER_IMG from "../assets/images/dual-fan-cooler.png";
 import LIQUID_COOLING_IMG from "../assets/images/liquid-cooling.png";
@@ -81,11 +86,11 @@ export const PART_CATEGORIES = [
     statType: "pendingCap", // NOT hashrate — extends how many hours of AETHER can pile up before you hit the claim cap
     generatesHeat: false,
     items: [
-      { id: "battery_0", name: "Lithium Battery", hp: 0.25, buyCost: 0, rarity: "Common", desc: "A standard battery pack — stores a bit of extra unclaimed AETHER before you hit the cap." },
-      { id: "battery_1", name: "Power Cell", hp: 0.75, buyCost: 1200, rarity: "Uncommon", desc: "A higher-capacity cell that lets AETHER pile up longer between claims." },
-      { id: "battery_2", name: "Energy Core", hp: 2, buyCost: 5500, rarity: "Rare", desc: "A dense energy core that meaningfully raises your claim cap." },
-      { id: "battery_3", name: "Fusion Battery", hp: 5, buyCost: 26000, rarity: "Epic", desc: "Cutting-edge fusion tech — go most of a day without claiming and lose nothing." },
-      { id: "battery_4", name: "Quantum Battery", hp: 12, buyCost: 120000, rarity: "Legendary", desc: "Near-limitless power density — the claim cap barely matters anymore." },
+      { id: "battery_0", name: "Lithium Battery", hp: 0.25, buyCost: 0, rarity: "Common", image: LITHIUM_BATTERY_IMG, desc: "A standard battery pack — stores a bit of extra unclaimed AETHER before you hit the cap." },
+      { id: "battery_1", name: "Power Cell", hp: 0.75, buyCost: 1200, rarity: "Uncommon", image: POWER_CELL_IMG, desc: "A higher-capacity cell that lets AETHER pile up longer between claims." },
+      { id: "battery_2", name: "Energy Core", hp: 2, buyCost: 5500, rarity: "Rare", image: ENERGY_CORE_IMG, desc: "A dense energy core that meaningfully raises your claim cap." },
+      { id: "battery_3", name: "Fusion Battery", hp: 5, buyCost: 26000, rarity: "Epic", image: FUSION_BATTERY_IMG, desc: "Cutting-edge fusion tech — go most of a day without claiming and lose nothing." },
+      { id: "battery_4", name: "Quantum Battery", hp: 12, buyCost: 120000, rarity: "Legendary", image: QUANTUM_BATTERY_IMG, desc: "Near-limitless power density — the claim cap barely matters anymore." },
     ],
   },
   {
