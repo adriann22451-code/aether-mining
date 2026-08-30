@@ -361,7 +361,7 @@ export default function MiningDashboard() {
         return;
       }
       try {
-        const { player: p, inventory: inv, guild, globalTotalMined: gtm, myEmissionPerSecond: eps } = await callFunction("sync-player", { action: "init" });
+        const { player: p, inventory: inv, guild, globalTotalMined: gtm, myEmissionPerSecond: eps, offlineEarnings: serverOfflineEarnings, offlineSeconds } = await callFunction("sync-player", { action: "init" });
         if (cancelled) return;
 
         setCore(Number(p.core));
@@ -383,6 +383,13 @@ export default function MiningDashboard() {
         if (p.last_claim_date) setLastClaimDate(p.last_claim_date);
         if (p.market_owned && Object.keys(p.market_owned).length) setMarketOwned((s) => ({ ...s, ...p.market_owned }));
         setAutoSellEnabled(Boolean(p.auto_sell_enabled));
+        // real, server-persisted credit for time spent away — replaces the
+        // old client-only estimate that never survived the next sync
+        if (Number(serverOfflineEarnings) > 0.001) {
+          setOfflineEarnings(Number(serverOfflineEarnings));
+          setOfflineDuration(Number(offlineSeconds) || 0);
+          setShowOfflineModal(true);
+        }
         setPrestigeCount(p.prestige_count);
         if (p.boost_end_time) setBoostEndTime(new Date(p.boost_end_time).getTime());
         setAutoClaimUnlocked(Boolean(p.auto_claim_unlocked));
@@ -515,6 +522,14 @@ export default function MiningDashboard() {
       } else if (hiddenAt) {
         const elapsedSec = (Date.now() - hiddenAt) / 1000;
         hiddenAt = null;
+        // Online mode: the real, persisted catch-up already happens
+        // server-side on the next "init" call (see handleClaimRef's
+        // effect below / the init handler above) — crediting `core`
+        // locally here too would double-count on top of that, and
+        // this local-only credit never survived a real server sync
+        // anyway (that was the original bug). Only run this purely
+        // client-side estimate for the fully-offline/local-save mode.
+        if (isBackendOnline) return;
         if (elapsedSec >= MIN_AWAY_SECONDS) {
           const cappedSec = Math.min(elapsedSec, OFFLINE_CAP_SECONDS);
           const earnings = perSecondRef.current * cappedSec;
@@ -533,7 +548,7 @@ export default function MiningDashboard() {
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isBackendOnline]);
 
   useEffect(() => {
     const t = setInterval(() => {
