@@ -31,7 +31,7 @@ export const AETHER_MAX_SUPPLY = 100_000_000;
 export const BLOCK_TIME_SECONDS = 60;
 export const INITIAL_BLOCK_REWARD = 500; // AETHER/block, network-wide, epoch 0
 export const HALVING_INTERVAL_BLOCKS = 100_000;
-export const GHOST_HASHRATE = 20e12; // 20 TH/s reference/"difficulty floor"
+export const GHOST_HASHRATE = 2e12; // 2 TH/s reference/"difficulty floor" (was 20 TH/s — too high for early-game hashrate, see migration 0011)
 
 /* =========================================================
    TREASURY POOL & RESERVE POOL (mirrors backend/supabase/migrations/
