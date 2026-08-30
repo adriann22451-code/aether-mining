@@ -33,6 +33,7 @@ import { LeaderboardScreen } from "./screens/LeaderboardScreen";
 import { MarketScreen } from "./screens/MarketScreen";
 import { MissionScreen } from "./screens/MissionScreen";
 import { ProfileScreen } from "./screens/ProfileScreen";
+import { NetworkStatsScreen } from "./screens/NetworkStatsScreen";
 import { ShopScreen } from "./screens/ShopScreen";
 import { SiteScreen } from "./screens/SiteScreen";
 
@@ -1226,6 +1227,14 @@ export default function MiningDashboard() {
             isGlobalSupply={isBackendOnline}
             incomeStats={incomeStats}
             spendStats={spendStats}
+            onNavigate={setScreen}
+          />
+        ) : screen === "networkStats" ? (
+          <NetworkStatsScreen
+            onBack={() => setScreen("dashboard")}
+            isBackendOnline={isBackendOnline}
+            totalMined={isBackendOnline ? globalTotalMined : totalMined}
+            totalHashrate={totalHashrate}
           />
         ) : screen === "missions" ? (
           <MissionScreen
