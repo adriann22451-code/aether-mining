@@ -85,12 +85,15 @@ const SITE_COST: number[] = [0, 3000, 10000, 30000, 80000, 180000, 350000, 65000
 // server's UTC day; server just re-runs the same day-diff logic against
 // the player's stored last_claim_date so it can't be replayed/spoofed.
 const DAILY_STREAK_REWARDS = [5, 6, 7, 8, 9, 10, 10];
+// Parses "YYYY-MM-DD" via explicit Y/M/D components — matches
+// data/dailyStreak.js on the client exactly, so the day-diff math never
+// disagrees with what the client already decided when it sent `today`.
 function daysBetween(dateStrA: string, dateStrB: string): number {
-  const a = new Date(dateStrA);
-  const b = new Date(dateStrB);
+  const [ay, am, ad] = dateStrA.split("-").map(Number);
+  const [by, bm, bd] = dateStrB.split("-").map(Number);
+  const a = new Date(ay, am - 1, ad);
+  const b = new Date(by, bm - 1, bd);
   const msPerDay = 24 * 60 * 60 * 1000;
-  a.setHours(0, 0, 0, 0);
-  b.setHours(0, 0, 0, 0);
   return Math.round((b.getTime() - a.getTime()) / msPerDay);
 }
 
