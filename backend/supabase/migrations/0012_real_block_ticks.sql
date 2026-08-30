@@ -180,6 +180,11 @@ begin
 end;
 $$;
 
+-- get_network_stats() gained a new column (next_block_in_seconds) —
+-- Postgres refuses CREATE OR REPLACE when the OUT-parameter shape
+-- changes, so drop it first (same issue as migration 0010).
+drop function if exists get_network_stats();
+
 create or replace function get_network_stats()
 returns table (
   max_supply numeric,
