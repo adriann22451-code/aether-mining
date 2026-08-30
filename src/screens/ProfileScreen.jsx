@@ -5,6 +5,7 @@ import {
   Gauge,
   Inbox,
   MapPinned,
+  Network,
   Pencil,
   Wallet,
 } from "lucide-react";
@@ -14,7 +15,7 @@ import { AETHER_MAX_SUPPLY, calcPlayerLevel, miningHalvingEpoch, miningHalvingMu
 import { SITES } from "../data/sites";
 import { formatCore, formatHashrate, formatInt } from "../lib/format";
 
-export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name, onRename, totalMined, isGlobalSupply, incomeStats, spendStats }) {
+export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name, onRename, totalMined, isGlobalSupply, incomeStats, spendStats, onNavigate }) {
   const profileStats = [
     { id: 1, label: "TOTAL EARNED", value: `${formatCore(totalEarned)} AETHER`, valueColor: "#facc15", icon: AetherCoinIcon, iconColor: "#facc15" },
     { id: 2, label: "CURRENT HASHRATE", value: formatHashrate(totalHashrate), valueColor: "#38bdf8", icon: Gauge, iconColor: "#facc15" },
@@ -156,6 +157,16 @@ export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedInde
             ? "The 100M supply is shared by every miner — your AETHER/sec is your share of the network's active hashrate, split like real mining difficulty. Missions, Events, Guild, and Loot Box rewards aren't affected."
             : "Not connected to the shared network right now, so this is a local-only estimate using just your own hashrate. Missions, Events, Guild, and Loot Box rewards aren't affected."}
         </p>
+        {onNavigate && (
+          <button
+            type="button"
+            onClick={() => onNavigate("networkStats")}
+            className="mt-3 w-full rounded-xl bg-white/10 border border-white/15 py-2.5 flex items-center justify-center gap-2 text-[11px] font-extrabold tracking-wide text-indigo-200 active:scale-[0.98] transition"
+          >
+            <Network size={14} />
+            VIEW NETWORK STATS
+          </button>
+        )}
       </div>
 
       <div className="mt-4 rounded-2xl bg-white/5 border border-white/10 p-4">
