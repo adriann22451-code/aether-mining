@@ -119,9 +119,14 @@ export default function MiningDashboard() {
   const pendingStreakDay = !lastClaimDate ? 1 : daysBetween(lastClaimDate, today) === 1 ? loginStreak + 1 : daysBetween(lastClaimDate, today) > 1 ? 1 : loginStreak;
 
   useEffect(() => {
+    // wait until the real saved/server state has actually loaded — before
+    // that, lastClaimDate is still its initial `null`, which always made
+    // dailyUnclaimed look true and popped this modal on literally every
+    // app open, even right after already claiming today
+    if (!isLoaded) return;
     if (dailyUnclaimed) setShowDailyModal(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isLoaded]);
 
   const handleClaimDaily = () => {
     if (!dailyUnclaimed) return;
