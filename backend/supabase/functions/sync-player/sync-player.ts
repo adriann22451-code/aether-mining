@@ -166,31 +166,37 @@ Deno.serve(async (req) => {
       if (invErr) throw invErr;
 
       const { data: guild } = player.guild_id ? await admin.from("guilds").select("*").eq("id", player.guild_id).single() : { data: null };
+
+      // real, persisted catch-up for time spent away — replaces the old
+      // logic here that only faked a bigger `pending` in the JSON
+      // response without ever writing it to the database (see 0014)
+      const { data: catchUpRows, error: catchUpErr } = await admin.rpc("catch_up_offline_earnings", {
+        p_telegram_id: user.id,
+        p_hashrate: hashrate,
+      });
+      if (catchUpErr) throw catchUpErr;
+      const catchUp = catchUpRows?.[0] || { credited: 0, elapsed_seconds: 0 };
+      const offlineEarnings = Number(catchUp.credited || 0);
+      const offlineSeconds = Number(catchUp.elapsed_seconds || 0);
+
+      const { data: refreshed, error: refetchErr } = await admin.from("players").select("*").eq("id", player.id).single();
+      if (refetchErr) throw refetchErr;
+      player = refreshed;
+
       const { data: gameState } = await admin.from("game_state").select("total_mined").eq("id", true).single();
 
-      if (hashrate !== player.cached_hashrate) {
-        await admin.from("players").update({ cached_hashrate: hashrate }).eq("id", player.id);
-        player.cached_hashrate = hashrate;
-      }
-
-      // live-ish preview so the Claim button shows real accrued-so-far
-      // AETHER instead of starting back at 0 — the actual awarded amount
-      // is always recomputed authoritatively inside claim_mining_reward
       const { data: previewRows, error: previewErr } = await admin.rpc("preview_emission_share", { p_hashrate: hashrate });
       if (previewErr) throw previewErr;
       const preview = previewRows?.[0] || { emission_per_second: 0, my_share: 0, active_hashrate: hashrate };
-
-      const elapsedSeconds = Math.max(0, (Date.now() - new Date(player.last_synced_at).getTime()) / 1000);
-      const cappedSeconds = Math.min(elapsedSeconds, 6 * 3600);
-      const myEmissionPerSecond = preview.emission_per_second * preview.my_share;
-      player.pending = myEmissionPerSecond * cappedSeconds + Number(player.pending || 0);
 
       return json({
         player,
         inventory,
         guild,
         globalTotalMined: Number(gameState?.total_mined || 0),
-        myEmissionPerSecond,
+        myEmissionPerSecond: preview.emission_per_second * preview.my_share,
+        offlineEarnings,
+        offlineSeconds,
       });
     }
 
