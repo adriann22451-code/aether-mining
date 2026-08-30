@@ -181,6 +181,8 @@ export default function MiningDashboard() {
   const [prestigeCount, setPrestigeCount] = useState(0);
   const [boostEndTime, setBoostEndTime] = useState(0);
   const [now, setNow] = useState(Date.now());
+  const [claimCooldownUntil, setClaimCooldownUntil] = useState(0);
+  const CLAIM_COOLDOWN_MS = 5000; // anti-spam: locks the Claim button for 5s after each tap
 
   // --- Mystery Site: random temporary event with a huge hashrate surge ---
   const [mysterySiteAvailableUntil, setMysterySiteAvailableUntil] = useState(0);
@@ -582,7 +584,9 @@ export default function MiningDashboard() {
   }, [screen]);
 
   const handleClaim = async () => {
+    if (now < claimCooldownUntil) return;
     if (pending < 0.01 && !isBackendOnline) return;
+    setClaimCooldownUntil(Date.now() + CLAIM_COOLDOWN_MS);
     const claimedAmount = pending;
     if (isBackendOnline) {
       try {
@@ -1333,6 +1337,7 @@ export default function MiningDashboard() {
             claimPulse={claimPulse}
             floatingGains={floatingGains}
             onClaim={handleClaim}
+            claimCooldownRemaining={Math.max(0, Math.ceil((claimCooldownUntil - now) / 1000))}
             onNavigate={setScreen}
             boostActive={boostActive}
             boostEndTime={boostEndTime}
