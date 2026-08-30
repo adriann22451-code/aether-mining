@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
 
       const { data: blocks, error: blocksErr } = await admin
         .from("mining_blocks")
-        .select("block_time, total_reward, subsidy_reward, treasury_cut, active_miners, active_hashrate, halving_epoch, global_total_mined_after, carryover_pool_after")
+        .select("id, block_time, block_reward, total_reward, subsidy_reward, treasury_cut, active_miners, active_hashrate, halving_epoch, global_total_mined_after, carryover_pool_after")
         .order("block_time", { ascending: false })
         .limit(50);
       if (blocksErr) throw blocksErr;
