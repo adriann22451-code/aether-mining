@@ -89,6 +89,58 @@ const CRAFT_RECIPES: Record<string, { targetId: string; materials: { name: strin
   craft_battery3: { targetId: "battery_3", materials: [{ name: "Quantum Alloy", qty: 3 }, { name: "Core Crystal", qty: 3 }], aetherCost: 12000 },
 };
 
+// ---------- Lootbox — keep this table in sync with data/lootbox.js on
+// the client (used there only for the opening-animation preview; this
+// server copy is the one that actually pays out). AETHER-only expected
+// value is intentionally well BELOW LOOTBOX_COST — see 0008 migration
+// header for why (a positive-EV gacha just prints money forever).
+const LOOTBOX_COST = 500;
+const MATERIAL_POOL_COMMON = ["Metal Ingot", "Metal Plate", "Storage Unit", "Fuel Barrel"];
+const MATERIAL_POOL_UNCOMMON = ["Nano Alloy", "Core Crystal", "Carbon Fiber"];
+const LOOTBOX_TABLE: { weight: number; type: "aether" | "material" | "part"; min?: number; max?: number; pool?: string[] }[] = [
+  { weight: 40, type: "aether", min: 60, max: 220 },
+  { weight: 15, type: "aether", min: 250, max: 600 },
+  { weight: 20, type: "material", pool: MATERIAL_POOL_COMMON, min: 3, max: 8 },
+  { weight: 12, type: "material", pool: MATERIAL_POOL_UNCOMMON, min: 1, max: 3 },
+  { weight: 5, type: "material", pool: ["Quantum Alloy"], min: 1, max: 2 },
+  { weight: 3, type: "aether", min: 2000, max: 4000 },
+  { weight: 5, type: "part" },
+];
+
+// Keep in sync with data/lootbox.js on the client (PART_RARITY_WEIGHTS /
+// pickWeightedUnownedPart) — standard-gacha weighting for the "part"
+// slot: Common+Uncommon ~70%, Rare ~20%, Epic ~8%, Legendary ~2%,
+// instead of picking uniformly across every unowned item (which gave new
+// players a >54% chance their first part win was Rare-or-better).
+const PART_RARITY: Record<string, string> = {
+  gpu_0: "Common", gpu_1: "Uncommon", gpu_2: "Rare", gpu_3: "Epic", gpu_4: "Legendary",
+  rack_0: "Common", rack_1: "Uncommon", rack_2: "Rare", rack_3: "Epic", rack_4: "Legendary",
+  cooling_0: "Common", cooling_1: "Uncommon", cooling_2: "Rare", cooling_3: "Epic", cooling_4: "Legendary",
+  battery_0: "Common", battery_1: "Uncommon", battery_2: "Rare", battery_3: "Epic", battery_4: "Legendary",
+  processor_0: "Common", processor_1: "Uncommon", processor_2: "Rare", processor_3: "Epic", processor_4: "Legendary",
+  drone_0: "Common", drone_1: "Rare", drone_2: "Legendary",
+};
+const PART_RARITY_WEIGHTS: Record<string, number> = { Common: 35, Uncommon: 35, Rare: 20, Epic: 8, Legendary: 2 };
+
+function pickWeightedUnownedPartId(unownedIds: string[]): string {
+  const byRarity: Record<string, string[]> = {};
+  unownedIds.forEach((id) => {
+    const r = PART_RARITY[id] || "Common";
+    (byRarity[r] ||= []).push(id);
+  });
+  const availableRarities = Object.keys(byRarity);
+  const totalWeight = availableRarities.reduce((s, r) => s + (PART_RARITY_WEIGHTS[r] || 0), 0);
+  let roll = Math.random() * totalWeight;
+  let chosenRarity = availableRarities[0];
+  for (const r of availableRarities) {
+    const w = PART_RARITY_WEIGHTS[r] || 0;
+    if (roll < w) { chosenRarity = r; break; }
+    roll -= w;
+  }
+  const pool = byRarity[chosenRarity];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function itemHpAtLevel(baseHp: number, level: number): number {
   if (level <= 0) return 0;
   return baseHp * Math.pow(LEVEL_HP_GROWTH, level - 1);
@@ -289,6 +341,77 @@ Deno.serve(async (req) => {
       if (error) throw error;
       await admin.rpc("add_to_reserve_pool", { p_amount: cost });
       return json({ player: updated });
+    }
+
+    // ---------- open a Lootbox: cost goes into Treasury pool, AETHER wins
+    // are paid OUT of Treasury pool (capped by whatever's actually banked) ----------
+    if (action === "openLootbox") {
+      if (Number(player.core) < LOOTBOX_COST) return json({ error: "Not enough AETHER" }, 400);
+
+      // cost is banked into Treasury FIRST — this is what future AETHER
+      // wins (this one and everyone else's) get paid out of
+      await admin.rpc("add_to_treasury_pool", { p_amount: LOOTBOX_COST });
+
+      const totalWeight = LOOTBOX_TABLE.reduce((s, r) => s + r.weight, 0);
+      let roll = Math.random() * totalWeight;
+      let chosen = LOOTBOX_TABLE[0];
+      for (const r of LOOTBOX_TABLE) {
+        if (roll < r.weight) { chosen = r; break; }
+        roll -= r.weight;
+      }
+
+      let newCore = Number(player.core) - LOOTBOX_COST;
+      const newSpend = { ...spendStats, lootbox: (spendStats.lootbox || 0) + LOOTBOX_COST };
+      const incomeStats: Record<string, number> = player.income_stats || {};
+      let newIncome = incomeStats;
+      let reward: Record<string, unknown>;
+
+      if (chosen.type === "aether") {
+        const rawAmount = Math.round((chosen.min! + Math.random() * (chosen.max! - chosen.min!)) / 10) * 10;
+        // HARD CAP: never pays more than Treasury actually has banked
+        const { data: paidAmount, error: payErr } = await admin.rpc("pay_from_treasury_pool", { p_amount: rawAmount });
+        if (payErr) throw payErr;
+        const amount = Number(paidAmount || 0);
+        newCore += amount;
+        newIncome = { ...incomeStats, lootbox: (incomeStats.lootbox || 0) + amount };
+        reward = { type: "aether", amount };
+      } else if (chosen.type === "material") {
+        const name = chosen.pool![Math.floor(Math.random() * chosen.pool!.length)];
+        const qty = Math.round(chosen.min! + Math.random() * (chosen.max! - chosen.min!));
+        const { data: existingRow } = await admin.from("inventory_items").select("id, qty").eq("player_id", player.id).eq("name", name).maybeSingle();
+        if (existingRow) {
+          await admin.from("inventory_items").update({ qty: existingRow.qty + qty }).eq("id", existingRow.id);
+        } else {
+          await admin.from("inventory_items").insert({ player_id: player.id, name, type: "material", qty });
+        }
+        reward = { type: "material", name, qty };
+      } else {
+        const unowned = Object.keys(PART_DATA).filter((id) => !(ownedItems[id] > 0));
+        if (unowned.length === 0) {
+          const { data: paidAmount, error: payErr } = await admin.rpc("pay_from_treasury_pool", { p_amount: 400 });
+          if (payErr) throw payErr;
+          const amount = Number(paidAmount || 0);
+          newCore += amount;
+          newIncome = { ...incomeStats, lootbox: (incomeStats.lootbox || 0) + amount };
+          reward = { type: "aether", amount, label: "AETHER (bonus)" };
+        } else {
+          const itemId = pickWeightedUnownedPartId(unowned);
+          ownedItems[itemId] = 1;
+          reward = { type: "part", itemId };
+        }
+      }
+
+      const { data: updated, error } = await admin
+        .from("players")
+        .update({
+          core: newCore, owned_items: ownedItems, spend_stats: newSpend, income_stats: newIncome,
+          cached_hashrate: calcHashrate(ownedItems), updated_at: new Date().toISOString(),
+        })
+        .eq("id", player.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return json({ reward, player: updated });
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);
