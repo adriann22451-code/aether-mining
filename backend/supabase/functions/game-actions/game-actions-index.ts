@@ -147,9 +147,9 @@ Deno.serve(async (req) => {
         .select("*")
         .single();
       if (error) throw error;
+      await admin.rpc("add_to_reserve_pool", { p_amount: part.buyCost });
       return json({ player: updated });
     }
-
     // ---------- level up one part ----------
     if (action === "upgradePart") {
       const { itemId } = body;
@@ -177,6 +177,7 @@ Deno.serve(async (req) => {
         .select("*")
         .single();
       if (error) throw error;
+      await admin.rpc("add_to_reserve_pool", { p_amount: cost });
       return json({ player: updated });
     }
 
@@ -217,6 +218,7 @@ Deno.serve(async (req) => {
         .select("*")
         .single();
       if (error) throw error;
+      await admin.rpc("add_to_reserve_pool", { p_amount: totalSpent });
       return json({ totalLevels, totalSpent, player: updated });
     }
 
@@ -263,6 +265,7 @@ Deno.serve(async (req) => {
         .select("*")
         .single();
       if (error) throw error;
+      await admin.rpc("add_to_reserve_pool", { p_amount: recipe.aetherCost });
       return json({ player: updated });
     }
 
@@ -284,6 +287,7 @@ Deno.serve(async (req) => {
         .select("*")
         .single();
       if (error) throw error;
+      await admin.rpc("add_to_reserve_pool", { p_amount: cost });
       return json({ player: updated });
     }
 
