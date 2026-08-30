@@ -5,7 +5,6 @@ import BATTERY_IMG from "../../assets/images/battery.png";
 import CARBON_FIBER_IMG from "../../assets/images/carbon-fiber.png";
 import COOLING_IMG from "../../assets/images/cooling.png";
 import CORE_CRYSTAL_IMG from "../../assets/images/core-crystal.png";
-import DRONE_IMG from "../../assets/images/drone.png";
 import GPU_IMG from "../../assets/images/gpu.png";
 import METAL_INGOT_IMG from "../../assets/images/metal-ingot.png";
 import METAL_PLATE_IMG from "../../assets/images/metal-plate.png";
@@ -15,6 +14,7 @@ import QUANTUM_ALLOY_IMG from "../../assets/images/quantum-alloy.png";
 import RACK_ICON_IMG from "../../assets/images/rack-icon.png";
 import FUEL_BARREL_IMG from "../../assets/images/fuel-barrel.png";
 import STORAGE_UNIT_IMG from "../../assets/images/storage-unit.png";
+import WORKER_DRONE_IMG from "../../assets/images/worker-drone.png";
 import AETHER_COIN_IMG from "../../assets/images/aether-coin.png";
 
 export function AetherCoinIcon({ size = 24, style = {}, className = "", dim = false }) {
@@ -173,7 +173,7 @@ export function StorageUnitIcon({ size = 24, style = {}, className = "" }) {
 export function DroneIcon({ size = 24, style = {}, className = "" }) {
   return (
     <img
-      src={DRONE_IMG}
+      src={WORKER_DRONE_IMG}
       alt="Drone"
       draggable={false}
       className={className}
