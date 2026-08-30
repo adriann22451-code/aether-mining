@@ -13,7 +13,7 @@ import {
 import { callFunction } from "../lib/api";
 import { formatCore, formatHashrate, formatInt } from "../lib/format";
 
-const SUBSIDY_UNLOCK_HASHRATE = 100e12; // keep in sync with backend get_network_stats()
+const SUBSIDY_UNLOCK_HASHRATE = 10e12; // keep in sync with backend get_network_stats() (was 100e12, see migration 0011)
 
 function timeAgo(iso) {
   const secs = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
