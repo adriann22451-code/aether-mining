@@ -114,7 +114,17 @@ Deno.serve(async (req) => {
     const { initData, action } = await req.json();
     if (!initData || !action) return json({ error: "Missing initData or action" }, 400);
 
-    const { user } = await verifyTelegramInitData(initData, BOT_TOKEN);
+    // Auth failures (bad/expired Telegram initData) are the ONLY thing
+    // that should ever come back as 401 — kept in its own try/catch so a
+    // completely unrelated internal error (a bad SQL call, a missing
+    // column, etc.) further down can never get mislabeled as "you're not
+    // logged in", which was hiding the real error before.
+    let user: TelegramUser;
+    try {
+      ({ user } = await verifyTelegramInitData(initData, BOT_TOKEN));
+    } catch (authErr) {
+      return json({ error: errorMessage(authErr) }, 401);
+    }
 
     let { data: player, error } = await admin.from("players").select("*").eq("telegram_id", user.id).single();
 
@@ -215,7 +225,7 @@ Deno.serve(async (req) => {
 
       const { data: blocks, error: blocksErr } = await admin
         .from("mining_blocks")
-        .select("block_time, player_name, hashrate, base_reward, subsidy_reward, treasury_cut, total_reward, halving_epoch, global_total_mined_after, carryover_pool_after")
+        .select("block_time, total_reward, subsidy_reward, treasury_cut, active_miners, active_hashrate, halving_epoch, global_total_mined_after, carryover_pool_after")
         .order("block_time", { ascending: false })
         .limit(50);
       if (blocksErr) throw blocksErr;
@@ -225,9 +235,24 @@ Deno.serve(async (req) => {
 
     return json({ error: `Unknown action: ${action}` }, 400);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : "Unknown error" }, 401);
+    // any error THIS FAR IN is an internal failure (bad SQL, missing
+    // table/column, etc.) — never 401, and never silently "Unknown error"
+    // for non-Error throw shapes (Supabase/Postgres errors are plain
+    // objects, not `instanceof Error`, so that check alone used to swallow
+    // the real message).
+    console.error("sync-player error:", e);
+    return json({ error: errorMessage(e) }, 500);
   }
 });
+
+function errorMessage(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (e && typeof e === "object") {
+    const anyE = e as Record<string, unknown>;
+    return String(anyE.message || anyE.error_description || anyE.details || anyE.hint || JSON.stringify(e));
+  }
+  return String(e);
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
