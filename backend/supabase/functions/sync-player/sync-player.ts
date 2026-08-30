@@ -11,7 +11,7 @@
 // `claim_mining_reward` Postgres function so it can run inside one
 // row-locked transaction — never duplicate that math here.
 //
-// POST body: { initData: string, action: "init" | "claim" | "heartbeat" }
+// POST body: { initData: string, action: "init" | "claim" | "heartbeat" | "network_stats" }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -205,6 +205,22 @@ Deno.serve(async (req) => {
         globalTotalMined: Number(result.new_global_total_mined),
         myEmissionPerSecond: preview.emission_per_second * preview.my_share,
       });
+    }
+
+    if (action === "network_stats") {
+      const { data: statsRows, error: statsErr } = await admin.rpc("get_network_stats");
+      if (statsErr) throw statsErr;
+      const stats = statsRows?.[0];
+      if (!stats) throw new Error("get_network_stats returned no result");
+
+      const { data: blocks, error: blocksErr } = await admin
+        .from("mining_blocks")
+        .select("block_time, player_name, hashrate, base_reward, subsidy_reward, treasury_cut, total_reward, halving_epoch, global_total_mined_after, carryover_pool_after")
+        .order("block_time", { ascending: false })
+        .limit(50);
+      if (blocksErr) throw blocksErr;
+
+      return json({ stats, blocks });
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);
