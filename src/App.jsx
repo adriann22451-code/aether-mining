@@ -8,7 +8,7 @@ import { DailyStreakModal } from "./components/modals/DailyStreakModal";
 import { LootBoxModal } from "./components/modals/LootBoxModal";
 import { OfflineEarningsModal } from "./components/modals/OfflineEarningsModal";
 import { CRAFT_RECIPES, canCraftRecipe } from "./data/craft";
-import { DAILY_STREAK_REWARDS, daysBetween } from "./data/dailyStreak";
+import { DAILY_STREAK_REWARDS, daysBetween, todayLocalDateString } from "./data/dailyStreak";
 import { AETHER_MAX_SUPPLY, COOLING_EFFICIENCY, INCOME_DIVISOR, calcCoolingCapacity, calcHashrate, calcHashrateMultiplier, calcHeatGen, calcIncomeBonusPct, calcPendingCapBonusHours, miningHalvingEpoch, miningHalvingMultiplier } from "./data/economy";
 import { GUILDS, guildMilestoneFor, guildRewardFor } from "./data/guild";
 import { INBOX_TEMPLATE } from "./data/inbox";
@@ -114,7 +114,7 @@ export default function MiningDashboard() {
   const [loginStreak, setLoginStreak] = useState(0);
   const [lastClaimDate, setLastClaimDate] = useState(null); // date string of the last successful daily claim
   const [showDailyModal, setShowDailyModal] = useState(false);
-  const today = new Date().toDateString();
+  const today = todayLocalDateString();
   const dailyUnclaimed = lastClaimDate !== today;
   const pendingStreakDay = !lastClaimDate ? 1 : daysBetween(lastClaimDate, today) === 1 ? loginStreak + 1 : daysBetween(lastClaimDate, today) > 1 ? 1 : loginStreak;
 
