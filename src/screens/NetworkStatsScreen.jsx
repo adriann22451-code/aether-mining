@@ -245,23 +245,22 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
             {blocks.map((b, i) => (
               <div key={i} className="rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-extrabold text-white truncate">Block · Epoch {b.halving_epoch}</span>
+                  <span className="text-[11px] font-extrabold text-white truncate">Block #{b.id} · Epoch {b.halving_epoch}</span>
                   <span className="text-[9.5px] text-slate-500 shrink-0">{timeAgo(b.block_time)}</span>
                 </div>
                 <div className="mt-1 flex items-center justify-between text-[10.5px]">
-                  <span className="text-slate-400">{b.active_miners} active miner{b.active_miners === 1 ? "" : "s"} · {formatHashrate(b.active_hashrate)}</span>
-                  <span className="font-bold text-amber-300">+{formatCore(b.total_reward)} AETHER</span>
+                  <span className="text-slate-400">{formatCore(b.block_reward)} AETHER minted this block</span>
                 </div>
-                {(b.subsidy_reward > 0 || b.treasury_cut > 0) && (
-                  <div className="mt-1 flex flex-col gap-0.5">
-                    {b.subsidy_reward > 0 && (
-                      <div className="text-[9.5px] text-fuchsia-300">incl. {formatCore(b.subsidy_reward)} subsidy from carryover pool</div>
-                    )}
-                    {b.treasury_cut > 0 && (
-                      <div className="text-[9.5px] text-emerald-300">{formatCore(b.treasury_cut)} sent to Treasury pool (5% of this block)</div>
-                    )}
-                  </div>
-                )}
+                <div className="mt-1 flex items-center justify-between text-[10.5px]">
+                  <span className="text-slate-400">{b.active_miners} active miner{b.active_miners === 1 ? "" : "s"} · {formatHashrate(b.active_hashrate)}</span>
+                  <span className="font-bold text-amber-300">+{formatCore(b.total_reward)} to miners</span>
+                </div>
+                <div className="mt-1 flex flex-col gap-0.5">
+                  <div className="text-[9.5px] text-emerald-300">{formatCore(b.treasury_cut)} sent to Treasury pool (5% of this block, always)</div>
+                  {b.subsidy_reward > 0 && (
+                    <div className="text-[9.5px] text-fuchsia-300">incl. {formatCore(b.subsidy_reward)} subsidy released from carryover pool</div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
