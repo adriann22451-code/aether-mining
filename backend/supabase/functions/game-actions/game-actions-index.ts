@@ -79,6 +79,21 @@ const PART_DATA: Record<string, { hp: number; buyCost: number; category: "gpu" |
 
 const SITE_COST: number[] = [0, 3000, 10000, 30000, 80000, 180000, 350000, 650000, 1100000, 1800000, 3000000];
 
+// ---------- Daily login streak — keep in sync with data/dailyStreak.js on
+// the client. Client sends its own device-local `today` (toDateString())
+// since the login day should follow the player's calendar day, not the
+// server's UTC day; server just re-runs the same day-diff logic against
+// the player's stored last_claim_date so it can't be replayed/spoofed.
+const DAILY_STREAK_REWARDS = [5, 6, 7, 8, 9, 10, 10];
+function daysBetween(dateStrA: string, dateStrB: string): number {
+  const a = new Date(dateStrA);
+  const b = new Date(dateStrB);
+  const msPerDay = 24 * 60 * 60 * 1000;
+  a.setHours(0, 0, 0, 0);
+  b.setHours(0, 0, 0, 0);
+  return Math.round((b.getTime() - a.getTime()) / msPerDay);
+}
+
 const CRAFT_RECIPES: Record<string, { targetId: string; materials: { name: string; qty: number }[]; aetherCost: number }> = {
   craft_cooling2: { targetId: "cooling_2", materials: [{ name: "Metal Plate", qty: 4 }, { name: "Nano Alloy", qty: 2 }], aetherCost: 500 },
   craft_battery2: { targetId: "battery_2", materials: [{ name: "Metal Ingot", qty: 3 }, { name: "Core Crystal", qty: 2 }], aetherCost: 500 },
@@ -170,10 +185,15 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { initData, action } = body;
+    const { initData, action, today } = body;
     if (!initData || !action) return json({ error: "Missing initData or action" }, 400);
 
-    const { user } = await verifyTelegramInitData(initData, BOT_TOKEN);
+    let user: TelegramUser;
+    try {
+      ({ user } = await verifyTelegramInitData(initData, BOT_TOKEN));
+    } catch (authErr) {
+      return json({ error: errorMessage(authErr) }, 401);
+    }
     const { data: player, error: playerErr } = await admin.from("players").select("*").eq("telegram_id", user.id).single();
     if (playerErr || !player) return json({ error: "Player not found — call sync-player with action=init first" }, 404);
 
@@ -414,11 +434,56 @@ Deno.serve(async (req) => {
       return json({ reward, player: updated });
     }
 
+    // ---------- daily login streak — server-authoritative so it survives
+    // the next real sync instead of being silently overwritten by it ----------
+    if (action === "claimDaily") {
+      if (typeof today !== "string" || !today) return json({ error: "Missing today" }, 400);
+
+      const lastClaimDate: string | null = player.last_claim_date || null;
+      const loginStreak: number = player.login_streak || 0;
+      const dailyUnclaimed = lastClaimDate !== today;
+      if (!dailyUnclaimed) return json({ error: "Already claimed today" }, 400);
+
+      const diff = lastClaimDate ? daysBetween(lastClaimDate, today) : null;
+      const pendingStreakDay = diff === null ? 1 : diff === 1 ? loginStreak + 1 : diff > 1 ? 1 : loginStreak;
+      const cycleDay = ((pendingStreakDay - 1) % 7) + 1;
+      const reward = DAILY_STREAK_REWARDS[cycleDay - 1];
+
+      const incomeStats: Record<string, number> = player.income_stats || {};
+      const newIncome = { ...incomeStats, dailyStreak: (incomeStats.dailyStreak || 0) + reward };
+
+      const { data: updated, error } = await admin
+        .from("players")
+        .update({
+          core: Number(player.core) + reward,
+          total_earned: Number(player.total_earned) + reward,
+          login_streak: pendingStreakDay,
+          last_claim_date: today,
+          income_stats: newIncome,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", player.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return json({ reward, streakDay: pendingStreakDay, player: updated });
+    }
+
     return json({ error: `Unknown action: ${action}` }, 400);
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : "Unknown error" }, 401);
+    console.error("game-actions error:", e);
+    return json({ error: errorMessage(e) }, 500);
   }
 });
+
+function errorMessage(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (e && typeof e === "object") {
+    const anyE = e as Record<string, unknown>;
+    return String(anyE.message || anyE.error_description || anyE.details || anyE.hint || JSON.stringify(e));
+  }
+  return String(e);
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
