@@ -33,6 +33,25 @@ export const INITIAL_BLOCK_REWARD = 500; // AETHER/block, network-wide, epoch 0
 export const HALVING_INTERVAL_BLOCKS = 100_000;
 export const GHOST_HASHRATE = 20e12; // 20 TH/s reference/"difficulty floor"
 
+/* =========================================================
+   TREASURY POOL & RESERVE POOL (mirrors backend/supabase/migrations/
+   0007_treasury_reserve_pools.sql — that SQL is the source of truth).
+
+     TREASURY_TAX_RATE = 5% of every block reward actually paid out to a
+       miner (base + subsidy, after the ghost-hashrate/carryover split)
+       is redirected into a shared Treasury pool instead of the miner's
+       wallet. This is the accounted-for source future in-game rewards
+       (Missions, Events, Daily Streak, Guild, Loot Box) are meant to
+       draw from — no more "AETHER from nowhere".
+
+     Reserve pool has no separate rate here because it isn't a tax on
+     mining — every AETHER a player spends in the Shop, on part
+     upgrades, crafting, or Mining Site unlocks is banked there in full
+     (see add_to_reserve_pool() server-side), earmarked for the future
+     AETHER staking-reward feature.
+   ========================================================= */
+export const TREASURY_TAX_RATE = 0.05;
+
 // how many halvings have occurred by the time `totalMined` AETHER has been mined
 
 export function miningHalvingEpoch(totalMined) {
