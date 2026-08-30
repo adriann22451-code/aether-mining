@@ -44,6 +44,7 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
   const [blocks, setBlocks] = useState([]);
   const [loading, setLoading] = useState(isBackendOnline);
   const [error, setError] = useState(null);
+  const [nextBlockIn, setNextBlockIn] = useState(null);
 
   useEffect(() => {
     if (!isBackendOnline) {
@@ -57,6 +58,7 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
         if (cancelled) return;
         setStats(s);
         setBlocks(b || []);
+        setNextBlockIn(Math.round(Number(s.next_block_in_seconds)));
         setError(null);
       })
       .catch((e) => !cancelled && setError(e.message))
@@ -65,6 +67,15 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
       cancelled = true;
     };
   }, [isBackendOnline]);
+
+  // ticks the "next block in Xs" countdown locally between server refreshes
+  useEffect(() => {
+    if (nextBlockIn === null) return;
+    const t = setInterval(() => {
+      setNextBlockIn((s) => (s === null ? null : s <= 0 ? 60 : s - 1));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [nextBlockIn === null]);
 
   const epoch = stats ? stats.current_epoch : 0;
   const currentBlockReward = stats ? stats.current_block_reward : INITIAL_BLOCK_REWARD;
@@ -120,6 +131,12 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
               </div>
               <span className="text-[10.5px] font-semibold text-slate-400">Epoch {epoch}</span>
             </div>
+            {nextBlockIn !== null && (
+              <div className="mt-1 flex items-center gap-1.5 text-[10px] text-cyan-300">
+                <Blocks size={11} />
+                Next block in {nextBlockIn}s
+              </div>
+            )}
             <div className="mt-2 h-2 rounded-full bg-black/40 overflow-hidden">
               <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-500" style={{ width: `${supplyPct}%` }} />
             </div>
@@ -173,7 +190,7 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
               <span className="font-bold text-emerald-300">{(TREASURY_TAX_RATE * 100).toFixed(0)}% of every block</span>
             </div>
             <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-              5% of every block reward actually paid out to a miner is redirected here instead of their wallet — the accounted-for source for future Missions, Events, Daily Streak, Guild, and Loot Box rewards, instead of AETHER just appearing from nowhere.
+              5% of every block's reward is redirected here automatically the moment that block mints — every 60 seconds, network-wide, whether or not anyone happens to claim anything that minute. The accounted-for source for future Missions, Events, Daily Streak, Guild, and Loot Box rewards, instead of AETHER just appearing from nowhere.
             </p>
 
             <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5 text-[12px] font-extrabold tracking-[0.1em] text-white">
@@ -213,20 +230,26 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
         </>
       ) : (
         <div className="mt-4">
+          {nextBlockIn !== null && (
+            <div className="mb-3 rounded-xl bg-cyan-500/10 border border-cyan-400/30 px-3 py-2 flex items-center justify-between">
+              <span className="text-[10.5px] text-cyan-200">Next block mints in</span>
+              <span className="text-[13px] font-extrabold text-cyan-300">{nextBlockIn}s</span>
+            </div>
+          )}
           {loading && <div className="text-center text-[11px] text-slate-400 py-8">Loading block explorer…</div>}
           {error && <div className="text-center text-[11px] text-red-400 py-8">{error}</div>}
           {!loading && !error && blocks.length === 0 && (
-            <div className="text-center text-[11px] text-slate-500 py-8">No blocks claimed yet — the ledger fills in as players claim AETHER.</div>
+            <div className="text-center text-[11px] text-slate-500 py-8">No blocks minted yet — a new block mints network-wide every 60 seconds.</div>
           )}
           <div className="flex flex-col gap-2">
             {blocks.map((b, i) => (
               <div key={i} className="rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-extrabold text-white truncate">{b.player_name}</span>
+                  <span className="text-[11px] font-extrabold text-white truncate">Block · Epoch {b.halving_epoch}</span>
                   <span className="text-[9.5px] text-slate-500 shrink-0">{timeAgo(b.block_time)}</span>
                 </div>
                 <div className="mt-1 flex items-center justify-between text-[10.5px]">
-                  <span className="text-slate-400">{formatHashrate(b.hashrate)} · Epoch {b.halving_epoch}</span>
+                  <span className="text-slate-400">{b.active_miners} active miner{b.active_miners === 1 ? "" : "s"} · {formatHashrate(b.active_hashrate)}</span>
                   <span className="font-bold text-amber-300">+{formatCore(b.total_reward)} AETHER</span>
                 </div>
                 {(b.subsidy_reward > 0 || b.treasury_cut > 0) && (
@@ -235,7 +258,7 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
                       <div className="text-[9.5px] text-fuchsia-300">incl. {formatCore(b.subsidy_reward)} subsidy from carryover pool</div>
                     )}
                     {b.treasury_cut > 0 && (
-                      <div className="text-[9.5px] text-emerald-300">{formatCore(b.treasury_cut)} sent to Treasury pool (5% tax)</div>
+                      <div className="text-[9.5px] text-emerald-300">{formatCore(b.treasury_cut)} sent to Treasury pool (5% of this block)</div>
                     )}
                   </div>
                 )}
