@@ -644,8 +644,61 @@ export default function MiningDashboard() {
     setGuildMilestoneIndex((i) => i + 1);
   };
 
-  const handleOpenLootbox = () => {
+  const handleOpenLootbox = async () => {
     if (lootboxPhase === "opening" || core < LOOTBOX_COST) return;
+
+    if (isBackendOnline) {
+      setCore((c) => c - LOOTBOX_COST); // optimistic — corrected below once the server responds
+      addSpend("lootbox", LOOTBOX_COST);
+      setLootboxPhase("opening");
+      try {
+        const { reward, player: p } = await callFunction("game-actions", { action: "openLootbox" });
+        setTimeout(() => {
+          let result;
+          if (reward.type === "aether") {
+            result = { type: "aether", amount: reward.amount, label: reward.label || "AETHER" };
+          } else if (reward.type === "material") {
+            const poolItem = TRADE_ITEM_POOL.find((it) => it.name === reward.name);
+            result = { type: "material", name: reward.name, qty: reward.qty, icon: poolItem?.icon, image: poolItem?.image, iconColor: poolItem?.iconColor };
+            setInventory((prev) => {
+              const existing = prev.find((it) => it.name === reward.name && it.type !== "rig");
+              if (existing) {
+                return prev.map((it) => (it.id === existing.id ? { ...it, tag: `x${parseInventoryQty(it.tag) + reward.qty}` } : it));
+              }
+              return [
+                ...prev,
+                {
+                  id: `lootbox-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                  name: reward.name,
+                  type: "material",
+                  tag: `x${reward.qty}`,
+                  icon: poolItem?.icon,
+                  image: poolItem?.image,
+                  iconColor: poolItem?.iconColor,
+                  selected: false,
+                  desc: "Won from a Loot Box.",
+                },
+              ];
+            });
+          } else {
+            const found = findPartItem(reward.itemId);
+            result = { type: "part", item: found?.item, category: found?.cat };
+          }
+          setCore(Number(p.core));
+          setOwnedItems(p.owned_items);
+          setSpendStats((s) => ({ ...s, ...p.spend_stats }));
+          setIncomeStats((s) => ({ ...s, ...p.income_stats }));
+          setLootboxResult(result);
+          setLootboxPhase("result");
+        }, 900);
+      } catch (e) {
+        setLootboxPhase("idle");
+        pushToast(e.message || "Loot Box failed to open.", "warning");
+      }
+      return;
+    }
+
+    // offline/local-save fallback — unchanged, purely client-side roll
     setCore((c) => c - LOOTBOX_COST);
     addSpend("lootbox", LOOTBOX_COST);
     setLootboxPhase("opening");
