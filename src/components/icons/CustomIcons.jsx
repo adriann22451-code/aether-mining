@@ -3,15 +3,15 @@ import {
 } from "lucide-react";
 import BATTERY_IMG from "../../assets/images/battery.png";
 import CARBON_FIBER_IMG from "../../assets/images/carbon-fiber.png";
-import COOLING_IMG from "../../assets/images/cooling.png";
+import AIR_COOLER_IMG from "../../assets/images/air-cooler.png";
 import CORE_CRYSTAL_IMG from "../../assets/images/core-crystal.png";
-import GPU_IMG from "../../assets/images/gpu.png";
+import GTX1660_IMG from "../../assets/images/gtx1660.png";
 import METAL_INGOT_IMG from "../../assets/images/metal-ingot.png";
 import METAL_PLATE_IMG from "../../assets/images/metal-plate.png";
 import NANO_ALLOY_IMG from "../../assets/images/nano-alloy.png";
 import PROCESSOR_IMG from "../../assets/images/processor.png";
 import QUANTUM_ALLOY_IMG from "../../assets/images/quantum-alloy.png";
-import RACK_ICON_IMG from "../../assets/images/rack-icon.png";
+import STARTER_RACK_IMG from "../../assets/images/starter-rack.png";
 import FUEL_BARREL_IMG from "../../assets/images/fuel-barrel.png";
 import STORAGE_UNIT_IMG from "../../assets/images/storage-unit.png";
 import WORKER_DRONE_IMG from "../../assets/images/worker-drone.png";
@@ -41,7 +41,7 @@ export function AetherCoinIcon({ size = 24, style = {}, className = "", dim = fa
 export function CoolingIcon({ size = 24, style = {}, className = "" }) {
   return (
     <img
-      src={COOLING_IMG}
+      src={AIR_COOLER_IMG}
       alt="Cooling System"
       draggable={false}
       className={className}
@@ -185,7 +185,7 @@ export function DroneIcon({ size = 24, style = {}, className = "" }) {
 export function GpuIcon({ size = 24, style = {}, className = "" }) {
   return (
     <img
-      src={GPU_IMG}
+      src={GTX1660_IMG}
       alt="GPU"
       draggable={false}
       className={className}
@@ -197,7 +197,7 @@ export function GpuIcon({ size = 24, style = {}, className = "" }) {
 export function RackIcon({ size = 24, style = {}, className = "" }) {
   return (
     <img
-      src={RACK_ICON_IMG}
+      src={STARTER_RACK_IMG}
       alt="Server Rack"
       draggable={false}
       className={className}
