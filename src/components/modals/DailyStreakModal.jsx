@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Calendar,
   CheckCircle2,
@@ -5,7 +6,28 @@ import {
 } from "lucide-react";
 import { DAILY_STREAK_REWARDS } from "../../data/dailyStreak";
 
+function useTimeUntilNextDay(active) {
+  const [label, setLabel] = useState("");
+  useEffect(() => {
+    if (!active) return;
+    const tick = () => {
+      const now = new Date();
+      const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+      const ms = Math.max(0, nextMidnight.getTime() - now.getTime());
+      const h = Math.floor(ms / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      setLabel(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`);
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [active]);
+  return label;
+}
+
 export function DailyStreakModal({ isOpen, onClose, streak, pendingDay, alreadyClaimedToday, onClaim }) {
+  const resetLabel = useTimeUntilNextDay(isOpen && alreadyClaimedToday);
   if (!isOpen) return null;
   const cycleDay = ((pendingDay - 1) % 7) + 1;
   const reward = DAILY_STREAK_REWARDS[cycleDay - 1];
@@ -26,6 +48,13 @@ export function DailyStreakModal({ isOpen, onClose, streak, pendingDay, alreadyC
         <div className="mt-1 text-[11px] text-slate-400">
           {alreadyClaimedToday ? "You've already claimed today. Come back tomorrow!" : `Day ${cycleDay} of a 7-day cycle. Keep it up!`}
         </div>
+
+        {alreadyClaimedToday && (
+          <div className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-white/5 border border-white/10 py-1.5">
+            <span className="text-[9.5px] text-slate-400">Resets in</span>
+            <span className="text-[12px] font-extrabold tabular-nums text-cyan-300">{resetLabel}</span>
+          </div>
+        )}
 
         <div className="mt-4 grid grid-cols-7 gap-1">
           {DAILY_STREAK_REWARDS.map((amt, i) => {
