@@ -128,8 +128,26 @@ export default function MiningDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
-  const handleClaimDaily = () => {
+  const handleClaimDaily = async () => {
     if (!dailyUnclaimed) return;
+
+    if (isBackendOnline) {
+      setShowDailyModal(false); // close immediately, apply real numbers once the server responds
+      try {
+        const { reward, streakDay, player: p } = await callFunction("game-actions", { action: "claimDaily", today });
+        setCore(Number(p.core));
+        setTotalEarned(Number(p.total_earned));
+        setIncomeStats((s) => ({ ...s, ...p.income_stats }));
+        setLoginStreak(streakDay);
+        setLastClaimDate(today);
+      } catch (e) {
+        pushToast(e.message || "Daily reward failed to claim.", "warning");
+        setShowDailyModal(true); // let them try again
+      }
+      return;
+    }
+
+    // offline/local-save fallback — unchanged, purely client-side
     const cycleDay = ((pendingStreakDay - 1) % 7) + 1;
     const reward = applyDroneBonus(DAILY_STREAK_REWARDS[cycleDay - 1]);
     setCore((c) => c + reward);
