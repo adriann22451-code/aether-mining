@@ -128,6 +128,23 @@ export default function MiningDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
+  // Deep-link navigation: the Telegram bot's /market and /networkstats
+  // commands (see backend/supabase/functions/telegram-webhook) open this
+  // Mini App with a "?tab=..." query param on the URL. Jump straight to
+  // that screen once loaded, instead of always landing on the dashboard.
+  // Only known screen names are honored, so a bad/missing param is a no-op.
+  useEffect(() => {
+    if (!isLoaded) return;
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    const validTabs = ["market", "networkStats", "shop", "site", "inventory", "craft", "missions", "event"];
+    if (tab && validTabs.includes(tab)) {
+      setScreen(tab);
+      // clean the URL so a later refresh/back doesn't keep re-triggering it
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded]);
+
   const handleClaimDaily = async () => {
     if (!dailyUnclaimed) return;
 
