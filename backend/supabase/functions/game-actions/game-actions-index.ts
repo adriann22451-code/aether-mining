@@ -97,6 +97,24 @@ function daysBetween(dateStrA: string, dateStrB: string): number {
   return Math.round((b.getTime() - a.getTime()) / msPerDay);
 }
 
+// ---------- Missions / Events — server-authoritative reward payout.
+// Progress is computed from columns the server itself tracks (never a
+// client-reported number), and reward amounts live ONLY here — keep in
+// sync with data/missions.js / data/events.js on the client, which are
+// display-only now. `getProgress` reads straight off the `players` row.
+const MISSION_CATALOG: Record<number, { total: number; reward: number; getProgress: (p: Record<string, unknown>) => number }> = {
+  1: { total: 3, reward: 5, getProgress: (p) => Number(p.daily_claims || 0) },
+  2: { total: 1, reward: 5, getProgress: (p) => Number(p.upgrade_count || 0) },
+  3: { total: 2e9, reward: 50, getProgress: (p) => Number(p.cached_hashrate || 0) },
+  4: { total: 1, reward: 5, getProgress: (p) => (p.market_visited ? 1 : 0) },
+};
+
+const EVENT_CATALOG: Record<number, { total: number; reward: number; getProgress: (p: Record<string, unknown>) => number }> = {
+  1: { total: 5, reward: 10, getProgress: (p) => Number(p.claim_count || 0) },
+  2: { total: 50000, reward: 100, getProgress: (p) => Number(p.total_earned || 0) },
+  3: { total: 3e9, reward: 200, getProgress: (p) => Number(p.cached_hashrate || 0) },
+};
+
 const CRAFT_RECIPES: Record<string, { targetId: string; materials: { name: string; qty: number }[]; aetherCost: number }> = {
   craft_cooling2: { targetId: "cooling_2", materials: [{ name: "Metal Plate", qty: 4 }, { name: "Nano Alloy", qty: 2 }], aetherCost: 500 },
   craft_battery2: { targetId: "battery_2", materials: [{ name: "Metal Ingot", qty: 3 }, { name: "Core Crystal", qty: 2 }], aetherCost: 500 },
@@ -470,6 +488,68 @@ Deno.serve(async (req) => {
         .single();
       if (error) throw error;
       return json({ reward, streakDay: pendingStreakDay, player: updated });
+    }
+
+    // ---------- claim a Mission reward ----------
+    if (action === "claimMission") {
+      const { missionId } = body;
+      const mission = MISSION_CATALOG[Number(missionId)];
+      if (!mission) return json({ error: "Unknown mission" }, 400);
+
+      const claimedIds: number[] = player.claimed_mission_ids || [];
+      if (claimedIds.includes(Number(missionId))) return json({ error: "Mission already claimed" }, 400);
+
+      const progress = mission.getProgress(player);
+      if (progress < mission.total) return json({ error: "Mission not complete yet" }, 400);
+
+      const incomeStats: Record<string, number> = player.income_stats || {};
+      const newIncome = { ...incomeStats, missions: (incomeStats.missions || 0) + mission.reward };
+
+      const { data: updated, error } = await admin
+        .from("players")
+        .update({
+          core: Number(player.core) + mission.reward,
+          total_earned: Number(player.total_earned) + mission.reward,
+          claimed_mission_ids: [...claimedIds, Number(missionId)],
+          income_stats: newIncome,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", player.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return json({ reward: mission.reward, player: updated });
+    }
+
+    // ---------- claim an Event reward (e.g. Core Miner Festival) ----------
+    if (action === "claimEvent") {
+      const { eventId } = body;
+      const ev = EVENT_CATALOG[Number(eventId)];
+      if (!ev) return json({ error: "Unknown event" }, 400);
+
+      const claimedIds: number[] = player.claimed_event_ids || [];
+      if (claimedIds.includes(Number(eventId))) return json({ error: "Event already claimed" }, 400);
+
+      const progress = ev.getProgress(player);
+      if (progress < ev.total) return json({ error: "Event not complete yet" }, 400);
+
+      const incomeStats: Record<string, number> = player.income_stats || {};
+      const newIncome = { ...incomeStats, events: (incomeStats.events || 0) + ev.reward };
+
+      const { data: updated, error } = await admin
+        .from("players")
+        .update({
+          core: Number(player.core) + ev.reward,
+          total_earned: Number(player.total_earned) + ev.reward,
+          claimed_event_ids: [...claimedIds, Number(eventId)],
+          income_stats: newIncome,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", player.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return json({ reward: ev.reward, player: updated });
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);
