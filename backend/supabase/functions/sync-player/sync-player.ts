@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { initData, action } = await req.json();
+    const { initData, action, today } = await req.json();
     if (!initData || !action) return json({ error: "Missing initData or action" }, 400);
 
     // Auth failures (bad/expired Telegram initData) are the ONLY thing
@@ -208,6 +208,25 @@ Deno.serve(async (req) => {
       if (claimErr) throw claimErr;
       const result = rows?.[0];
       if (!result) throw new Error("claim_mining_reward returned no result");
+
+      // Server-authoritative claim_count (lifetime) / daily_claims (resets
+      // on a new calendar day) — feeds the Mission/Event progress checks
+      // in game-actions' claimMission/claimEvent. `today` is the client's
+      // device-local toDateString(), same pattern as claimDaily, so the
+      // "daily" reset follows the player's calendar day, not the server's.
+      const lastClaimDay: string | null = player.last_claim_day || null;
+      const newDailyClaims = typeof today === "string" && today && lastClaimDay === today
+        ? (player.daily_claims || 0) + 1
+        : 1;
+      const { error: statErr } = await admin
+        .from("players")
+        .update({
+          claim_count: (player.claim_count || 0) + 1,
+          daily_claims: newDailyClaims,
+          last_claim_day: typeof today === "string" && today ? today : lastClaimDay,
+        })
+        .eq("id", player.id);
+      if (statErr) throw statErr;
 
       const { data: freshPlayer, error: fetchErr } = await admin.from("players").select("*").eq("id", player.id).single();
       if (fetchErr) throw fetchErr;
