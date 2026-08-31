@@ -130,7 +130,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             <div className="flex-1 flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 backdrop-blur-sm min-w-0">
               <div className="flex items-center gap-1 min-w-0">
                 <AetherCoinIcon size={16} />
-                <span className="text-[11px] font-extrabold text-amber-200 whitespace-nowrap truncate">{formatInt(coreDisplay)}</span>
+                <span className="text-[11px] font-extrabold text-amber-200 whitespace-nowrap truncate">{formatCore(coreDisplay)}</span>
               </div>
               <div className="w-px h-3.5 bg-white/15 shrink-0" />
               <div
