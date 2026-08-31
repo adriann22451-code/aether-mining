@@ -628,7 +628,7 @@ export default function MiningDashboard() {
     const claimedAmount = pending;
     if (isBackendOnline) {
       try {
-        const { awarded, player: p, globalTotalMined: gtm, myEmissionPerSecond: eps } = await callFunction("sync-player", { action: "claim" });
+        const { awarded, player: p, globalTotalMined: gtm, myEmissionPerSecond: eps } = await callFunction("sync-player", { action: "claim", today: new Date().toDateString() });
         setCore(Number(p.core));
         setTotalEarned(Number(p.total_earned));
         setTotalMined(Number(p.total_mined));
@@ -974,8 +974,21 @@ export default function MiningDashboard() {
     setActiveSiteIndex(index);
   };
 
-  const handleClaimMission = (id, reward) => {
+  const handleClaimMission = async (id, reward) => {
     if (claimedMissionIds.includes(id)) return;
+    if (isBackendOnline) {
+      try {
+        const { reward: awarded, player: p } = await callFunction("game-actions", { action: "claimMission", missionId: id });
+        setCore(Number(p.core));
+        setTotalEarned(Number(p.total_earned));
+        setIncomeStats((s) => ({ ...s, ...p.income_stats }));
+        setClaimedMissionIds(p.claimed_mission_ids || []);
+        spawnFloatingGain(awarded);
+      } catch (e) {
+        pushToast(e.message || "Mission reward failed to claim.", "warning");
+      }
+      return;
+    }
     const amount = applyDroneBonus(reward);
     setCore((c) => c + amount);
     setTotalEarned((t) => t + amount);
@@ -983,8 +996,21 @@ export default function MiningDashboard() {
     setClaimedMissionIds((ids) => [...ids, id]);
   };
 
-  const handleClaimEvent = (id, reward) => {
+  const handleClaimEvent = async (id, reward) => {
     if (claimedEventIds.includes(id)) return;
+    if (isBackendOnline) {
+      try {
+        const { reward: awarded, player: p } = await callFunction("game-actions", { action: "claimEvent", eventId: id });
+        setCore(Number(p.core));
+        setTotalEarned(Number(p.total_earned));
+        setIncomeStats((s) => ({ ...s, ...p.income_stats }));
+        setClaimedEventIds(p.claimed_event_ids || []);
+        spawnFloatingGain(awarded);
+      } catch (e) {
+        pushToast(e.message || "Event reward failed to claim.", "warning");
+      }
+      return;
+    }
     const amount = applyDroneBonus(reward);
     setCore((c) => c + amount);
     setTotalEarned((t) => t + amount);
