@@ -323,6 +323,19 @@ export default function MiningDashboard() {
   //     there's no Telegram context or the backend URL hasn't been configured yet) ---
   useEffect(() => {
     let cancelled = false;
+    const startedAt = Date.now();
+    // Local-save/offline-mode loading resolves almost instantly, which made
+    // the loading screen flash by too fast to read. Hold it up for at least
+    // this long regardless of how fast the real data actually loaded — a
+    // slow network still just takes as long as it takes, this only adds
+    // delay on top of an already-fast load.
+    const MIN_LOADING_MS = 2200;
+    const finishLoading = () => {
+      const remaining = Math.max(0, MIN_LOADING_MS - (Date.now() - startedAt));
+      setTimeout(() => {
+        if (!cancelled) setIsLoaded(true);
+      }, remaining);
+    };
     (async () => {
       if (!isBackendConfigured()) {
         // No real Telegram launch context (or backend not set up) — fall back
@@ -375,7 +388,7 @@ export default function MiningDashboard() {
             setPending(Number(saved.pending) || 0);
           }
         }
-        if (!cancelled) setIsLoaded(true);
+        finishLoading();
         return;
       }
       try {
@@ -423,7 +436,7 @@ export default function MiningDashboard() {
         // server unreachable / auth failed — still let the player play locally
         console.error("sync-player init failed:", e);
       } finally {
-        if (!cancelled) setIsLoaded(true);
+        finishLoading();
       }
     })();
     return () => {
