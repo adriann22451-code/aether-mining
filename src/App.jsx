@@ -3,6 +3,7 @@ import {
   Box,
   Package,
 } from "lucide-react";
+import MASCOT_IMG from "./assets/images/mascot.png";
 import { BottomNav } from "./components/layout/BottomNav";
 import { DailyStreakModal } from "./components/modals/DailyStreakModal";
 import { LootBoxModal } from "./components/modals/LootBoxModal";
@@ -1234,8 +1235,8 @@ export default function MiningDashboard() {
               style={{ width: 6, height: 6, top: -1, left: "50%", transform: "translateX(-50%)", boxShadow: "0 0 10px 3px rgba(103,232,249,0.85)" }}
             />
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-2xl shadow-[0_0_30px_-2px_rgba(129,140,248,0.85)] animate-pulse">
-            ⚡
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center shadow-[0_0_30px_-2px_rgba(129,140,248,0.85)] animate-pulse overflow-hidden">
+            <img src={MASCOT_IMG} alt="" className="w-full h-full object-cover" />
           </div>
         </div>
 
