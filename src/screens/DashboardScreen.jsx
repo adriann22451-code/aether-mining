@@ -11,11 +11,11 @@ import {
   Inbox,
   PlayCircle,
   Sparkles,
+  Swords,
   Target,
   Thermometer,
   Trophy,
   UserPlus,
-  Users,
   Zap,
 } from "lucide-react";
 import { referralTiers } from "../data/referral";
@@ -159,7 +159,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
               ...sideItems,
               { icon: Calendar, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
               { icon: Crown, key: "leaderboard" },
-              { icon: Users, key: "guild" },
+              { icon: Swords, key: "guild" },
               { icon: UserPlus, key: "referral", badge: referralTiers.some((t) => referralCount >= t.friends && !claimedReferralIds.includes(t.id)) },
               { icon: BookOpen, key: "codex" },
             ].map((item, i) => (
