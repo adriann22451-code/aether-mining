@@ -229,6 +229,13 @@ export default function MiningDashboard() {
   const [prestigeCount, setPrestigeCount] = useState(0);
   const [boostEndTime, setBoostEndTime] = useState(0);
   const [now, setNow] = useState(Date.now());
+  // --- free 2x boost via rewarded ad (Monetag) — client-side cooldown only
+  //     (like the paid Boost button itself, this isn't server-validated
+  //     yet); survives a refresh via localStorage but not a device switch ---
+  const AD_BOOST_COOLDOWN_MS = 4 * 60 * 60 * 1000; // 4h between free ad-boosts
+  const MONETAG_ZONE_ID = "11699937";
+  const [adBoostUsedAt, setAdBoostUsedAt] = useState(() => Number(localStorage.getItem("aether_ad_boost_used_at")) || 0);
+  const adBoostAvailable = now - adBoostUsedAt > AD_BOOST_COOLDOWN_MS;
   const [claimCooldownUntil, setClaimCooldownUntil] = useState(0);
   const CLAIM_COOLDOWN_MS = 5000; // anti-spam: locks the Claim button for 5s after each tap
 
@@ -1203,6 +1210,27 @@ export default function MiningDashboard() {
     setBoostEndTime(Date.now() + 30 * 60 * 1000);
   };
 
+  // free 2x boost, paid for by watching a Monetag Rewarded Interstitial
+  // instead of AETHER. window.show_11699937 is injected by the <script>
+  // tag in index.html once the Monetag SDK loads.
+  const handleWatchAdBoost = () => {
+    if (boostActive || !adBoostAvailable) return;
+    const show = window[`show_${MONETAG_ZONE_ID}`];
+    if (typeof show !== "function") {
+      pushToast("Ad isn't ready yet — try again in a moment.", "warning");
+      return;
+    }
+    show()
+      .then(() => {
+        setBoostEndTime(Date.now() + 30 * 60 * 1000);
+        setAdBoostUsedAt(Date.now());
+        localStorage.setItem("aether_ad_boost_used_at", String(Date.now()));
+      })
+      .catch(() => {
+        // ad failed, was skipped, or had no fill — no reward, silently do nothing
+      });
+  };
+
   const handleActivateMysterySite = () => {
     if (!mysterySiteAvailable) return;
     setMysterySiteAvailableUntil(0);
@@ -1461,6 +1489,8 @@ export default function MiningDashboard() {
             boostEndTime={boostEndTime}
             boostCost={boostCost}
             onBoost={handleBoost}
+            onWatchAdBoost={handleWatchAdBoost}
+            adBoostAvailable={adBoostAvailable}
             onOpenDaily={() => setShowDailyModal(true)}
             dailyUnclaimed={dailyUnclaimed}
             autoClaimActive={autoClaimUnlocked && autoClaimActive}
