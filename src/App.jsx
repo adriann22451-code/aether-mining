@@ -93,6 +93,13 @@ export default function MiningDashboard() {
   const [lastClaimDay, setLastClaimDay] = useState(null);
   const [upgradeCount, setUpgradeCount] = useState(0); // total part upgrades (lifetime)
   const [marketVisited, setMarketVisited] = useState(false);
+  // --- rotating daily missions: reset by the server whenever the local
+  //     day rolls over (see ensureDailyMissionSet in the edge functions) ---
+  const [activeMissionIds, setActiveMissionIds] = useState([]);
+  const [dailyUpgradeCount, setDailyUpgradeCount] = useState(0);
+  const [dailyMarketVisited, setDailyMarketVisited] = useState(false);
+  const [dailyLootboxCount, setDailyLootboxCount] = useState(0);
+  const [dailyCraftCount, setDailyCraftCount] = useState(0);
   const [claimedMissionIds, setClaimedMissionIds] = useState([]);
   const [claimedEventIds, setClaimedEventIds] = useState([]);
   const [inventory, setInventory] = useState([]); // starts empty — items/materials are earned via mining, missions, marketplace, etc.
@@ -428,6 +435,11 @@ export default function MiningDashboard() {
         const claimedIds = Array.isArray(p.inbox_claimed_ids) ? p.inbox_claimed_ids : [];
         setInboxItems((prev) => prev.map((i) => (claimedIds.includes(i.id) ? { ...i, claimed: true } : i)));
         setClaimedMissionIds(Array.isArray(p.claimed_mission_ids) ? p.claimed_mission_ids : []);
+        setActiveMissionIds(Array.isArray(p.active_mission_ids) ? p.active_mission_ids : []);
+        setDailyUpgradeCount(Number(p.daily_upgrade_count) || 0);
+        setDailyMarketVisited(Boolean(p.daily_market_visited));
+        setDailyLootboxCount(Number(p.daily_lootbox_count) || 0);
+        setDailyCraftCount(Number(p.daily_craft_count) || 0);
         setClaimedEventIds(Array.isArray(p.claimed_event_ids) ? p.claimed_event_ids : []);
         if (Array.isArray(inv)) setInventory(inv.map(resolveInventoryRow));
 
@@ -479,8 +491,6 @@ export default function MiningDashboard() {
         active_site_index: activeSiteIndex,
         income_stats: incomeStats,
         spend_stats: spendStats,
-        claimed_mission_ids: claimedMissionIds,
-        claimed_event_ids: claimedEventIds,
         inbox_claimed_ids: inboxItems.filter((i) => i.claimed).map((i) => i.id),
         market_owned: marketOwned,
         auto_sell_enabled: autoSellEnabled,
@@ -649,7 +659,7 @@ export default function MiningDashboard() {
   }, [boostActive]);
 
   useEffect(() => {
-    if (screen === "market") setMarketVisited(true);
+    if (screen === "market") { setMarketVisited(true); setDailyMarketVisited(true); }
   }, [screen]);
 
   const handleClaim = async () => {
@@ -726,6 +736,7 @@ export default function MiningDashboard() {
       setLootboxPhase("opening");
       try {
         const { reward, player: p } = await callFunction("game-actions", { action: "openLootbox" });
+        setDailyLootboxCount(Number(p.daily_lootbox_count) || 0);
         setTimeout(() => {
           let result;
           if (reward.type === "aether") {
@@ -841,6 +852,7 @@ export default function MiningDashboard() {
         setOwnedItems(p.owned_items);
         setSpendStats((s) => ({ ...s, ...p.spend_stats }));
         setUpgradeCount(p.upgrade_count);
+        setDailyUpgradeCount(Number(p.daily_upgrade_count) || 0);
       } catch (e) {
         pushToast(e.message || "Upgrade failed.", "warning");
       }
@@ -852,6 +864,7 @@ export default function MiningDashboard() {
     addSpend("upgrades", cost);
     setOwnedItems((p) => ({ ...p, [itemId]: lvl + 1 }));
     setUpgradeCount((u) => u + 1);
+    setDailyUpgradeCount((u) => u + 1);
   };
 
   // spend AETHER on the cheapest available upgrade across all owned parts, repeatedly, until funds run out
@@ -864,6 +877,7 @@ export default function MiningDashboard() {
           setOwnedItems(p.owned_items);
           setSpendStats((s) => ({ ...s, ...p.spend_stats }));
           setUpgradeCount(p.upgrade_count);
+          setDailyUpgradeCount(Number(p.daily_upgrade_count) || 0);
         }
         setBulkUpgradeNotice(
           totalLevels > 0
@@ -906,6 +920,7 @@ export default function MiningDashboard() {
       setCore((c) => c - totalSpent);
       addSpend("upgrades", totalSpent);
       setUpgradeCount((u) => u + totalLevels);
+      setDailyUpgradeCount((u) => u + totalLevels);
       setBulkUpgradeNotice(`Upgraded ${totalLevels} level${totalLevels === 1 ? "" : "s"} for ${formatInt(totalSpent)} AETHER.`);
     } else {
       setBulkUpgradeNotice("Not enough AETHER to upgrade anything right now.");
@@ -944,6 +959,7 @@ export default function MiningDashboard() {
         setCore(Number(p.core));
         setOwnedItems(p.owned_items);
         setSpendStats((s) => ({ ...s, ...p.spend_stats }));
+        setDailyCraftCount(Number(p.daily_craft_count) || 0);
         setInventory((prev) =>
           prev
             .map((it) => {
@@ -975,6 +991,7 @@ export default function MiningDashboard() {
       const nextLevel = Math.min(MAX_LEVEL, currentLevel + 1);
       return { ...prev, [recipe.targetId]: Math.max(1, nextLevel) };
     });
+    setDailyCraftCount((c) => c + 1);
   };
 
   const handleUnlockSite = async () => {
@@ -1014,6 +1031,11 @@ export default function MiningDashboard() {
         setTotalEarned(Number(p.total_earned));
         setIncomeStats((s) => ({ ...s, ...p.income_stats }));
         setClaimedMissionIds(p.claimed_mission_ids || []);
+        setActiveMissionIds(p.active_mission_ids || []);
+        setDailyUpgradeCount(Number(p.daily_upgrade_count) || 0);
+        setDailyMarketVisited(Boolean(p.daily_market_visited));
+        setDailyLootboxCount(Number(p.daily_lootbox_count) || 0);
+        setDailyCraftCount(Number(p.daily_craft_count) || 0);
         spawnFloatingGain(awarded);
       } catch (e) {
         pushToast(e.message || "Mission reward failed to claim.", "warning");
@@ -1391,7 +1413,8 @@ export default function MiningDashboard() {
         ) : screen === "missions" ? (
           <MissionScreen
             onBack={() => setScreen("dashboard")}
-            stats={{ dailyClaims, upgradeCount, totalHashrate, marketVisited }}
+            stats={{ dailyClaims, dailyUpgradeCount, dailyMarketVisited, dailyLootboxCount, dailyCraftCount }}
+            activeMissionIds={activeMissionIds}
             claimedMissionIds={claimedMissionIds}
             onClaim={handleClaimMission}
           />
