@@ -35,6 +35,7 @@ import { MarketScreen } from "./screens/MarketScreen";
 import { MissionScreen } from "./screens/MissionScreen";
 import { ProfileScreen } from "./screens/ProfileScreen";
 import { NetworkStatsScreen } from "./screens/NetworkStatsScreen";
+import { ReferralScreen } from "./screens/ReferralScreen";
 import { ShopScreen } from "./screens/ShopScreen";
 import { SiteScreen } from "./screens/SiteScreen";
 
@@ -102,6 +103,10 @@ export default function MiningDashboard() {
   const [dailyCraftCount, setDailyCraftCount] = useState(0);
   const [claimedMissionIds, setClaimedMissionIds] = useState([]);
   const [claimedEventIds, setClaimedEventIds] = useState([]);
+  // --- referral program ---
+  const [telegramId, setTelegramId] = useState(null);
+  const [referralCount, setReferralCount] = useState(0);
+  const [claimedReferralIds, setClaimedReferralIds] = useState([]);
   const [inventory, setInventory] = useState([]); // starts empty — items/materials are earned via mining, missions, marketplace, etc.
   const [playerName, setPlayerName] = useState("AETHER MINER");
 
@@ -448,6 +453,9 @@ export default function MiningDashboard() {
         setDailyLootboxCount(Number(p.daily_lootbox_count) || 0);
         setDailyCraftCount(Number(p.daily_craft_count) || 0);
         setClaimedEventIds(Array.isArray(p.claimed_event_ids) ? p.claimed_event_ids : []);
+        setTelegramId(p.telegram_id ?? null);
+        setReferralCount(Number(p.referral_count) || 0);
+        setClaimedReferralIds(Array.isArray(p.claimed_referral_ids) ? p.claimed_referral_ids : []);
         if (Array.isArray(inv)) setInventory(inv.map(resolveInventoryRow));
 
         setIsBackendOnline(true);
@@ -1078,6 +1086,27 @@ export default function MiningDashboard() {
     setClaimedEventIds((ids) => [...ids, id]);
   };
 
+  const handleClaimReferral = async (id, reward) => {
+    if (claimedReferralIds.includes(id)) return;
+    if (isBackendOnline) {
+      try {
+        const { reward: awarded, player: p } = await callFunction("game-actions", { action: "claimReferral", tierId: id });
+        setCore(Number(p.core));
+        setTotalEarned(Number(p.total_earned));
+        setIncomeStats((s) => ({ ...s, ...p.income_stats }));
+        setClaimedReferralIds(p.claimed_referral_ids || []);
+        spawnFloatingGain(awarded);
+      } catch (e) {
+        pushToast(e.message || "Referral reward failed to claim.", "warning");
+      }
+      return;
+    }
+    // referral_count is only ever real when synced from the server — offline
+    // mode has no way to know how many friends actually joined, so referral
+    // rewards simply aren't claimable there.
+    pushToast("Referral rewards need a live connection to claim.", "warning");
+  };
+
   const handleBuyMarketItem = (item) => {
     const stock = marketStock[item.id];
     if (stock <= 0 || core < item.price) return;
@@ -1470,6 +1499,14 @@ export default function MiningDashboard() {
             claimedEventIds={claimedEventIds}
             onClaim={handleClaimEvent}
           />
+        ) : screen === "referral" ? (
+          <ReferralScreen
+            onBack={() => setScreen("dashboard")}
+            telegramId={telegramId}
+            referralCount={referralCount}
+            claimedReferralIds={claimedReferralIds}
+            onClaim={handleClaimReferral}
+          />
         ) : screen === "achievements" ? (
           <AchievementScreen onBack={() => setScreen("dashboard")} totalEarned={totalEarned} totalHashrate={totalHashrate} unlockedIndex={unlockedIndex} />
         ) : screen === "leaderboard" ? (
@@ -1507,6 +1544,8 @@ export default function MiningDashboard() {
             boostCost={boostCost}
             onBoost={handleBoost}
             onWatchAdBoost={handleWatchAdBoost}
+            referralCount={referralCount}
+            claimedReferralIds={claimedReferralIds}
             adBoostAvailable={adBoostAvailable}
             onOpenDaily={() => setShowDailyModal(true)}
             dailyUnclaimed={dailyUnclaimed}
