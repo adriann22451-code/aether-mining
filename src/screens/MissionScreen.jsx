@@ -6,12 +6,19 @@ import {
 import { ScreenHeader } from "../components/layout/ScreenHeader";
 import { missionCatalog } from "../data/missions";
 
-export function MissionScreen({ onBack, stats, claimedMissionIds, onClaim }) {
+export function MissionScreen({ onBack, stats, activeMissionIds, claimedMissionIds, onClaim }) {
+  // offline/local-preview mode never populates activeMissionIds (no server
+  // rotation to drive it) — fall back to showing the whole catalog there so
+  // the screen isn't empty; online, only today's rotated 3 show up.
+  const visibleMissions = activeMissionIds && activeMissionIds.length > 0
+    ? missionCatalog.filter((m) => activeMissionIds.includes(m.id))
+    : missionCatalog;
   return (
     <div className="px-4 pt-5 pb-6">
       <ScreenHeader title="MISSIONS" onBack={onBack} />
+      <div className="mt-1 text-[10.5px] text-slate-500">Today's missions — refreshes daily</div>
       <div className="mt-4 flex flex-col gap-3">
-        {missionCatalog.map((m) => {
+        {visibleMissions.map((m) => {
           const raw = Math.min(m.getProgress(stats), m.total);
           const pct = Math.min(100, Math.round((raw / m.total) * 100));
           const done = raw >= m.total;
