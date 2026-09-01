@@ -9,6 +9,11 @@
 
   <!-- Telegram Mini App SDK — provides window.Telegram.WebApp (theme, CloudStorage, etc.) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Monetag SDK (for TMA) — rewarded ads. Loads window.show_11699937(),
+       used by App.jsx's handleWatchAdBoost for the "Watch Ad" 2x boost
+       button. Zone ID: 11699937. -->
+  <script src='//libtl.com/sdk.js' data-zone='11699937' data-sdk='show_11699937'></script>
 </head>
 <body>
   <div id="root"></div>
