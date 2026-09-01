@@ -173,6 +173,19 @@ const EVENT_CATALOG: Record<number, { total: number; reward: number; getProgress
   3: { total: 3e9, reward: 200, getProgress: (p) => Number(p.cached_hashrate || 0) },
 };
 
+// ---------- Referral program — tiered AETHER reward for inviting friends
+// via a personal link (t.me/<bot>?startapp=<telegram_id>). referral_count
+// is bumped exactly once per new friend, atomically, by sync-player's init
+// action — never something a client reports. Keep in sync with
+// data/referral.js on the client (display-only there).
+const REFERRAL_TIER_CATALOG: Record<number, { friends: number; reward: number }> = {
+  1: { friends: 5, reward: 10 },
+  2: { friends: 25, reward: 50 },
+  3: { friends: 50, reward: 100 },
+  4: { friends: 100, reward: 200 },
+  5: { friends: 500, reward: 1000 },
+};
+
 const CRAFT_RECIPES: Record<string, { targetId: string; materials: { name: string; qty: number }[]; aetherCost: number }> = {
   craft_cooling2: { targetId: "cooling_2", materials: [{ name: "Metal Plate", qty: 4 }, { name: "Nano Alloy", qty: 2 }], aetherCost: 500 },
   craft_battery2: { targetId: "battery_2", materials: [{ name: "Metal Ingot", qty: 3 }, { name: "Core Crystal", qty: 2 }], aetherCost: 500 },
@@ -628,6 +641,44 @@ Deno.serve(async (req) => {
           core: Number(player.core) + reward,
           total_earned: Number(player.total_earned) + reward,
           claimed_event_ids: [...claimedIds, Number(eventId)],
+          income_stats: newIncome,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", player.id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return json({ reward, player: updated });
+    }
+
+    // ---------- claim a Referral tier reward — paid OUT of Treasury pool.
+    // referral_count itself is never touched here — it's only ever bumped
+    // by sync-player's init action, atomically, server-side. ----------
+    if (action === "claimReferral") {
+      const { tierId } = body;
+      const tier = REFERRAL_TIER_CATALOG[Number(tierId)];
+      if (!tier) return json({ error: "Unknown referral tier" }, 400);
+
+      const claimedIds: number[] = player.claimed_referral_ids || [];
+      if (claimedIds.includes(Number(tierId))) return json({ error: "Referral tier already claimed" }, 400);
+
+      const referralCount = Number(player.referral_count || 0);
+      if (referralCount < tier.friends) return json({ error: "Not enough referred friends yet" }, 400);
+
+      // HARD CAP: never pays more than Treasury actually has banked
+      const { data: paidAmount, error: payErr } = await admin.rpc("pay_from_treasury_pool", { p_amount: tier.reward });
+      if (payErr) throw payErr;
+      const reward = Number(paidAmount || 0);
+
+      const incomeStats: Record<string, number> = player.income_stats || {};
+      const newIncome = { ...incomeStats, referrals: (incomeStats.referrals || 0) + reward };
+
+      const { data: updated, error } = await admin
+        .from("players")
+        .update({
+          core: Number(player.core) + reward,
+          total_earned: Number(player.total_earned) + reward,
+          claimed_referral_ids: [...claimedIds, Number(tierId)],
           income_stats: newIncome,
           updated_at: new Date().toISOString(),
         })
