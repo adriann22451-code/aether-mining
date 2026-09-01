@@ -14,9 +14,11 @@ import {
   Target,
   Thermometer,
   Trophy,
+  UserPlus,
   Users,
   Zap,
 } from "lucide-react";
+import { referralTiers } from "../data/referral";
 import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import AnimatedSprite from "../components/layout/AnimatedSprite";
 import { FloatingClaimNumbers } from "../components/layout/FloatingClaimNumbers";
@@ -40,7 +42,7 @@ const SITE_SPRITES = {
   10: { src: GENESIS_CORE_SPRITE_IMG, frames: GENESIS_CORE_SPRITE_FRAMES, meta: GENESIS_CORE_SPRITE_META },
 };
 
-export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onWatchAdBoost, adBoostAvailable, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, onDevPreviewSite }) {
+export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onWatchAdBoost, adBoostAvailable, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, referralCount = 0, claimedReferralIds = [], onDevPreviewSite }) {
   const coreDisplay = useTween(core, 700);
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
@@ -151,13 +153,14 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             </div>
           </div>
 
-          <div className="grid grid-cols-8 gap-1 bg-white/10 border border-white/15 rounded-xl p-0.5 backdrop-blur-sm pointer-events-auto">
+          <div className="grid grid-cols-9 gap-1 bg-white/10 border border-white/15 rounded-xl p-0.5 backdrop-blur-sm pointer-events-auto">
             {[
               { icon: Inbox, key: "inbox", badge: inboxUnclaimed },
               ...sideItems,
               { icon: Calendar, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
               { icon: Crown, key: "leaderboard" },
               { icon: Users, key: "guild" },
+              { icon: UserPlus, key: "referral", badge: referralTiers.some((t) => referralCount >= t.friends && !claimedReferralIds.includes(t.id)) },
               { icon: BookOpen, key: "codex" },
             ].map((item, i) => (
               <button
