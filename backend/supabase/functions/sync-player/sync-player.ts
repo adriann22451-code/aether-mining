@@ -42,7 +42,7 @@ function bytesToHex(bytes: Uint8Array): string {
 interface TelegramUser { id: number; username?: string; first_name?: string; last_name?: string; }
 const MAX_AUTH_AGE_SECONDS = 24 * 60 * 60;
 
-async function verifyTelegramInitData(initData: string, botToken: string): Promise<{ user: TelegramUser; authDate: number }> {
+async function verifyTelegramInitData(initData: string, botToken: string): Promise<{ user: TelegramUser; authDate: number; startParam: string | null }> {
   const params = new URLSearchParams(initData);
   const hash = params.get("hash");
   if (!hash) throw new Error("Missing hash in initData");
@@ -64,7 +64,11 @@ async function verifyTelegramInitData(initData: string, botToken: string): Promi
 
   const userRaw = params.get("user");
   if (!userRaw) throw new Error("Missing user in initData");
-  return { user: JSON.parse(userRaw) as TelegramUser, authDate };
+  // start_param is part of the HMAC-signed initData itself (set by Telegram
+  // when the Mini App was opened via a t.me/<bot>?startapp=<code> link) —
+  // reading it here means it can't be spoofed independently of a valid
+  // signature, unlike a value the client just sent as a plain body field.
+  return { user: JSON.parse(userRaw) as TelegramUser, authDate, startParam: params.get("start_param") || null };
 }
 
 // ---------- game data / formulas (hashrate calc only — reward math now
@@ -164,8 +168,9 @@ Deno.serve(async (req) => {
     // column, etc.) further down can never get mislabeled as "you're not
     // logged in", which was hiding the real error before.
     let user: TelegramUser;
+    let startParam: string | null = null;
     try {
-      ({ user } = await verifyTelegramInitData(initData, BOT_TOKEN));
+      ({ user, startParam } = await verifyTelegramInitData(initData, BOT_TOKEN));
     } catch (authErr) {
       return json({ error: errorMessage(authErr) }, 401);
     }
@@ -174,13 +179,30 @@ Deno.serve(async (req) => {
 
     if (error && error.code === "PGRST116") {
       const username = user.username || user.first_name || "AETHER MINER";
+
+      // Referral: start_param is only meaningful for a BRAND NEW player
+      // (an existing player reopening the app via someone's link should
+      // never retroactively become "referred"). Must be a real numeric
+      // telegram_id, not the player's own id, and must belong to an
+      // existing player — otherwise it's silently ignored, no error.
+      let referredBy: number | null = null;
+      const referrerId = startParam ? Number(startParam) : NaN;
+      if (Number.isFinite(referrerId) && referrerId > 0 && referrerId !== user.id) {
+        const { data: referrer } = await admin.from("players").select("telegram_id").eq("telegram_id", referrerId).single();
+        if (referrer) referredBy = referrerId;
+      }
+
       const insertRes = await admin
         .from("players")
-        .insert({ telegram_id: user.id, username, last_synced_at: new Date().toISOString() })
+        .insert({ telegram_id: user.id, username, last_synced_at: new Date().toISOString(), referred_by: referredBy })
         .select("*")
         .single();
       if (insertRes.error) throw insertRes.error;
       player = insertRes.data;
+
+      if (referredBy) {
+        await admin.rpc("increment_referral_count", { p_referrer_telegram_id: referredBy });
+      }
     } else if (error) {
       throw error;
     }
