@@ -2,20 +2,50 @@ import {
   Clock,
   Gift,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ScreenHeader } from "../components/layout/ScreenHeader";
 import { eventCatalog } from "../data/events";
 
+// Event runs in a real, fixed 30-day cycle anchored to a constant date (not
+// "30 days from whenever you happen to open the app") — so every player is
+// always looking at the same cycle, and "Ends in" always counts down from
+// somewhere between 0 and 30 days, never a fake/tiny leftover number.
+const EVENT_CYCLE_MS = 30 * 24 * 60 * 60 * 1000;
+const EVENT_CYCLE_EPOCH = Date.UTC(2025, 0, 1); // fixed anchor, same for everyone
+
+function getCycleEndTime(now) {
+  const cycleIndex = Math.floor((now - EVENT_CYCLE_EPOCH) / EVENT_CYCLE_MS);
+  return EVENT_CYCLE_EPOCH + (cycleIndex + 1) * EVENT_CYCLE_MS;
+}
+
+function formatCountdown(msLeft) {
+  const totalMinutes = Math.max(0, Math.floor(msLeft / 60000));
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
 export function EventScreen({ onBack, stats, claimedEventIds, onClaim }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+  const msLeft = Math.max(0, getCycleEndTime(now) - now);
+
   return (
     <div className="px-4 pt-5 pb-6">
       <ScreenHeader title="EVENT" onBack={onBack} />
 
       <div className="mt-4 rounded-2xl bg-gradient-to-br from-fuchsia-900/50 via-[#1a0a2e]/80 to-indigo-950/60 border border-fuchsia-400/20 px-5 py-4 text-center shadow-[0_0_35px_-10px_rgba(217,70,239,0.35)]">
         <div className="text-[10px] tracking-[0.25em] text-fuchsia-300 font-bold">SPECIAL EVENT</div>
-        <div className="mt-1 text-lg font-extrabold text-white">Core Miner Festival</div>
+        <div className="mt-1 text-lg font-extrabold text-white">Aether Mining Fest</div>
         <div className="mt-1.5 flex items-center justify-center gap-1.5 text-[11px] text-slate-300 font-mono">
           <Clock size={12} className="text-fuchsia-300" />
-          Ends in 2h 14m
+          Ends in {formatCountdown(msLeft)}
         </div>
       </div>
 
