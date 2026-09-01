@@ -1212,11 +1212,28 @@ export default function MiningDashboard() {
 
   // free 2x boost, paid for by watching a Monetag Rewarded Interstitial
   // instead of AETHER. window.show_11699937 is injected by the <script>
-  // tag in index.html once the Monetag SDK loads.
-  const handleWatchAdBoost = () => {
+  // tag in index.html — but it's loaded async, so right after the app
+  // first opens it may not exist yet even though the ad itself is fine.
+  // Poll for up to 4s before giving up, instead of failing on the very
+  // first check.
+  const waitForAdFn = (zoneId, timeoutMs = 4000) =>
+    new Promise((resolve, reject) => {
+      const started = Date.now();
+      const check = () => {
+        const fn = window[`show_${zoneId}`];
+        if (typeof fn === "function") return resolve(fn);
+        if (Date.now() - started > timeoutMs) return reject(new Error("timeout"));
+        setTimeout(check, 200);
+      };
+      check();
+    });
+
+  const handleWatchAdBoost = async () => {
     if (boostActive || !adBoostAvailable) return;
-    const show = window[`show_${MONETAG_ZONE_ID}`];
-    if (typeof show !== "function") {
+    let show;
+    try {
+      show = await waitForAdFn(MONETAG_ZONE_ID);
+    } catch {
       pushToast("Ad isn't ready yet — try again in a moment.", "warning");
       return;
     }
