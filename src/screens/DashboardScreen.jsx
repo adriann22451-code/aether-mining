@@ -9,6 +9,7 @@ import {
   Gem,
   Gift,
   Inbox,
+  PlayCircle,
   Sparkles,
   Target,
   Thermometer,
@@ -39,7 +40,7 @@ const SITE_SPRITES = {
   10: { src: GENESIS_CORE_SPRITE_IMG, frames: GENESIS_CORE_SPRITE_FRAMES, meta: GENESIS_CORE_SPRITE_META },
 };
 
-export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, onDevPreviewSite }) {
+export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onWatchAdBoost, adBoostAvailable, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, onDevPreviewSite }) {
   const coreDisplay = useTween(core, 700);
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
@@ -436,22 +437,39 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
         </button>
         <FloatingClaimNumbers items={floatingGains} />
         </div>
-        <button
-          type="button"
-          onClick={onBoost}
-          disabled={boostActive || core < boostCost}
-          className={`shrink-0 w-[84px] rounded-xl py-3 flex flex-col items-center justify-center gap-0.5 font-extrabold text-[10px] transition-transform active:scale-[0.98] ${
-            boostActive
-              ? "bg-emerald-500/20 border border-emerald-400/50 text-emerald-300"
-              : core < boostCost
-              ? "bg-white/5 border border-white/10 text-slate-500"
-              : "bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white shadow-[0_0_16px_-2px_rgba(217,70,239,0.6)]"
-          }`}
-        >
-          <Zap size={14} />
-          {boostActive ? `${Math.max(0, Math.ceil((boostEndTime - Date.now()) / 60000))}m 2x` : "BOOST 2x"}
-          {!boostActive && <span className="text-[9px] opacity-80">{formatInt(boostCost)}</span>}
-        </button>
+        <div className="shrink-0 flex flex-col gap-1.5">
+          <button
+            type="button"
+            onClick={onBoost}
+            disabled={boostActive || core < boostCost}
+            className={`w-[84px] rounded-xl py-3 flex flex-col items-center justify-center gap-0.5 font-extrabold text-[10px] transition-transform active:scale-[0.98] ${
+              boostActive
+                ? "bg-emerald-500/20 border border-emerald-400/50 text-emerald-300"
+                : core < boostCost
+                ? "bg-white/5 border border-white/10 text-slate-500"
+                : "bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white shadow-[0_0_16px_-2px_rgba(217,70,239,0.6)]"
+            }`}
+          >
+            <Zap size={14} />
+            {boostActive ? `${Math.max(0, Math.ceil((boostEndTime - Date.now()) / 60000))}m 2x` : "BOOST 2x"}
+            {!boostActive && <span className="text-[9px] opacity-80">{formatInt(boostCost)}</span>}
+          </button>
+          {!boostActive && onWatchAdBoost && (
+            <button
+              type="button"
+              onClick={onWatchAdBoost}
+              disabled={!adBoostAvailable}
+              className={`w-[84px] rounded-xl py-1.5 flex items-center justify-center gap-1 font-bold text-[9px] transition-transform active:scale-[0.98] ${
+                adBoostAvailable
+                  ? "bg-sky-500/15 border border-sky-400/40 text-sky-300"
+                  : "bg-white/5 border border-white/10 text-slate-500"
+              }`}
+            >
+              <PlayCircle size={11} />
+              {adBoostAvailable ? "FREE (AD)" : "WATCHED"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
