@@ -108,15 +108,25 @@ function calcHashrate(ownedItems: Record<string, number>): number {
 // only these fields are accepted from the client — anything else in `state` is ignored
 const ALLOWED_FIELDS = [
   "username", "owned_items", "unlocked_index", "active_site_index",
-  "income_stats", "spend_stats", "claimed_mission_ids", "claimed_event_ids",
+  "income_stats", "spend_stats",
   "inbox_claimed_ids", "market_owned", "auto_sell_enabled", "auto_claim_unlocked",
   "auto_claim_active", "prestige_count", "boost_end_time", "login_streak",
-  "last_claim_date", "guild_id", "guild_points",
+  "last_claim_date", "guild_points",
   // NOTE: core / total_earned / total_mined / pending are deliberately NOT
   // in this list — those can only change via sync-player's claim action,
   // marketplace trades, or (once written) authoritative Shop/Upgrade/Craft
   // functions. A client can send whatever it wants for those fields here
   // and this function will silently ignore it.
+  //
+  // claimed_referral_ids / referral_count / active_mission_ids / mission_day
+  // / daily_* mission counters are also deliberately excluded, for the same
+  // reason.
+  //
+  // guild_id is ALSO deliberately not in this list — it's a real
+  // foreign-key relationship now (guilds table), not a soft progress
+  // counter. Only guild-actions' create/join/leave/kick/disband may ever
+  // write it; letting this autosave overwrite it risked desyncing a
+  // player's membership from the guild's own member_count.
 ];
 
 Deno.serve(async (req) => {
