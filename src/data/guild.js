@@ -1,3 +1,21 @@
+// Guild membership, roster, and milestone data now all come from the
+// server (guild-actions edge function) — this file only keeps the reward
+// curve formulas, which the server also uses (guild-actions-index.ts),
+// so both sides agree on the numbers, plus RIVAL_MINERS (still used by
+// LeaderboardScreen as filler entries — unrelated to real guilds).
+export function guildMilestoneFor(n) {
+  return Math.round(3000 * Math.pow(1.6, n));
+}
+
+export function guildRewardFor(n) {
+  return Math.round(2000 * Math.pow(1.5, n));
+}
+
+export const GUILD_CREATE_COST = 500;
+export const GUILD_MAX_MEMBERS = 50;
+
+export const GUILD_COLOR_PRESETS = ["#38bdf8", "#c084fc", "#facc15", "#4ade80", "#f472b6", "#fb923c"];
+
 export const RIVAL_MINERS = [
   { name: "NullSignal", hashrate: 52_000_000_000, totalEarned: 42_500_000 },
   { name: "Vexen", hashrate: 31_000_000_000, totalEarned: 21_000_000 },
@@ -12,50 +30,3 @@ export const RIVAL_MINERS = [
   { name: "Pixe1", hashrate: 21_000_000, totalEarned: 3_200 },
   { name: "Overclockd", hashrate: 8_500_000, totalEarned: 950 },
 ];
-
-export const GUILDS = [
-  {
-    id: "vanguard",
-    name: "Quantum Vanguard",
-    tag: "QTV",
-    color: "#38bdf8",
-    members: [
-      { name: "NullSignal", rate: 22 },
-      { name: "IronCore", rate: 17 },
-      { name: "Skyfall", rate: 11 },
-      { name: "Pixe1", rate: 7 },
-    ],
-  },
-  {
-    id: "syndicate",
-    name: "Aether Syndicate",
-    tag: "AES",
-    color: "#c084fc",
-    members: [
-      { name: "Vexen", rate: 20 },
-      { name: "GhostRig", rate: 15 },
-      { name: "Nyx_Miner", rate: 10 },
-      { name: "Miru", rate: 6 },
-    ],
-  },
-  {
-    id: "collective",
-    name: "Genesis Collective",
-    tag: "GNS",
-    color: "#facc15",
-    members: [
-      { name: "BlokAtomic", rate: 18 },
-      { name: "Kappa88", rate: 13 },
-      { name: "RustyByte", rate: 9 },
-      { name: "Overclockd", rate: 5 },
-    ],
-  },
-];
-
-export function guildMilestoneFor(n) {
-  return Math.round(3000 * Math.pow(1.6, n));
-}
-
-export function guildRewardFor(n) {
-  return Math.round(2000 * Math.pow(1.5, n));
-}
