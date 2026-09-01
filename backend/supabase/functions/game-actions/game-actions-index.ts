@@ -77,7 +77,7 @@ const PART_DATA: Record<string, { hp: number; buyCost: number; category: "gpu" |
   drone_0: { hp: 0.03, buyCost: 0, category: "drone" }, drone_1: { hp: 0.15, buyCost: 4000, category: "drone" }, drone_2: { hp: 0.40, buyCost: 60000, category: "drone" },
 };
 
-const SITE_COST: number[] = [0, 3000, 10000, 30000, 80000, 180000, 350000, 650000, 1100000, 1800000, 3000000];
+const SITE_COST: number[] = [0, 300, 1000, 3000, 5000, 10000, 20000, 30000, 50000, 75000, 100000];
 
 // ---------- Daily login streak — keep in sync with data/dailyStreak.js on
 // the client. Client sends its own device-local `today` (toDateString())
