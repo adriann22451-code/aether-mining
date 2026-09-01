@@ -601,7 +601,7 @@ Deno.serve(async (req) => {
       return json({ reward, player: updated });
     }
 
-    // ---------- claim an Event reward (e.g. Core Miner Festival) — paid
+    // ---------- claim an Event reward (e.g. Aether Mining Fest) — paid
     // OUT of Treasury pool ----------
     if (action === "claimEvent") {
       const { eventId } = body;
