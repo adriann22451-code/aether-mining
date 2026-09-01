@@ -81,11 +81,22 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
   const currentBlockReward = stats ? stats.current_block_reward : INITIAL_BLOCK_REWARD;
   const mined = stats ? Number(stats.total_mined) : totalMined;
   const carryover = stats ? Number(stats.carryover_pool) : 0;
+  const carryoverIn = stats ? Number(stats.carryover_pool_in) : 0;
+  const carryoverOut = stats ? Number(stats.carryover_pool_out) : 0;
   const realActiveHashrate = stats ? Number(stats.real_active_hashrate) : totalHashrate;
   const subsidyActive = stats ? stats.subsidy_active : false;
   const treasury = stats ? Number(stats.treasury_pool) : 0;
+  const treasuryIn = stats ? Number(stats.treasury_pool_in) : 0;
+  const treasuryOut = stats ? Number(stats.treasury_pool_out) : 0;
   const reserve = stats ? Number(stats.reserve_pool) : 0;
-  const supplyPct = Math.min(100, (mined / AETHER_MAX_SUPPLY) * 100);
+  const reserveIn = stats ? Number(stats.reserve_pool_in) : 0;
+  const reserveOut = stats ? Number(stats.reserve_pool_out) : 0;
+  // real circulating supply — everything minted MINUS whatever's still
+  // sitting un-spent inside the Treasury pool. Only AETHER that has
+  // actually left Treasury (or never passed through it) counts as
+  // circulating; falls back to total minted when offline (no pool data).
+  const circulating = stats ? Number(stats.circulating_supply) : mined;
+  const supplyPct = Math.min(100, (circulating / AETHER_MAX_SUPPLY) * 100);
   const carryoverPct = Math.min(100, (carryover / AETHER_MAX_SUPPLY) * 100);
   const treasuryPct = Math.min(100, (treasury / AETHER_MAX_SUPPLY) * 100);
   const reservePct = Math.min(100, (reserve / AETHER_MAX_SUPPLY) * 100);
@@ -141,8 +152,11 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
               <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-500" style={{ width: `${supplyPct}%` }} />
             </div>
             <div className="mt-1.5 flex items-center justify-between text-[10.5px]">
-              <span className="text-slate-400">{formatCore(mined)} / {formatInt(AETHER_MAX_SUPPLY)} minted</span>
+              <span className="text-slate-400">{formatCore(circulating)} / {formatInt(AETHER_MAX_SUPPLY)} circulating</span>
               <span className="font-bold text-amber-300">{supplyPct.toFixed(supplyPct < 1 ? 3 : 1)}%</span>
+            </div>
+            <div className="mt-0.5 text-[9.5px] text-slate-500">
+              {formatCore(mined)} minted total — {formatCore(treasury)} of that is still sitting un-spent in the Treasury pool below, so it isn't counted as circulating yet
             </div>
 
             {/* CARRYOVER POOL */}
@@ -158,8 +172,12 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
                 <span className="text-slate-400">{formatCore(carryover)} AETHER banked</span>
                 <span className="font-bold text-fuchsia-300">{carryoverPct.toFixed(3)}%</span>
               </div>
+              <div className="mt-1.5 flex items-center gap-3 text-[9.5px]">
+                <span className="text-emerald-300 font-semibold">↓ IN {formatCore(carryoverIn)}</span>
+                <span className="text-rose-300 font-semibold">↑ OUT {formatCore(carryoverOut)}</span>
+              </div>
               <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-                Whenever the network is quiet, the ghost hashrate floor (below) means active miners don't claim 100% of that block's reward. The unclaimed remainder isn't lost — it's banked here, then released back out as a subsidy once enough real players are mining together. Minted + banked can never exceed the 100M max supply.
+                Whenever the network is quiet, the ghost hashrate floor (below) means active miners don't claim 100% of that block's reward. The unclaimed remainder isn't lost — it's banked here (IN), then released back out (OUT) as a subsidy once enough real players are mining together. Minted + banked can never exceed the 100M max supply.
               </p>
               <div className="mt-3 flex items-center justify-between text-[10px]">
                 <span className="text-slate-400">Subsidy unlock progress (real network hashrate vs {formatHashrate(SUBSIDY_UNLOCK_HASHRATE)})</span>
@@ -189,8 +207,12 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
               <span className="text-slate-400">{formatCore(treasury)} AETHER banked</span>
               <span className="font-bold text-emerald-300">{(TREASURY_TAX_RATE * 100).toFixed(0)}% of every block</span>
             </div>
+            <div className="mt-1.5 flex items-center gap-3 text-[9.5px]">
+              <span className="text-emerald-300 font-semibold">↓ IN {formatCore(treasuryIn)}</span>
+              <span className="text-rose-300 font-semibold">↑ OUT {formatCore(treasuryOut)}</span>
+            </div>
             <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-              5% of every block's reward is redirected here automatically the moment that block mints — every 60 seconds, network-wide, whether or not anyone happens to claim anything that minute. The accounted-for source for future Missions, Events, Daily Streak, Guild, and Loot Box rewards, instead of AETHER just appearing from nowhere.
+              5% of every block's reward is redirected here automatically the moment that block mints (IN) — every 60 seconds, network-wide, whether or not anyone happens to claim anything that minute. Loot Box purchases also add IN, and Loot Box AETHER wins pay OUT of this pool (capped to what's banked) — the accounted-for source for Missions, Events, Daily Streak, Guild, and Loot Box rewards, instead of AETHER just appearing from nowhere.
             </p>
 
             <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5 text-[12px] font-extrabold tracking-[0.1em] text-white">
@@ -204,8 +226,12 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
               <span className="text-slate-400">{formatCore(reserve)} AETHER banked</span>
               <span className="font-bold text-sky-300">from Shop + Upgrades</span>
             </div>
+            <div className="mt-1.5 flex items-center gap-3 text-[9.5px]">
+              <span className="text-emerald-300 font-semibold">↓ IN {formatCore(reserveIn)}</span>
+              <span className="text-rose-300 font-semibold">↑ OUT {formatCore(reserveOut)}</span>
+            </div>
             <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
-              Every AETHER spent on Shop purchases, part upgrades, crafting, and Mining Site unlocks is banked here in full — earmarked for the upcoming AETHER staking-reward feature.
+              Every AETHER spent on Shop purchases, part upgrades, crafting, and Mining Site unlocks is banked here in full (IN) — earmarked for the upcoming AETHER staking-reward feature, which will pay OUT of this pool once it ships.
             </p>
           </div>
 
@@ -252,8 +278,8 @@ export function NetworkStatsScreen({ onBack, isBackendOnline, totalMined, totalH
                   <span className="text-slate-400">{formatCore(b.block_reward)} AETHER minted this block</span>
                 </div>
                 <div className="mt-1 flex items-center justify-between text-[10.5px]">
-                  <span className="text-slate-400">{b.active_miners} active miner{b.active_miners === 1 ? "" : "s"} · {formatHashrate(b.active_hashrate)}</span>
-                  <span className="font-bold text-amber-300">+{formatCore(b.total_reward)} to miners</span>
+                  <span className="text-slate-400">{b.active_miners} active miner{b.active_miners === 1 ? "" : "s"} mining now</span>
+                  <span className="font-bold text-cyan-300">{formatHashrate(b.active_hashrate)} total</span>
                 </div>
                 <div className="mt-1 flex flex-col gap-0.5">
                   <div className="text-[9.5px] text-emerald-300">{formatCore(b.treasury_cut)} sent to Treasury pool (5% of this block, always)</div>
