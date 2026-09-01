@@ -102,12 +102,70 @@ function daysBetween(dateStrA: string, dateStrB: string): number {
 // client-reported number), and reward amounts live ONLY here — keep in
 // sync with data/missions.js / data/events.js on the client, which are
 // display-only now. `getProgress` reads straight off the `players` row.
+//
+// Missions rotate: 3 of the 7 templates below are "active" on any given
+// day (players.active_mission_ids), chosen deterministically from the
+// date so it's the same set for everyone and can't be rerolled. All the
+// daily_* progress columns AND claimed_mission_ids reset back to zero
+// the moment a player's local day rolls over (see ensureDailyMissionSet).
 const MISSION_CATALOG: Record<number, { total: number; reward: number; getProgress: (p: Record<string, unknown>) => number }> = {
-  1: { total: 3, reward: 5, getProgress: (p) => Number(p.daily_claims || 0) },
-  2: { total: 1, reward: 5, getProgress: (p) => Number(p.upgrade_count || 0) },
-  3: { total: 2e9, reward: 50, getProgress: (p) => Number(p.cached_hashrate || 0) },
-  4: { total: 1, reward: 5, getProgress: (p) => (p.market_visited ? 1 : 0) },
+  101: { total: 3, reward: 5, getProgress: (p) => Number(p.daily_claims || 0) },
+  102: { total: 1, reward: 5, getProgress: (p) => Number(p.daily_upgrade_count || 0) },
+  103: { total: 1, reward: 5, getProgress: (p) => (p.daily_market_visited ? 1 : 0) },
+  104: { total: 1, reward: 10, getProgress: (p) => Number(p.daily_lootbox_count || 0) },
+  105: { total: 1, reward: 10, getProgress: (p) => Number(p.daily_craft_count || 0) },
+  106: { total: 5, reward: 10, getProgress: (p) => Number(p.daily_claims || 0) },
+  107: { total: 2, reward: 10, getProgress: (p) => Number(p.daily_upgrade_count || 0) },
 };
+
+const DAILY_MISSION_POOL = [101, 102, 103, 104, 105, 106, 107];
+const DAILY_MISSION_SLOTS = 3;
+
+// tiny deterministic PRNG seeded from a string (today's date) — same
+// date always produces the same shuffle, so every player gets the same
+// 3 active missions on a given day and it can't be gamed by rerolling.
+function seededShuffle<T>(arr: T[], seed: string): T[] {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    h = (h * 1103515245 + 12345) >>> 0;
+    const j = h % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function pickDailyMissionSet(today: string): number[] {
+  return seededShuffle(DAILY_MISSION_POOL, today).slice(0, DAILY_MISSION_SLOTS).sort((a, b) => a - b);
+}
+
+// Rotates a player onto today's mission set the moment their local day
+// changes — resets claimed_mission_ids and every daily_* progress column
+// back to zero, and picks the new active_mission_ids. No-ops (and costs
+// nothing) once already current for `today`. Called once per request,
+// right after the player row is fetched, so every action in this file
+// always sees a correctly-rotated player.
+async function ensureDailyMissionSet(admin: ReturnType<typeof createClient>, player: Record<string, any>, today: string | undefined) {
+  if (!today || player.mission_day === today) return player;
+  const { data: updated, error } = await admin
+    .from("players")
+    .update({
+      mission_day: today,
+      active_mission_ids: pickDailyMissionSet(today),
+      claimed_mission_ids: [],
+      daily_upgrade_count: 0,
+      daily_market_visited: false,
+      daily_lootbox_count: 0,
+      daily_craft_count: 0,
+    })
+    .eq("id", player.id)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return updated;
+}
+
 
 const EVENT_CATALOG: Record<number, { total: number; reward: number; getProgress: (p: Record<string, unknown>) => number }> = {
   1: { total: 5, reward: 10, getProgress: (p) => Number(p.claim_count || 0) },
@@ -215,8 +273,9 @@ Deno.serve(async (req) => {
     } catch (authErr) {
       return json({ error: errorMessage(authErr) }, 401);
     }
-    const { data: player, error: playerErr } = await admin.from("players").select("*").eq("telegram_id", user.id).single();
-    if (playerErr || !player) return json({ error: "Player not found — call sync-player with action=init first" }, 404);
+    const { data: playerRow, error: playerErr } = await admin.from("players").select("*").eq("telegram_id", user.id).single();
+    if (playerErr || !playerRow) return json({ error: "Player not found — call sync-player with action=init first" }, 404);
+    const player = await ensureDailyMissionSet(admin, playerRow, today);
 
     const ownedItems: Record<string, number> = player.owned_items || {};
     const spendStats: Record<string, number> = player.spend_stats || {};
@@ -264,6 +323,7 @@ Deno.serve(async (req) => {
         .update({
           core: newCore, owned_items: newOwned, spend_stats: newSpend,
           upgrade_count: (player.upgrade_count || 0) + 1,
+          daily_upgrade_count: (player.daily_upgrade_count || 0) + 1,
           cached_hashrate: calcHashrate(newOwned), updated_at: new Date().toISOString(),
         })
         .eq("id", player.id)
@@ -305,6 +365,7 @@ Deno.serve(async (req) => {
         .update({
           core: Number(player.core) - totalSpent, owned_items: items, spend_stats: newSpend,
           upgrade_count: (player.upgrade_count || 0) + totalLevels,
+          daily_upgrade_count: (player.daily_upgrade_count || 0) + totalLevels,
           cached_hashrate: calcHashrate(items), updated_at: new Date().toISOString(),
         })
         .eq("id", player.id)
@@ -352,6 +413,7 @@ Deno.serve(async (req) => {
         .from("players")
         .update({
           core: Number(player.core) - recipe.aetherCost, owned_items: newOwned, spend_stats: newSpend,
+          daily_craft_count: (player.daily_craft_count || 0) + 1,
           cached_hashrate: calcHashrate(newOwned), updated_at: new Date().toISOString(),
         })
         .eq("id", player.id)
@@ -446,6 +508,7 @@ Deno.serve(async (req) => {
         .from("players")
         .update({
           core: newCore, owned_items: ownedItems, spend_stats: newSpend, income_stats: newIncome,
+          daily_lootbox_count: (player.daily_lootbox_count || 0) + 1,
           cached_hashrate: calcHashrate(ownedItems), updated_at: new Date().toISOString(),
         })
         .eq("id", player.id)
@@ -504,6 +567,9 @@ Deno.serve(async (req) => {
       const { missionId } = body;
       const mission = MISSION_CATALOG[Number(missionId)];
       if (!mission) return json({ error: "Unknown mission" }, 400);
+
+      const activeIds: number[] = player.active_mission_ids || [];
+      if (!activeIds.includes(Number(missionId))) return json({ error: "That mission isn't active today" }, 400);
 
       const claimedIds: number[] = player.claimed_mission_ids || [];
       if (claimedIds.includes(Number(missionId))) return json({ error: "Mission already claimed" }, 400);
