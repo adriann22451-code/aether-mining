@@ -1,90 +1,187 @@
-import { useState } from "react";
 import {
   Crown,
   Gift,
+  LogOut,
+  Plus,
+  Shield,
+  Swords,
+  Users,
+  X,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ScreenHeader } from "../components/layout/ScreenHeader";
-import { GUILDS, guildMilestoneFor, guildRewardFor } from "../data/guild";
+import { GUILD_COLOR_PRESETS, GUILD_CREATE_COST, GUILD_MAX_MEMBERS, guildMilestoneFor, guildRewardFor } from "../data/guild";
 import { formatHashrate, formatInt } from "../lib/format";
 
 const CONFETTI_COLORS = ["#facc15", "#22d3ee", "#c084fc", "#4ade80", "#f472b6"];
 
-export function GuildScreen({ onBack, playerName, totalHashrate, guildId, guildPoints, milestoneIndex, onJoinGuild, onClaimMilestone }) {
+export function GuildScreen({
+  onBack, core, guildInfo, guildPoints, isOwner, roster, guildList,
+  onEnter, onCreateGuild, onJoinGuild, onLeaveGuild, onDisbandGuild, onKickMember, onClaimMilestone,
+}) {
   const [celebrate, setCelebrate] = useState(false);
-  const guild = GUILDS.find((g) => g.id === guildId);
-  const milestone = guildMilestoneFor(milestoneIndex);
-  const reward = guildRewardFor(milestoneIndex);
-  const pct = Math.min(100, Math.round((guildPoints / milestone) * 100));
-  const canClaim = guildPoints >= milestone;
+  const [showCreate, setShowCreate] = useState(false);
+  const [name, setName] = useState("");
+  const [tag, setTag] = useState("");
+  const [color, setColor] = useState(GUILD_COLOR_PRESETS[0]);
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [kickTarget, setKickTarget] = useState(null);
 
-  if (!guild) {
+  useEffect(() => {
+    onEnter?.();
+  }, [onEnter]);
+
+  // ---------- not in a guild yet: browse + create ----------
+  if (!guildInfo) {
     return (
       <div className="px-4 pt-5 pb-6">
-        <ScreenHeader title="GUILD" onBack={onBack} />
+        <ScreenHeader title="GUILDS" onBack={onBack} />
         <p className="mt-2 text-[11.5px] leading-relaxed text-slate-400">
-          Join a guild to combine hashrate with other miners and earn shared AETHER rewards at weekly milestones.
+          Join a guild to pool hashrate contributions with other real miners and claim shared AETHER milestones together.
         </p>
-        <div className="mt-4 flex flex-col gap-3">
-          {GUILDS.map((g) => {
-            const totalRate = g.members.reduce((s, m) => s + m.rate, 0);
-            return (
-              <div key={g.id} className="rounded-2xl bg-white/5 border border-white/10 p-3.5 backdrop-blur-sm">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-extrabold"
-                    style={{ background: `${g.color}22`, border: `1px solid ${g.color}55`, color: g.color }}
-                  >
-                    {g.tag}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-bold text-white">{g.name}</div>
-                    <div className="text-[10.5px] text-slate-400">{g.members.length} members · ~{totalRate} pts/s</div>
+
+        {!showCreate ? (
+          <button
+            type="button"
+            onClick={() => setShowCreate(true)}
+            className="mt-4 w-full rounded-2xl border border-dashed border-fuchsia-400/40 bg-fuchsia-500/5 py-3 flex items-center justify-center gap-2 text-[12.5px] font-extrabold text-fuchsia-300 active:scale-[0.98] transition"
+          >
+            <Plus size={16} />
+            CREATE A GUILD — {formatInt(GUILD_CREATE_COST)} AETHER
+          </button>
+        ) : (
+          <div className="mt-4 rounded-2xl bg-white/5 border border-white/10 p-4">
+            <div className="text-[11px] font-extrabold tracking-[0.12em] text-white">NEW GUILD</div>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value.slice(0, 24))}
+              placeholder="Guild name"
+              className="mt-2.5 w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-[12.5px] text-white placeholder:text-slate-500 outline-none focus:border-fuchsia-400/50"
+            />
+            <input
+              value={tag}
+              onChange={(e) => setTag(e.target.value.toUpperCase().slice(0, 5))}
+              placeholder="TAG (2–5 letters)"
+              className="mt-2 w-full rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-[12.5px] text-white placeholder:text-slate-500 outline-none focus:border-fuchsia-400/50"
+            />
+            <div className="mt-2.5 flex items-center gap-2">
+              {GUILD_COLOR_PRESETS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className="w-7 h-7 rounded-full shrink-0 transition"
+                  style={{ background: c, boxShadow: color === c ? `0 0 0 2px #0a0a12, 0 0 0 4px ${c}` : "none" }}
+                />
+              ))}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCreate(false)}
+                className="flex-1 rounded-lg bg-white/10 border border-white/15 py-2 text-[11.5px] font-bold text-slate-300 active:scale-[0.97] transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={name.trim().length < 3 || tag.trim().length < 2 || core < GUILD_CREATE_COST}
+                onClick={() => onCreateGuild(name.trim(), tag.trim(), color)}
+                className="flex-1 rounded-lg bg-gradient-to-b from-fuchsia-500 to-purple-700 py-2 text-[11.5px] font-extrabold text-white shadow-[0_2px_10px_-2px_rgba(217,70,239,0.6)] active:scale-[0.97] transition disabled:opacity-40"
+              >
+                Found it — {formatInt(GUILD_CREATE_COST)}
+              </button>
+            </div>
+            {core < GUILD_CREATE_COST && (
+              <div className="mt-2 text-[10px] text-rose-300">You need {formatInt(GUILD_CREATE_COST - core)} more AETHER.</div>
+            )}
+          </div>
+        )}
+
+        <div className="mt-5 text-[11px] font-extrabold tracking-[0.12em] text-white">TOP GUILDS</div>
+        <div className="mt-2 flex flex-col gap-3">
+          {(!guildList || guildList.length === 0) && (
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4 text-center text-[11.5px] text-slate-500">
+              No guilds yet — be the first to found one!
+            </div>
+          )}
+          {(guildList || []).map((g) => (
+            <div key={g.id} className="rounded-2xl bg-white/5 border border-white/10 p-3.5 backdrop-blur-sm">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-extrabold"
+                  style={{ background: `${g.color}22`, border: `1px solid ${g.color}55`, color: g.color }}
+                >
+                  {g.tag}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] font-bold text-white truncate">{g.name}</div>
+                  <div className="text-[10.5px] text-slate-400">
+                    {g.member_count}/{GUILD_MAX_MEMBERS} members · led by {g.ownerName}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onJoinGuild(g.id)}
-                  className="mt-3 w-full rounded-xl py-2 text-[12px] font-extrabold text-white active:scale-[0.97] transition"
-                  style={{ background: `linear-gradient(180deg, ${g.color}, ${g.color}cc)` }}
-                >
-                  JOIN {g.tag}
-                </button>
               </div>
-            );
-          })}
+              <button
+                type="button"
+                disabled={g.full}
+                onClick={() => onJoinGuild(g.id)}
+                className="mt-3 w-full rounded-xl py-2 text-[12px] font-extrabold text-white active:scale-[0.97] transition disabled:opacity-40"
+                style={{ background: g.full ? "rgba(255,255,255,0.06)" : `linear-gradient(180deg, ${g.color}, ${g.color}cc)` }}
+              >
+                {g.full ? "FULL" : `JOIN ${g.tag}`}
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
+  // ---------- in a guild: MMORPG-style guild hall ----------
+  const milestone = guildMilestoneFor(guildInfo.milestone_index);
+  const reward = guildRewardFor(guildInfo.milestone_index);
+  const pct = Math.min(100, Math.round((guildPoints / milestone) * 100));
+  const canClaim = guildPoints >= milestone;
+
   return (
     <div className="px-4 pt-5 pb-6">
-      <ScreenHeader title="GUILD" onBack={onBack} />
+      <ScreenHeader title="GUILD HALL" onBack={onBack} />
 
+      {/* banner */}
       <div
-        className="mt-4 rounded-2xl px-4 py-3 border"
-        style={{ background: `${guild.color}15`, borderColor: `${guild.color}44` }}
+        className="mt-4 relative rounded-2xl px-4 py-4 border overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${guildInfo.color}26, rgba(10,10,20,0.6))`, borderColor: `${guildInfo.color}55` }}
       >
-        <div className="flex items-center gap-2">
+        <Shield size={90} className="absolute -right-3 -bottom-4 opacity-[0.08]" style={{ color: guildInfo.color }} />
+        <div className="relative flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-[10px] font-extrabold"
-            style={{ background: `${guild.color}22`, border: `1px solid ${guild.color}55`, color: guild.color }}
+            className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-[13px] font-extrabold"
+            style={{ background: `${guildInfo.color}25`, border: `1.5px solid ${guildInfo.color}66`, color: guildInfo.color }}
           >
-            {guild.tag}
+            {guildInfo.tag}
           </div>
-          <div>
-            <div className="text-[13.5px] font-extrabold text-white">{guild.name}</div>
-            <div className="text-[10.5px] text-slate-400">{guild.members.length + 1} members</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[16px] font-extrabold text-white truncate">{guildInfo.name}</div>
+            <div className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-slate-300">
+              <Users size={11} />
+              {guildInfo.member_count}/{GUILD_MAX_MEMBERS} members
+              {isOwner && (
+                <span className="ml-1 flex items-center gap-0.5 text-amber-300 font-bold">
+                  <Crown size={11} /> OWNER
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
+      {/* milestone */}
       <div className="relative mt-4 rounded-2xl bg-white/5 border border-white/10 p-3.5 overflow-hidden">
         {celebrate && (
           <div className="pointer-events-none absolute inset-0 z-10">
             <div
               className="absolute inset-0"
-              style={{ background: `linear-gradient(90deg, transparent, ${guild.color}cc, transparent)`, animation: "milestoneBarFlash 0.7s ease-out forwards" }}
+              style={{ background: `linear-gradient(90deg, transparent, ${guildInfo.color}cc, transparent)`, animation: "milestoneBarFlash 0.7s ease-out forwards" }}
             />
             {Array.from({ length: 16 }).map((_, i) => {
               const cx = Math.round((Math.random() - 0.5) * 140);
@@ -109,13 +206,13 @@ export function GuildScreen({ onBack, playerName, totalHashrate, guildId, guildP
           </div>
         )}
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-extrabold tracking-[0.1em] text-white">WEEKLY MILESTONE #{milestoneIndex + 1}</span>
+          <span className="text-[11px] font-extrabold tracking-[0.1em] text-white">MILESTONE #{guildInfo.milestone_index + 1}</span>
           <span className="text-[10.5px] font-semibold text-slate-400">{formatInt(guildPoints)} / {formatInt(milestone)}</span>
         </div>
         <div className="mt-2 h-2 rounded-full bg-black/40 overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${guild.color}, #22d3ee)` }}
+            style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${guildInfo.color}, #22d3ee)` }}
           />
         </div>
         <div className="mt-2.5 flex items-center justify-between">
@@ -143,29 +240,121 @@ export function GuildScreen({ onBack, playerName, totalHashrate, guildId, guildP
         </div>
       </div>
 
-      <div className="mt-4 text-[11px] font-extrabold tracking-[0.12em] text-white">MEMBERS</div>
-      <div className="mt-2 flex flex-col gap-1.5">
-        <div className="rounded-2xl bg-cyan-500/10 border border-cyan-400/40 p-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-cyan-400/20 border border-cyan-400/50 flex items-center justify-center shrink-0">
-            <Crown size={13} className="text-cyan-300" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[12px] font-bold text-cyan-300 truncate">
-              {playerName} <span className="text-[9px] text-cyan-400 font-bold">(YOU)</span>
-            </div>
-          </div>
-          <div className="text-[10.5px] font-semibold text-slate-300">{formatHashrate(totalHashrate)}</div>
+      {/* roster */}
+      <div className="mt-4 flex items-center justify-between">
+        <div className="text-[11px] font-extrabold tracking-[0.12em] text-white">ROSTER</div>
+        <div className="flex items-center gap-1 text-[10px] text-slate-500">
+          <Swords size={10} /> sorted by contribution
         </div>
-        {guild.members.map((m) => (
-          <div key={m.name} className="rounded-2xl bg-white/5 border border-white/10 p-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-[10px] font-bold text-slate-400">
-              {m.name.slice(0, 2).toUpperCase()}
+      </div>
+      <div className="mt-2 flex flex-col gap-1.5">
+        {(roster || []).map((m) => (
+          <div
+            key={m.id}
+            className={`rounded-2xl p-3 flex items-center gap-3 border ${
+              m.isYou ? "bg-cyan-500/10 border-cyan-400/40" : "bg-white/5 border-white/10"
+            }`}
+          >
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
+                m.isOwner ? "bg-amber-400/20 border-amber-400/50" : "bg-white/5 border-white/10"
+              }`}
+            >
+              {m.isOwner ? (
+                <Crown size={13} className="text-amber-300" />
+              ) : (
+                <span className="text-[10px] font-bold text-slate-400">{(m.username || "??").slice(0, 2).toUpperCase()}</span>
+              )}
             </div>
-            <div className="flex-1 min-w-0 text-[12px] font-bold text-white truncate">{m.name}</div>
-            <div className="text-[10.5px] font-semibold text-slate-400">~{m.rate} pts/s</div>
+            <div className="flex-1 min-w-0">
+              <div className={`text-[12px] font-bold truncate ${m.isYou ? "text-cyan-300" : "text-white"}`}>
+                {m.username} {m.isYou && <span className="text-[9px] text-cyan-400 font-bold">(YOU)</span>}
+              </div>
+              <div className="text-[9.5px] text-slate-500">{formatInt(m.guildPoints)} pts contributed</div>
+            </div>
+            <div className="text-[10.5px] font-semibold text-slate-300 shrink-0">{formatHashrate(m.cachedHashrate)}</div>
+            {isOwner && !m.isOwner && (
+              <button
+                type="button"
+                onClick={() => setKickTarget(m)}
+                className="shrink-0 w-6 h-6 rounded-full bg-rose-500/15 border border-rose-400/40 flex items-center justify-center text-rose-300 active:scale-[0.9] transition"
+              >
+                <X size={12} />
+              </button>
+            )}
           </div>
         ))}
       </div>
+
+      {/* leave / disband */}
+      <div className="mt-5">
+        {confirmLeave ? (
+          <div className="rounded-2xl bg-rose-500/10 border border-rose-400/30 p-3.5">
+            <div className="text-[11.5px] text-rose-200 leading-relaxed">
+              {isOwner
+                ? "Disbanding removes the guild for everyone — this can't be undone."
+                : "Leave this guild? Your milestone progress will reset to 0."}
+            </div>
+            <div className="mt-2.5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmLeave(false)}
+                className="flex-1 rounded-lg bg-white/10 py-1.5 text-[11px] font-bold text-slate-300 active:scale-[0.97] transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmLeave(false);
+                  isOwner ? onDisbandGuild() : onLeaveGuild();
+                }}
+                className="flex-1 rounded-lg bg-rose-600 py-1.5 text-[11px] font-extrabold text-white active:scale-[0.97] transition"
+              >
+                {isOwner ? "Disband" : "Leave"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmLeave(true)}
+            className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 flex items-center justify-center gap-1.5 text-[11.5px] font-bold text-slate-400 active:scale-[0.98] transition"
+          >
+            <LogOut size={13} />
+            {isOwner ? "Disband Guild" : "Leave Guild"}
+          </button>
+        )}
+      </div>
+
+      {/* kick confirm modal */}
+      {kickTarget && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setKickTarget(null)}>
+          <div className="w-full max-w-sm rounded-t-2xl bg-[#12121e] border-t border-white/10 p-4 pb-6" onClick={(e) => e.stopPropagation()}>
+            <div className="text-[13px] font-bold text-white">Kick {kickTarget.username}?</div>
+            <div className="mt-1 text-[11px] text-slate-400">They'll be removed from the guild immediately and can rejoin any guild later.</div>
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setKickTarget(null)}
+                className="flex-1 rounded-lg bg-white/10 py-2 text-[11.5px] font-bold text-slate-300 active:scale-[0.97] transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onKickMember(kickTarget.id);
+                  setKickTarget(null);
+                }}
+                className="flex-1 rounded-lg bg-rose-600 py-2 text-[11.5px] font-extrabold text-white active:scale-[0.97] transition"
+              >
+                Kick
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
