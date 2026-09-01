@@ -107,6 +107,50 @@ function calcHashrate(ownedItems: Record<string, number>): number {
 }
 
 // ---------- handler ----------
+// ---------- Daily mission rotation — kept in sync with the identical
+// helper in game-actions-index.ts (both files are self-contained for
+// manual deploy, so this small bit of logic is duplicated on purpose).
+// Runs here too so opening the app (action=\"init\") already shows
+// today's rotated mission set, without needing a claim first. ----------
+const DAILY_MISSION_POOL = [101, 102, 103, 104, 105, 106, 107];
+const DAILY_MISSION_SLOTS = 3;
+
+function seededShuffle<T>(arr: T[], seed: string): T[] {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    h = (h * 1103515245 + 12345) >>> 0;
+    const j = h % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function pickDailyMissionSet(today: string): number[] {
+  return seededShuffle(DAILY_MISSION_POOL, today).slice(0, DAILY_MISSION_SLOTS).sort((a, b) => a - b);
+}
+
+async function ensureDailyMissionSet(admin: ReturnType<typeof createClient>, player: Record<string, any>, today: string | undefined) {
+  if (!today || player.mission_day === today) return player;
+  const { data: updated, error } = await admin
+    .from("players")
+    .update({
+      mission_day: today,
+      active_mission_ids: pickDailyMissionSet(today),
+      claimed_mission_ids: [],
+      daily_upgrade_count: 0,
+      daily_market_visited: false,
+      daily_lootbox_count: 0,
+      daily_craft_count: 0,
+    })
+    .eq("id", player.id)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return updated;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -140,6 +184,8 @@ Deno.serve(async (req) => {
     } else if (error) {
       throw error;
     }
+
+    player = await ensureDailyMissionSet(admin, player, today);
 
     const hashrate = calcHashrate(player.owned_items || {});
 
