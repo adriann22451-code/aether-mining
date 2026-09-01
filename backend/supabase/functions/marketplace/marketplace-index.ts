@@ -77,14 +77,18 @@ Deno.serve(async (req) => {
       return json({ error: errorMessage(authErr) }, 401);
     }
 
-    const { data: player, error: playerErr } = await admin.from("players").select("id, core, market_visited").eq("telegram_id", user.id).single();
+    const { data: player, error: playerErr } = await admin.from("players").select("id, core, market_visited, daily_market_visited").eq("telegram_id", user.id).single();
     if (playerErr || !player) return json({ error: "Player not found — call sync-player with action=init first" }, 404);
 
     if (action === "browse") {
       // server-authoritative flag for the "Visit the Marketplace" mission —
-      // set once, never unset, so game-actions' claimMission can trust it.
-      if (!player.market_visited) {
-        await admin.from("players").update({ market_visited: true }).eq("id", player.id);
+      // market_visited is a lifetime flag; daily_market_visited is the one
+      // the rotating mission actually reads, and gets reset back to false
+      // by ensureDailyMissionSet (sync-player/game-actions) whenever the
+      // player's local day rolls over, so it's safe to just always set it
+      // true here without worrying about which day it is.
+      if (!player.market_visited || !player.daily_market_visited) {
+        await admin.from("players").update({ market_visited: true, daily_market_visited: true }).eq("id", player.id);
       }
 
       const { data, error } = await admin
