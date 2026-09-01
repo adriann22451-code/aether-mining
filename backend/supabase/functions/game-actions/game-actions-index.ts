@@ -456,7 +456,11 @@ Deno.serve(async (req) => {
     }
 
     // ---------- daily login streak — server-authoritative so it survives
-    // the next real sync instead of being silently overwritten by it ----------
+    // the next real sync instead of being silently overwritten by it.
+    // Reward is paid OUT of the Treasury pool (same hard-cap pattern as
+    // Lootbox) instead of being minted from nowhere — this is exactly the
+    // "future Missions/Events/Daily Streak" draw-down Treasury was built
+    // for back in migration 0007. ----------
     if (action === "claimDaily") {
       if (typeof today !== "string" || !today) return json({ error: "Missing today" }, 400);
 
@@ -468,7 +472,12 @@ Deno.serve(async (req) => {
       const diff = lastClaimDate ? daysBetween(lastClaimDate, today) : null;
       const pendingStreakDay = diff === null ? 1 : diff === 1 ? loginStreak + 1 : diff > 1 ? 1 : loginStreak;
       const cycleDay = ((pendingStreakDay - 1) % 7) + 1;
-      const reward = DAILY_STREAK_REWARDS[cycleDay - 1];
+      const rewardTarget = DAILY_STREAK_REWARDS[cycleDay - 1];
+
+      // HARD CAP: never pays more than Treasury actually has banked
+      const { data: paidAmount, error: payErr } = await admin.rpc("pay_from_treasury_pool", { p_amount: rewardTarget });
+      if (payErr) throw payErr;
+      const reward = Number(paidAmount || 0);
 
       const incomeStats: Record<string, number> = player.income_stats || {};
       const newIncome = { ...incomeStats, dailyStreak: (incomeStats.dailyStreak || 0) + reward };
@@ -490,7 +499,7 @@ Deno.serve(async (req) => {
       return json({ reward, streakDay: pendingStreakDay, player: updated });
     }
 
-    // ---------- claim a Mission reward ----------
+    // ---------- claim a Mission reward — paid OUT of Treasury pool ----------
     if (action === "claimMission") {
       const { missionId } = body;
       const mission = MISSION_CATALOG[Number(missionId)];
@@ -502,14 +511,19 @@ Deno.serve(async (req) => {
       const progress = mission.getProgress(player);
       if (progress < mission.total) return json({ error: "Mission not complete yet" }, 400);
 
+      // HARD CAP: never pays more than Treasury actually has banked
+      const { data: paidAmount, error: payErr } = await admin.rpc("pay_from_treasury_pool", { p_amount: mission.reward });
+      if (payErr) throw payErr;
+      const reward = Number(paidAmount || 0);
+
       const incomeStats: Record<string, number> = player.income_stats || {};
-      const newIncome = { ...incomeStats, missions: (incomeStats.missions || 0) + mission.reward };
+      const newIncome = { ...incomeStats, missions: (incomeStats.missions || 0) + reward };
 
       const { data: updated, error } = await admin
         .from("players")
         .update({
-          core: Number(player.core) + mission.reward,
-          total_earned: Number(player.total_earned) + mission.reward,
+          core: Number(player.core) + reward,
+          total_earned: Number(player.total_earned) + reward,
           claimed_mission_ids: [...claimedIds, Number(missionId)],
           income_stats: newIncome,
           updated_at: new Date().toISOString(),
@@ -518,10 +532,11 @@ Deno.serve(async (req) => {
         .select("*")
         .single();
       if (error) throw error;
-      return json({ reward: mission.reward, player: updated });
+      return json({ reward, player: updated });
     }
 
-    // ---------- claim an Event reward (e.g. Core Miner Festival) ----------
+    // ---------- claim an Event reward (e.g. Core Miner Festival) — paid
+    // OUT of Treasury pool ----------
     if (action === "claimEvent") {
       const { eventId } = body;
       const ev = EVENT_CATALOG[Number(eventId)];
@@ -533,14 +548,19 @@ Deno.serve(async (req) => {
       const progress = ev.getProgress(player);
       if (progress < ev.total) return json({ error: "Event not complete yet" }, 400);
 
+      // HARD CAP: never pays more than Treasury actually has banked
+      const { data: paidAmount, error: payErr } = await admin.rpc("pay_from_treasury_pool", { p_amount: ev.reward });
+      if (payErr) throw payErr;
+      const reward = Number(paidAmount || 0);
+
       const incomeStats: Record<string, number> = player.income_stats || {};
-      const newIncome = { ...incomeStats, events: (incomeStats.events || 0) + ev.reward };
+      const newIncome = { ...incomeStats, events: (incomeStats.events || 0) + reward };
 
       const { data: updated, error } = await admin
         .from("players")
         .update({
-          core: Number(player.core) + ev.reward,
-          total_earned: Number(player.total_earned) + ev.reward,
+          core: Number(player.core) + reward,
+          total_earned: Number(player.total_earned) + reward,
           claimed_event_ids: [...claimedIds, Number(eventId)],
           income_stats: newIncome,
           updated_at: new Date().toISOString(),
@@ -549,7 +569,7 @@ Deno.serve(async (req) => {
         .select("*")
         .single();
       if (error) throw error;
-      return json({ reward: ev.reward, player: updated });
+      return json({ reward, player: updated });
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);
