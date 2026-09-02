@@ -283,7 +283,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           <div
             className="absolute inset-0"
             style={{
-              transform: `translate3d(${parallax.x * 8}px, ${parallax.y * 8}px, 0) scale(1.06)`,
+              transform: `translate3d(${parallax.x * 8}px, ${parallax.y * 8}px, 0) scale(1.02)`,
               transition: "transform 0.15s ease-out",
             }}
           >
