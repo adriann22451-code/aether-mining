@@ -6,10 +6,12 @@ import { useEffect, useRef, useState } from "react";
  * frames: array of [x, y, durationMs] — posisi top-left tiap frame di sheet.
  * frameWidth/frameHeight: ukuran satu frame (px, sesuai sheet asli).
  * sheetWidth/sheetHeight: ukuran total spritesheet (px).
- * fill: jika true, sprite mengisi penuh container (crop, seperti object-fit:
- *   cover) memakai ResizeObserver — dipakai saat container BUKAN 16:9 (mis.
- *   layar HP portrait penuh). Jika false (default), sprite menjaga aspect
- *   ratio aslinya via CSS aspect-ratio + persentase (contain, tanpa JS).
+ * fill: jika true, sprite discale (via ResizeObserver) supaya PAS/utuh di
+ *   dalam container tanpa terpotong (seperti object-fit: contain), dipakai
+ *   saat container BUKAN 16:9 (mis. layar HP portrait penuh) — sisa ruang
+ *   di atas/bawah akan menampilkan gradient tema site di belakangnya. Jika
+ *   false (default), sprite menjaga aspect ratio aslinya via CSS
+ *   aspect-ratio + persentase (contain, tanpa JS, tanpa ResizeObserver).
  */
 export default function AnimatedSprite({
   src,
@@ -65,25 +67,18 @@ export default function AnimatedSprite({
   const [fx, fy] = frames[frameIndex];
 
   if (fill) {
-    // "cover" mode: scale the sheet in real px so one frame fills the box
-    // (cropping overflow) and stays centered.
-    //
-    // maxZoomOverContain caps how far past "fit-the-whole-image-in" scale
-    // we're willing to go. Without this, a landscape sprite (this game's
-    // scenes are ~16:9) inside a tall portrait box would need a HUGE scale
-    // to cover the full height — e.g. 2x+ — which blows the pixel art up
-    // to the point it looks broken/pixelated. Capping it means we crop
-    // less of the width and instead let a sliver of the site's themed
-    // gradient (already rendered behind this) show at top/bottom — a much
-    // gentler tradeoff than an oversized, blurry-looking image.
+    // "contain" mode: scale the sheet in real px so the WHOLE frame fits
+    // inside the box (no cropping) and stays centered. Since this game's
+    // scenes are ~16:9 and the box on a portrait phone is much taller than
+    // that, the limiting dimension is the box's width — the frame is shown
+    // at full width, full 16:9 shape intact, with the extra height above
+    // and below simply showing the site's themed gradient that's already
+    // rendered behind this layer (acts like natural letterboxing, no black
+    // bars).
     const containScale = boxSize.width && boxSize.height
       ? Math.min(boxSize.width / frameWidth, boxSize.height / frameHeight)
       : 0;
-    const coverScale = boxSize.width && boxSize.height
-      ? Math.max(boxSize.width / frameWidth, boxSize.height / frameHeight)
-      : 0;
-    const maxZoomOverContain = 1.35;
-    const scale = containScale ? Math.min(coverScale, containScale * maxZoomOverContain) : 0;
+    const scale = containScale;
     const dispFrameW = frameWidth * scale;
     const dispFrameH = frameHeight * scale;
     const offsetX = (boxSize.width - dispFrameW) / 2 - fx * scale;
