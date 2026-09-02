@@ -1631,6 +1631,8 @@ export default function MiningDashboard() {
             onWatchAdBoost={handleWatchAdBoost}
             referralCount={referralCount}
             claimedReferralIds={claimedReferralIds}
+            incomeStats={incomeStats}
+            spendStats={spendStats}
             adBoostAvailable={adBoostAvailable}
             onOpenDaily={() => setShowDailyModal(true)}
             dailyUnclaimed={dailyUnclaimed}
