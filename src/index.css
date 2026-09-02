@@ -25,3 +25,11 @@ body {
   height: 100vh;
   height: 100dvh;
 }
+
+/* Hides the scrollbar on horizontally-scrollable strips (e.g. the
+   dashboard's icon row) while keeping them scrollable — Firefox uses the
+   scrollbar-width inline style, this covers WebKit/Chrome (the WebView
+   Telegram's Mini App actually renders in). */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
