@@ -11,7 +11,6 @@ import { OfflineEarningsModal } from "./components/modals/OfflineEarningsModal";
 import { CRAFT_RECIPES, canCraftRecipe } from "./data/craft";
 import { DAILY_STREAK_REWARDS, daysBetween, todayLocalDateString } from "./data/dailyStreak";
 import { AETHER_MAX_SUPPLY, COOLING_EFFICIENCY, INCOME_DIVISOR, calcCoolingCapacity, calcHashrate, calcHashrateMultiplier, calcHeatGen, calcIncomeBonusPct, calcPendingCapBonusHours, miningHalvingEpoch, miningHalvingMultiplier } from "./data/economy";
-import { GUILDS, guildMilestoneFor, guildRewardFor } from "./data/guild";
 import { INBOX_TEMPLATE } from "./data/inbox";
 import { bumpInventoryTag, parseInventoryQty } from "./data/inventory";
 import { LOOTBOX_COST, rollLootbox } from "./data/lootbox";
@@ -114,9 +113,10 @@ export default function MiningDashboard() {
   const [inboxItems, setInboxItems] = useState(() => INBOX_TEMPLATE.map((i) => ({ ...i, claimed: false })));
 
   // --- guild / clan ---
-  const [guildId, setGuildId] = useState(null);
-  const [guildPoints, setGuildPoints] = useState(0);
-  const [guildMilestoneIndex, setGuildMilestoneIndex] = useState(0);
+  const [guildInfo, setGuildInfo] = useState(null); // full guild row: id/name/tag/color/milestone_index/total_points/member_count/owner_telegram_id
+  const [guildPoints, setGuildPoints] = useState(0); // this player's own contribution
+  const [guildRoster, setGuildRoster] = useState([]);
+  const [guildBrowseList, setGuildBrowseList] = useState([]);
 
   // --- loot box ---
   const [showLootboxModal, setShowLootboxModal] = useState(false);
@@ -308,7 +308,7 @@ export default function MiningDashboard() {
     // resolveInventoryRow() on load (see inventoryToRows below)
     inventory: inventoryToRows(inventory), playerName,
     inboxClaimedIds: inboxItems.filter((i) => i.claimed).map((i) => i.id),
-    guildId, guildPoints, guildMilestoneIndex, loginStreak, lastClaimDate, marketOwned,
+    guildPoints, loginStreak, lastClaimDate, marketOwned,
     autoSellEnabled, prestigeCount, boostEndTime, mysterySiteAvailableUntil, mysteryBoostEndTime,
     autoClaimUnlocked, autoClaimActive, perSecond, savedAt: Date.now(),
   };
@@ -381,9 +381,7 @@ export default function MiningDashboard() {
           if (saved.playerName) setPlayerName(saved.playerName);
           const claimedIds = Array.isArray(saved.inboxClaimedIds) ? saved.inboxClaimedIds : [];
           if (claimedIds.length) setInboxItems((prev) => prev.map((i) => (claimedIds.includes(i.id) ? { ...i, claimed: true } : i)));
-          setGuildId(saved.guildId || null);
           setGuildPoints(Number(saved.guildPoints) || 0);
-          setGuildMilestoneIndex(saved.guildMilestoneIndex || 0);
           setLoginStreak(saved.loginStreak || 0);
           if (saved.lastClaimDate) setLastClaimDate(saved.lastClaimDate);
           if (saved.marketOwned) setMarketOwned((s) => ({ ...s, ...saved.marketOwned }));
@@ -426,9 +424,8 @@ export default function MiningDashboard() {
         setOwnedItems(p.owned_items || {});
         setPending(Number(p.pending));
         setPlayerName(p.username);
-        setGuildId(p.guild_id);
-        setGuildPoints(Number(p.guild_points));
-        setGuildMilestoneIndex(guild ? guild.milestone_index : 0);
+        setGuildInfo(guild || null);
+        setGuildPoints(Number(p.guild_points) || 0);
         setLoginStreak(p.login_streak);
         if (p.last_claim_date) setLastClaimDate(p.last_claim_date);
         if (p.market_owned && Object.keys(p.market_owned).length) setMarketOwned((s) => ({ ...s, ...p.market_owned }));
@@ -515,7 +512,6 @@ export default function MiningDashboard() {
         boost_end_time: boostEndTime ? new Date(boostEndTime).toISOString() : null,
         login_streak: loginStreak,
         last_claim_date: lastClaimDate,
-        guild_id: guildId,
         guild_points: guildPoints,
       },
       inventory: inventoryToRows(inventory),
@@ -530,7 +526,7 @@ export default function MiningDashboard() {
   }, [
     isLoaded, isBackendOnline, ownedItems, unlockedIndex, activeSiteIndex, incomeStats, spendStats,
     claimedMissionIds, claimedEventIds, inboxItems, marketOwned, autoSellEnabled, autoClaimUnlocked,
-    autoClaimActive, prestigeCount, boostEndTime, loginStreak, lastClaimDate, guildId, guildPoints, playerName,
+    autoClaimActive, prestigeCount, boostEndTime, loginStreak, lastClaimDate, guildPoints, playerName,
   ]);
 
   // --- shared/global supply pool (migration 0004): ping the server every
@@ -565,7 +561,7 @@ export default function MiningDashboard() {
   }, [
     isLoaded, isBackendOnline, ownedItems, unlockedIndex, activeSiteIndex, incomeStats, spendStats,
     claimedMissionIds, claimedEventIds, inboxItems, marketOwned, autoSellEnabled, autoClaimUnlocked,
-    autoClaimActive, prestigeCount, boostEndTime, loginStreak, lastClaimDate, guildId, guildPoints, playerName,
+    autoClaimActive, prestigeCount, boostEndTime, loginStreak, lastClaimDate, guildPoints, playerName,
   ]);
 
   useEffect(() => {
@@ -616,17 +612,15 @@ export default function MiningDashboard() {
         setIsOverheating((prev) => (prev ? next < 80 ? false : true : next >= 100 ? true : false));
         return Math.max(0, Math.min(150, next));
       });
-      if (guildId) {
-        const guild = GUILDS.find((g) => g.id === guildId);
-        if (guild) {
-          const membersRate = guild.members.reduce((s, m) => s + m.rate, 0);
-          const playerRate = Math.max(5, totalHashrate / 1e8);
-          setGuildPoints((p) => p + membersRate + playerRate);
-        }
+      if (guildInfo) {
+        // real number now: your own hashrate is your actual contribution
+        // toward the guild's shared milestone (previously this referenced
+        // fake hardcoded "member rates" from a static demo guild list).
+        setGuildPoints((p) => p + Math.max(5, totalHashrate / 1e8));
       }
     }, 1000);
     return () => clearInterval(t);
-  }, [perSecond, pendingCap, heatRatio, guildId, totalHashrate]);
+  }, [perSecond, pendingCap, heatRatio, guildInfo, totalHashrate]);
 
   useEffect(() => {
     const t = setInterval(() => setClaimPulse((p) => !p), 1400);
@@ -724,22 +718,100 @@ export default function MiningDashboard() {
     setAutoClaimActive((a) => !a);
   };
 
-  const handleJoinGuild = (id) => {
-    if (guildId) return;
-    setGuildId(id);
-    setGuildPoints(0);
-    setGuildMilestoneIndex(0);
+  const handleEnterGuildScreen = async () => {
+    if (!isBackendOnline) return;
+    try {
+      if (guildInfo) {
+        const { guild, members } = await callFunction("guild-actions", { action: "roster" });
+        setGuildInfo(guild);
+        setGuildRoster(members || []);
+      } else {
+        const { guilds } = await callFunction("guild-actions", { action: "list" });
+        setGuildBrowseList(guilds || []);
+      }
+    } catch (e) {
+      pushToast(e.message || "Couldn't load guild data.", "warning");
+    }
   };
 
-  const handleClaimGuildMilestone = () => {
-    const milestone = guildMilestoneFor(guildMilestoneIndex);
-    if (guildPoints < milestone) return;
-    const reward = applyDroneBonus(guildRewardFor(guildMilestoneIndex));
-    setCore((c) => c + reward);
-    setTotalEarned((t) => t + reward);
-    addIncome("guild", reward);
-    setGuildPoints((p) => p - milestone);
-    setGuildMilestoneIndex((i) => i + 1);
+  const handleCreateGuild = async (name, tag, color) => {
+    if (!isBackendOnline) {
+      pushToast("Creating a guild needs a live connection.", "warning");
+      return;
+    }
+    try {
+      const { player: p, guild } = await callFunction("guild-actions", { action: "create", name, tag, color });
+      setCore(Number(p.core));
+      setGuildInfo(guild);
+      setGuildPoints(0);
+      setGuildRoster([{ id: p.id, username: playerName, cachedHashrate: totalHashrate, guildPoints: 0, isOwner: true, isYou: true }]);
+    } catch (e) {
+      pushToast(e.message || "Couldn't create guild.", "warning");
+    }
+  };
+
+  const handleJoinGuild = async (guildId) => {
+    if (guildInfo || !isBackendOnline) return;
+    try {
+      const { player: p, guild } = await callFunction("guild-actions", { action: "join", guildId });
+      setGuildInfo(guild);
+      setGuildPoints(Number(p.guild_points) || 0);
+    } catch (e) {
+      pushToast(e.message || "Couldn't join guild.", "warning");
+    }
+  };
+
+  const handleLeaveGuild = async () => {
+    if (!isBackendOnline) return;
+    try {
+      await callFunction("guild-actions", { action: "leave" });
+      setGuildInfo(null);
+      setGuildPoints(0);
+      setGuildRoster([]);
+    } catch (e) {
+      pushToast(e.message || "Couldn't leave guild.", "warning");
+    }
+  };
+
+  const handleDisbandGuild = async () => {
+    if (!isBackendOnline) return;
+    try {
+      await callFunction("guild-actions", { action: "disband" });
+      setGuildInfo(null);
+      setGuildPoints(0);
+      setGuildRoster([]);
+    } catch (e) {
+      pushToast(e.message || "Couldn't disband guild.", "warning");
+    }
+  };
+
+  const handleKickMember = async (targetPlayerId) => {
+    if (!isBackendOnline) return;
+    try {
+      await callFunction("guild-actions", { action: "kick", targetPlayerId });
+      setGuildRoster((prev) => prev.filter((m) => m.id !== targetPlayerId));
+      setGuildInfo((g) => (g ? { ...g, member_count: Math.max(0, g.member_count - 1) } : g));
+    } catch (e) {
+      pushToast(e.message || "Couldn't kick that member.", "warning");
+    }
+  };
+
+  const handleClaimGuildMilestone = async () => {
+    if (!isBackendOnline) {
+      pushToast("Guild rewards need a live connection to claim.", "warning");
+      return;
+    }
+    try {
+      const { reward, player: p, milestoneIndex } = await callFunction("guild-actions", { action: "claimMilestone" });
+      setCore(Number(p.core));
+      setTotalEarned(Number(p.total_earned));
+      setGuildPoints(Number(p.guild_points));
+      addIncome("guild", reward);
+      setGuildInfo((g) => (g ? { ...g, milestone_index: milestoneIndex } : g));
+      spawnFloatingGain(reward);
+    } catch (e) {
+      pushToast(e.message || "Milestone reward failed to claim.", "warning");
+    }
   };
 
   const handleOpenLootbox = async () => {
@@ -1514,12 +1586,18 @@ export default function MiningDashboard() {
         ) : screen === "guild" ? (
           <GuildScreen
             onBack={() => setScreen("dashboard")}
-            playerName={playerName}
-            totalHashrate={totalHashrate}
-            guildId={guildId}
+            core={core}
+            guildInfo={guildInfo}
             guildPoints={guildPoints}
-            milestoneIndex={guildMilestoneIndex}
+            isOwner={Boolean(guildInfo && telegramId && guildInfo.owner_telegram_id === telegramId)}
+            roster={guildRoster}
+            guildList={guildBrowseList}
+            onEnter={handleEnterGuildScreen}
+            onCreateGuild={handleCreateGuild}
             onJoinGuild={handleJoinGuild}
+            onLeaveGuild={handleLeaveGuild}
+            onDisbandGuild={handleDisbandGuild}
+            onKickMember={handleKickMember}
             onClaimMilestone={handleClaimGuildMilestone}
           />
         ) : screen === "inbox" ? (
