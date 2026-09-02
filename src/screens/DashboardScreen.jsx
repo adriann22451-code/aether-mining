@@ -159,52 +159,37 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             </div>
           </div>
 
-          {/* two rows instead of one cramped 9-wide strip: activities
-              (things with fresh rewards to check) on top, social/meta below */}
-          <div className="flex flex-col gap-1 pointer-events-auto">
-            <div className="grid grid-cols-5 gap-1 bg-white/10 border border-white/15 rounded-xl p-0.5 backdrop-blur-sm">
-              {[
-                { icon: Inbox, key: "inbox", badge: inboxUnclaimed },
-                ...sideItems,
-                { icon: Calendar, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
-              ].map((item, i) => (
-                <button
-                  type="button"
-                  key={item.key || i}
-                  onClick={() => (item.onPress ? item.onPress() : onNavigate(item.key))}
-                  className="relative aspect-square rounded-lg flex items-center justify-center active:scale-90 transition hover:bg-white/10"
-                >
-                  <item.icon
-                    size={16}
-                    className="text-amber-300"
-                    style={{ filter: "drop-shadow(0 0 4px rgba(251,191,36,0.6))" }}
-                  />
-                  {item.badge && <span className="absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-1 ring-black/60" />}
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-4 gap-1 bg-white/5 border border-white/10 rounded-xl p-0.5 backdrop-blur-sm">
-              {[
-                { icon: Crown, key: "leaderboard" },
-                { icon: Swords, key: "guild" },
-                { icon: UserPlus, key: "referral", badge: referralTiers.some((t) => referralCount >= t.friends && !claimedReferralIds.includes(t.id)) },
-                { icon: BookOpen, key: "codex" },
-              ].map((item, i) => (
-                <button
-                  type="button"
-                  key={item.key || i}
-                  onClick={() => (item.onPress ? item.onPress() : onNavigate(item.key))}
-                  className="relative aspect-square rounded-lg flex items-center justify-center active:scale-90 transition hover:bg-white/10"
-                >
-                  <item.icon
-                    size={15}
-                    className="text-slate-300"
-                    style={{ filter: "drop-shadow(0 0 3px rgba(148,163,184,0.4))" }}
-                  />
-                  {item.badge && <span className="absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-1 ring-black/60" />}
-                </button>
-              ))}
-            </div>
+          {/* single compact row, horizontally scrollable — keeps the HUD
+              thin (doesn't eat into the site art below) while still giving
+              each icon a comfortable, un-cramped size instead of squeezing
+              9 into fixed grid columns */}
+          <div
+            className="no-scrollbar flex items-center gap-1 overflow-x-auto bg-white/10 border border-white/15 rounded-xl px-1 py-1 backdrop-blur-sm pointer-events-auto"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {[
+              { icon: Inbox, key: "inbox", badge: inboxUnclaimed },
+              ...sideItems,
+              { icon: Calendar, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
+              { icon: Crown, key: "leaderboard" },
+              { icon: Swords, key: "guild" },
+              { icon: UserPlus, key: "referral", badge: referralTiers.some((t) => referralCount >= t.friends && !claimedReferralIds.includes(t.id)) },
+              { icon: BookOpen, key: "codex" },
+            ].map((item, i) => (
+              <button
+                type="button"
+                key={item.key || i}
+                onClick={() => (item.onPress ? item.onPress() : onNavigate(item.key))}
+                className="relative shrink-0 w-9 h-9 rounded-lg flex items-center justify-center active:scale-90 transition hover:bg-white/10"
+              >
+                <item.icon
+                  size={16}
+                  className="text-amber-300"
+                  style={{ filter: "drop-shadow(0 0 4px rgba(251,191,36,0.6))" }}
+                />
+                {item.badge && <span className="absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-1 ring-black/60" />}
+              </button>
+            ))}
           </div>
 
           {mysterySiteAvailable && (() => {
