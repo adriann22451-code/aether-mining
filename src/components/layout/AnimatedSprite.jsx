@@ -65,12 +65,25 @@ export default function AnimatedSprite({
   const [fx, fy] = frames[frameIndex];
 
   if (fill) {
-    // "cover" mode: scale the sheet in real px so one frame always fills the
-    // box (cropping overflow) and stays centered, instead of shrinking to
-    // fit inside letterboxed bars.
-    const scale = boxSize.width && boxSize.height
+    // "cover" mode: scale the sheet in real px so one frame fills the box
+    // (cropping overflow) and stays centered.
+    //
+    // maxZoomOverContain caps how far past "fit-the-whole-image-in" scale
+    // we're willing to go. Without this, a landscape sprite (this game's
+    // scenes are ~16:9) inside a tall portrait box would need a HUGE scale
+    // to cover the full height — e.g. 2x+ — which blows the pixel art up
+    // to the point it looks broken/pixelated. Capping it means we crop
+    // less of the width and instead let a sliver of the site's themed
+    // gradient (already rendered behind this) show at top/bottom — a much
+    // gentler tradeoff than an oversized, blurry-looking image.
+    const containScale = boxSize.width && boxSize.height
+      ? Math.min(boxSize.width / frameWidth, boxSize.height / frameHeight)
+      : 0;
+    const coverScale = boxSize.width && boxSize.height
       ? Math.max(boxSize.width / frameWidth, boxSize.height / frameHeight)
       : 0;
+    const maxZoomOverContain = 1.35;
+    const scale = containScale ? Math.min(coverScale, containScale * maxZoomOverContain) : 0;
     const dispFrameW = frameWidth * scale;
     const dispFrameH = frameHeight * scale;
     const offsetX = (boxSize.width - dispFrameW) / 2 - fx * scale;
