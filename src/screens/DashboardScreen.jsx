@@ -16,6 +16,7 @@ import {
   Thermometer,
   Trophy,
   UserPlus,
+  X,
   Zap,
 } from "lucide-react";
 import { referralTiers } from "../data/referral";
@@ -42,10 +43,11 @@ const SITE_SPRITES = {
   10: { src: GENESIS_CORE_SPRITE_IMG, frames: GENESIS_CORE_SPRITE_FRAMES, meta: GENESIS_CORE_SPRITE_META },
 };
 
-export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onWatchAdBoost, adBoostAvailable, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, referralCount = 0, claimedReferralIds = [], onDevPreviewSite }) {
+export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onWatchAdBoost, adBoostAvailable, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, referralCount = 0, claimedReferralIds = [], incomeStats, spendStats, onDevPreviewSite }) {
   const coreDisplay = useTween(core, 700);
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  const [showBalanceHistory, setShowBalanceHistory] = useState(false);
   const handleParallaxMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const px = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
@@ -134,10 +136,14 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             </button>
 
             <div className="flex-1 flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-xl px-2.5 py-1.5 backdrop-blur-sm min-w-0">
-              <div className="flex items-center gap-1 min-w-0">
+              <button
+                type="button"
+                onClick={() => setShowBalanceHistory(true)}
+                className="flex items-center gap-1 min-w-0 active:scale-95 transition"
+              >
                 <AetherCoinIcon size={16} />
                 <span className="text-[11px] font-extrabold text-amber-200 whitespace-nowrap truncate">{formatCore(coreDisplay)}</span>
-              </div>
+              </button>
               <div className="w-px h-3.5 bg-white/15 shrink-0" />
               <div
                 className={`flex items-center gap-1 min-w-0 ${boostActive ? "rounded-full border px-1.5 -my-0.5" : ""}`}
@@ -153,30 +159,52 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             </div>
           </div>
 
-          <div className="grid grid-cols-9 gap-1 bg-white/10 border border-white/15 rounded-xl p-0.5 backdrop-blur-sm pointer-events-auto">
-            {[
-              { icon: Inbox, key: "inbox", badge: inboxUnclaimed },
-              ...sideItems,
-              { icon: Calendar, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
-              { icon: Crown, key: "leaderboard" },
-              { icon: Swords, key: "guild" },
-              { icon: UserPlus, key: "referral", badge: referralTiers.some((t) => referralCount >= t.friends && !claimedReferralIds.includes(t.id)) },
-              { icon: BookOpen, key: "codex" },
-            ].map((item, i) => (
-              <button
-                type="button"
-                key={item.key || i}
-                onClick={() => (item.onPress ? item.onPress() : onNavigate(item.key))}
-                className="relative aspect-square rounded-lg flex items-center justify-center active:scale-90 transition hover:bg-white/10"
-              >
-                <item.icon
-                  size={16}
-                  className="text-amber-300"
-                  style={{ filter: "drop-shadow(0 0 4px rgba(251,191,36,0.6))" }}
-                />
-                {item.badge && <span className="absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-1 ring-black/60" />}
-              </button>
-            ))}
+          {/* two rows instead of one cramped 9-wide strip: activities
+              (things with fresh rewards to check) on top, social/meta below */}
+          <div className="flex flex-col gap-1 pointer-events-auto">
+            <div className="grid grid-cols-5 gap-1 bg-white/10 border border-white/15 rounded-xl p-0.5 backdrop-blur-sm">
+              {[
+                { icon: Inbox, key: "inbox", badge: inboxUnclaimed },
+                ...sideItems,
+                { icon: Calendar, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
+              ].map((item, i) => (
+                <button
+                  type="button"
+                  key={item.key || i}
+                  onClick={() => (item.onPress ? item.onPress() : onNavigate(item.key))}
+                  className="relative aspect-square rounded-lg flex items-center justify-center active:scale-90 transition hover:bg-white/10"
+                >
+                  <item.icon
+                    size={16}
+                    className="text-amber-300"
+                    style={{ filter: "drop-shadow(0 0 4px rgba(251,191,36,0.6))" }}
+                  />
+                  {item.badge && <span className="absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-1 ring-black/60" />}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-4 gap-1 bg-white/5 border border-white/10 rounded-xl p-0.5 backdrop-blur-sm">
+              {[
+                { icon: Crown, key: "leaderboard" },
+                { icon: Swords, key: "guild" },
+                { icon: UserPlus, key: "referral", badge: referralTiers.some((t) => referralCount >= t.friends && !claimedReferralIds.includes(t.id)) },
+                { icon: BookOpen, key: "codex" },
+              ].map((item, i) => (
+                <button
+                  type="button"
+                  key={item.key || i}
+                  onClick={() => (item.onPress ? item.onPress() : onNavigate(item.key))}
+                  className="relative aspect-square rounded-lg flex items-center justify-center active:scale-90 transition hover:bg-white/10"
+                >
+                  <item.icon
+                    size={15}
+                    className="text-slate-300"
+                    style={{ filter: "drop-shadow(0 0 3px rgba(148,163,184,0.4))" }}
+                  />
+                  {item.badge && <span className="absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-1 ring-black/60" />}
+                </button>
+              ))}
+            </div>
           </div>
 
           {mysterySiteAvailable && (() => {
@@ -404,13 +432,13 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
       </div>
 
       {/* CLAIM + BOOST BUTTONS */}
-      <div className="shrink-0 flex gap-2">
+      <div className="shrink-0 flex gap-2 items-stretch">
         <div className="relative flex-1">
         <button
           type="button"
           onClick={onClaim}
           disabled={pending < 0.01 || claimCooldownRemaining > 0}
-          className={`relative w-full rounded-xl py-3 flex items-center justify-center gap-2 font-extrabold text-[14px] text-amber-950 transition-transform active:scale-[0.98] ${
+          className={`relative h-full w-full rounded-xl py-3 flex items-center justify-center gap-2 font-extrabold text-[14px] text-amber-950 transition-transform active:scale-[0.98] ${
             pending < 0.01 || claimCooldownRemaining > 0 ? "opacity-50" : claimPulse ? "shadow-[0_0_30px_rgba(251,191,36,0.55)]" : "shadow-[0_0_18px_rgba(251,191,36,0.3)]"
           }`}
           style={{ background: "linear-gradient(180deg, #ffe27a 0%, #fbbf24 45%, #f59e0b 100%)" }}
@@ -440,12 +468,12 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
         </button>
         <FloatingClaimNumbers items={floatingGains} />
         </div>
-        <div className="shrink-0 flex flex-col gap-1.5">
+        <div className="shrink-0 w-[84px] flex flex-col gap-1.5">
           <button
             type="button"
             onClick={onBoost}
             disabled={boostActive || core < boostCost}
-            className={`w-[84px] rounded-xl py-3 flex flex-col items-center justify-center gap-0.5 font-extrabold text-[10px] transition-transform active:scale-[0.98] ${
+            className={`flex-1 rounded-xl flex flex-col items-center justify-center gap-0.5 font-extrabold text-[10px] transition-transform active:scale-[0.98] ${
               boostActive
                 ? "bg-emerald-500/20 border border-emerald-400/50 text-emerald-300"
                 : core < boostCost
@@ -457,12 +485,12 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             {boostActive ? `${Math.max(0, Math.ceil((boostEndTime - Date.now()) / 60000))}m 2x` : "BOOST 2x"}
             {!boostActive && <span className="text-[9px] opacity-80">{formatInt(boostCost)}</span>}
           </button>
-          {!boostActive && onWatchAdBoost && (
+          {!boostActive && onWatchAdBoost ? (
             <button
               type="button"
               onClick={onWatchAdBoost}
               disabled={!adBoostAvailable}
-              className={`w-[84px] rounded-xl py-1.5 flex items-center justify-center gap-1 font-bold text-[9px] transition-transform active:scale-[0.98] ${
+              className={`flex-1 rounded-xl flex items-center justify-center gap-1 font-bold text-[9.5px] transition-transform active:scale-[0.98] ${
                 adBoostAvailable
                   ? "bg-sky-500/15 border border-sky-400/40 text-sky-300"
                   : "bg-white/5 border border-white/10 text-slate-500"
@@ -471,7 +499,79 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
               <PlayCircle size={11} />
               {adBoostAvailable ? "FREE (AD)" : "WATCHED"}
             </button>
+          ) : (
+            <div className="flex-1" />
           )}
+        </div>
+      </div>
+
+      {showBalanceHistory && (
+        <BalanceHistoryModal incomeStats={incomeStats} spendStats={spendStats} onClose={() => setShowBalanceHistory(false)} />
+      )}
+    </div>
+  );
+}
+
+const INCOME_LABELS = {
+  mining: "Mining claims", offline: "Offline earnings", dailyStreak: "Daily streak", missions: "Missions",
+  events: "Events", referrals: "Referrals", guild: "Guild milestones", lootbox: "Loot Box wins",
+  marketSales: "Marketplace sales", autoSell: "Auto-sell", inbox: "Inbox gifts",
+};
+const SPEND_LABELS = {
+  shop: "Shop purchases", upgrades: "Part upgrades", sites: "Site unlocks", specialItems: "Special items",
+  boost: "2x Boost", autoClaim: "Auto-claim", lootbox: "Loot Box", crafting: "Crafting", marketBuys: "Marketplace buys",
+};
+
+function BalanceHistoryModal({ incomeStats, spendStats, onClose }) {
+  const income = Object.entries(incomeStats || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const spend = Object.entries(spendStats || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const totalIn = income.reduce((s, [, v]) => s + v, 0);
+  const totalOut = spend.reduce((s, [, v]) => s + v, 0);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-sm max-h-[75vh] overflow-y-auto rounded-t-2xl bg-[#12121e] border-t border-white/10 p-4 pb-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <div className="text-[13px] font-extrabold text-white">BALANCE HISTORY</div>
+          <button type="button" onClick={onClose} className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition">
+            <X size={14} />
+          </button>
+        </div>
+
+        <div className="mt-3 flex gap-2">
+          <div className="flex-1 rounded-xl bg-emerald-500/10 border border-emerald-400/25 px-3 py-2">
+            <div className="text-[9.5px] font-bold text-emerald-300/80">TOTAL EARNED</div>
+            <div className="text-[14px] font-extrabold text-emerald-300">+{formatCore(totalIn)}</div>
+          </div>
+          <div className="flex-1 rounded-xl bg-rose-500/10 border border-rose-400/25 px-3 py-2">
+            <div className="text-[9.5px] font-bold text-rose-300/80">TOTAL SPENT</div>
+            <div className="text-[14px] font-extrabold text-rose-300">-{formatCore(totalOut)}</div>
+          </div>
+        </div>
+
+        <div className="mt-4 text-[10.5px] font-extrabold tracking-[0.1em] text-slate-400">EARNED FROM</div>
+        <div className="mt-1.5 flex flex-col gap-1">
+          {income.length === 0 && <div className="text-[11px] text-slate-500 py-2">Nothing earned yet.</div>}
+          {income.map(([key, value]) => (
+            <div key={key} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
+              <span className="text-[11.5px] text-slate-200">{INCOME_LABELS[key] || key}</span>
+              <span className="text-[11.5px] font-bold text-emerald-300">+{formatCore(value)}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 text-[10.5px] font-extrabold tracking-[0.1em] text-slate-400">SPENT ON</div>
+        <div className="mt-1.5 flex flex-col gap-1">
+          {spend.length === 0 && <div className="text-[11px] text-slate-500 py-2">Nothing spent yet.</div>}
+          {spend.map(([key, value]) => (
+            <div key={key} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
+              <span className="text-[11.5px] text-slate-200">{SPEND_LABELS[key] || key}</span>
+              <span className="text-[11.5px] font-bold text-rose-300">-{formatCore(value)}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
