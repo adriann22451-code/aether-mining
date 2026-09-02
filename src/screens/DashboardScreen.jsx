@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
   Calendar,
@@ -48,6 +48,24 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const [showBalanceHistory, setShowBalanceHistory] = useState(false);
+
+  // Measures the space left for the mining-rig art (below the header, above
+  // the progress bar / claim button) so the art box itself can be sized to
+  // exactly match the current site's native media ratio — no cropping AND
+  // no empty letterbox strip inside the box, since the box IS the media's
+  // size (centered in whatever room is left; any leftover space shows the
+  // normal page background outside the box, not inside it).
+  const artWrapRef = useRef(null);
+  const [artWrapSize, setArtWrapSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const el = artWrapRef.current;
+    if (!el) return;
+    const compute = () => setArtWrapSize({ width: el.clientWidth, height: el.clientHeight });
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const handleParallaxMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const px = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
@@ -71,6 +89,17 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
   const progressPct = nextSite ? Math.min(100, (core / nextSite.cost) * 100) : 100;
   const SiteIcon = site.icon;
 
+  const spriteMeta = SITE_SPRITES[siteIndex]?.meta;
+  let artBoxStyle = { width: "100%", height: "100%" };
+  if (spriteMeta && artWrapSize.width && artWrapSize.height) {
+    const scale = Math.min(artWrapSize.width / spriteMeta.frameWidth, artWrapSize.height / spriteMeta.frameHeight);
+    artBoxStyle = { width: spriteMeta.frameWidth * scale, height: spriteMeta.frameHeight * scale };
+  } else if (spriteMeta) {
+    // not measured yet on first paint — render invisible-sized to avoid a
+    // full-box flash before the real (correctly-ratioed) size is known
+    artBoxStyle = { width: 0, height: 0 };
+  }
+
   return (
     <div className="relative px-3 pt-2 pb-2 h-full flex flex-col gap-1.5 overflow-hidden">
       {isOverheating && (
@@ -82,44 +111,12 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           }}
         />
       )}
-      {/* MINING RIG VISUAL AREA — themed by current Mining Site. Fills the
-          entire remaining screen space (no more 16:9 letterboxing on tall
-          phone screens). The header, quick-access toolbar, mystery-site
-          banner and heat gauge float as a HUD overlay on top of it. */}
-      <div className="relative flex-1 min-h-0">
-      <div
-        className="relative w-full h-full rounded-xl overflow-hidden border"
-        style={{
-          borderColor: `${site.theme.accent}33`,
-        }}
-        onPointerMove={handleParallaxMove}
-        onPointerLeave={resetParallax}
-      >
-        {isOverheating && (
-          <div
-            className="pointer-events-none absolute inset-0 z-30"
-            style={{
-              background: "radial-gradient(ellipse at 50% 60%, rgba(248,113,113,0.35) 0%, rgba(248,113,113,0) 65%)",
-              animation: "heatHaze 1.8s ease-in-out infinite",
-            }}
-          />
-        )}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(160deg, ${site.theme.from} 0%, ${site.theme.via} 40%, ${site.theme.to} 100%)`,
-            transform: `translate3d(${parallax.x * 3}px, ${parallax.y * 3}px, 0) scale(1.03)`,
-            transition: "transform 0.15s ease-out",
-          }}
-        />
-
-        {/* HUD OVERLAY — profile/balance, quick-access toolbar, mystery-site
-            banner and heat gauge float on top of the visual instead of taking
-            up separate rows, so the site art fills nearly the whole screen */}
-        <div
-          className="absolute top-0 left-0 right-0 z-20 px-2.5 pt-2.5 pb-4 flex flex-col gap-1.5 pointer-events-none"
-          style={{ background: "linear-gradient(180deg, rgba(4,6,16,0.75) 0%, rgba(4,6,16,0.45) 55%, transparent 100%)" }}
-        >
+      {/* HEADER BAR — profile/balance, quick-access toolbar, mystery-site
+          banner and heat gauge. Flows normally above the art (not an
+          overlay on top of it), so the mining-rig art box below can be
+          sized to its own native ratio with zero cropping and zero empty
+          space inside it. */}
+      <div className="shrink-0 flex flex-col gap-1.5">
           <div className="flex items-center gap-2 pointer-events-auto">
             <button
               type="button"
@@ -275,7 +272,43 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
               OVERHEATING — hashrate reduced by 30%. Upgrade Cooling to fix it!
             </div>
           )}
-        </div>
+      </div>
+
+      {/* MINING RIG VISUAL AREA — the box is sized in JS (see artBoxStyle
+          above) to exactly match the current site's native media ratio:
+          the animated sprite scenes' real frame ratio (16:9-ish for
+          Genesis Core / Mega Data Center, portrait for Small Warehouse),
+          or the full remaining space for sites using a static full-room
+          image. That's what removes the empty top/bottom letterbox strip
+          — the box IS the art's size, centered in whatever room this flex
+          area has left, instead of being stretched/cropped to fill it. */}
+      <div ref={artWrapRef} className="relative flex-1 min-h-0 flex items-center justify-center">
+      <div
+        className="relative rounded-xl overflow-hidden border"
+        style={{
+          borderColor: `${site.theme.accent}33`,
+          ...artBoxStyle,
+        }}
+        onPointerMove={handleParallaxMove}
+        onPointerLeave={resetParallax}
+      >
+        {isOverheating && (
+          <div
+            className="pointer-events-none absolute inset-0 z-30"
+            style={{
+              background: "radial-gradient(ellipse at 50% 60%, rgba(248,113,113,0.35) 0%, rgba(248,113,113,0) 65%)",
+              animation: "heatHaze 1.8s ease-in-out infinite",
+            }}
+          />
+        )}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(160deg, ${site.theme.from} 0%, ${site.theme.via} 40%, ${site.theme.to} 100%)`,
+            transform: `translate3d(${parallax.x * 3}px, ${parallax.y * 3}px, 0) scale(1.03)`,
+            transition: "transform 0.15s ease-out",
+          }}
+        />
 
         {/* one full isometric mining room image (AI-generated), or an animated
             sprite scene for sites that have one (e.g. Small Warehouse, Genesis Core) */}
@@ -288,7 +321,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             }}
           >
             <AnimatedSprite
-              fill
+              className="w-full h-full"
               src={SITE_SPRITES[siteIndex].src}
               frames={SITE_SPRITES[siteIndex].frames}
               frameWidth={SITE_SPRITES[siteIndex].meta.frameWidth}
