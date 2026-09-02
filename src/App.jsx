@@ -604,7 +604,14 @@ export default function MiningDashboard() {
 
   useEffect(() => {
     const t = setInterval(() => {
-      setPending((p) => Math.min(pendingCap, p + perSecond));
+      // pendingCap only stops FURTHER accumulation once full — it must
+      // never claw back a balance that's already above it (e.g. a big
+      // offline-earnings credit that exceeded the storage cap). Otherwise
+      // the dashboard's Claim button visibly shrinks right after the
+      // "you earned X while away" notification, even though the server's
+      // real pending balance (and what Claim actually pays out) never
+      // changed.
+      setPending((p) => (p >= pendingCap ? p : Math.min(pendingCap, p + perSecond)));
       setNow(Date.now());
       setHeatLevel((h) => {
         const equilibrium = Math.min(150, Math.max(5, heatRatio * 40));
