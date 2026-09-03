@@ -22,6 +22,16 @@ import {
 } from "lucide-react";
 import { referralTiers } from "../data/referral";
 import { AetherCoinIcon } from "../components/icons/CustomIcons";
+import ICON_INBOX from "../assets/images/icon-inbox.png";
+import ICON_MISSIONS from "../assets/images/icon-missions.png";
+import ICON_EVENT from "../assets/images/icon-event.png";
+import ICON_ACHIEVEMENTS from "../assets/images/icon-achievements.png";
+import ICON_DAILY from "../assets/images/icon-daily.png";
+import ICON_LEADERBOARD from "../assets/images/icon-leaderboard.png";
+import ICON_GUILD from "../assets/images/icon-guild.png";
+import ICON_REFERRAL from "../assets/images/icon-referral.png";
+import ICON_CODEX from "../assets/images/icon-codex.png";
+import ICON_AUTOCLAIM from "../assets/images/icon-autoclaim.png";
 import AnimatedSprite from "../components/layout/AnimatedSprite";
 import { FloatingClaimNumbers } from "../components/layout/FloatingClaimNumbers";
 import ROOM_BG_IMG from "../assets/images/room-bg.webp";
@@ -103,9 +113,9 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
     { color: "from-slate-400 to-slate-700", x: "34%", y: "70%", size: 50 },
   ];
   const sideItems = [
-    { icon: Trophy, label: "Missions", badge: true, key: "missions" },
-    { icon: Gift, label: "Event", badge: true, key: "event" },
-    { icon: Target, label: "Achievements", badge: false, key: "achievements" },
+    { icon: Trophy, image: ICON_MISSIONS, label: "Missions", badge: true, key: "missions" },
+    { icon: Gift, image: ICON_EVENT, label: "Event", badge: true, key: "event" },
+    { icon: Target, image: ICON_ACHIEVEMENTS, label: "Achievements", badge: false, key: "achievements" },
   ];
   const nextSite = SITES[unlockedIndex + 1];
   const progressPct = nextSite ? Math.min(100, (core / nextSite.cost) * 100) : 100;
@@ -191,13 +201,13 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             style={{ scrollbarWidth: "none" }}
           >
             {[
-              { icon: Inbox, key: "inbox", badge: inboxUnclaimed },
+              { icon: Inbox, image: ICON_INBOX, key: "inbox", badge: inboxUnclaimed },
               ...sideItems,
-              { icon: Calendar, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
-              { icon: Crown, key: "leaderboard" },
-              { icon: Swords, key: "guild" },
-              { icon: UserPlus, key: "referral", badge: referralTiers.some((t) => referralCount >= t.friends && !claimedReferralIds.includes(t.id)) },
-              { icon: BookOpen, key: "codex" },
+              { icon: Calendar, image: ICON_DAILY, key: "__daily", onPress: onOpenDaily, badge: dailyUnclaimed },
+              { icon: Crown, image: ICON_LEADERBOARD, key: "leaderboard" },
+              { icon: Swords, image: ICON_GUILD, key: "guild" },
+              { icon: UserPlus, image: ICON_REFERRAL, key: "referral", badge: referralTiers.some((t) => referralCount >= t.friends && !claimedReferralIds.includes(t.id)) },
+              { icon: BookOpen, image: ICON_CODEX, key: "codex" },
             ].map((item, i) => (
               <button
                 type="button"
@@ -205,11 +215,15 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
                 onClick={() => (item.onPress ? item.onPress() : onNavigate(item.key))}
                 className="relative shrink-0 w-9 h-9 rounded-lg flex items-center justify-center active:scale-90 transition hover:bg-white/10"
               >
-                <item.icon
-                  size={16}
-                  className="text-amber-300"
-                  style={{ filter: "drop-shadow(0 0 4px rgba(251,191,36,0.6))" }}
-                />
+                {item.image ? (
+                  <img src={item.image} alt="" className="w-6 h-6 object-contain" style={{ filter: "drop-shadow(0 0 3px rgba(251,191,36,0.45))" }} />
+                ) : (
+                  <item.icon
+                    size={16}
+                    className="text-amber-300"
+                    style={{ filter: "drop-shadow(0 0 4px rgba(251,191,36,0.6))" }}
+                  />
+                )}
                 {item.badge && <span className="absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-1 ring-black/60" />}
               </button>
             ))}
@@ -522,7 +536,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
         >
           {autoClaimActive && (
             <span className="absolute -top-1.5 -right-1.5 flex items-center gap-0.5 bg-emerald-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.7)]">
-              <Zap size={8} />
+              <img src={ICON_AUTOCLAIM} alt="" className="w-2.5 h-2.5 object-contain" />
               AUTO
             </span>
           )}

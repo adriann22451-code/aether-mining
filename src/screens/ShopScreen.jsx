@@ -4,7 +4,6 @@ import {
   Cpu,
   HelpCircle,
   Sparkles,
-  Zap,
 } from "lucide-react";
 import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import { MarketItemCard } from "../components/cards/MarketItemCard";
@@ -13,6 +12,8 @@ import { LOOTBOX_COST } from "../data/lootbox";
 import { AUTO_CLAIM_COST, marketCatalog } from "../data/market";
 import { PART_CATEGORIES } from "../data/parts";
 import { formatHashrate, formatInt } from "../lib/format";
+import ICON_AUTOCLAIM from "../assets/images/icon-autoclaim.png";
+import ICON_LOOTBOX from "../assets/images/icon-lootbox.png";
 
 export function ShopScreen({ onBack, ownedItems, core, totalHashrate, onBuy, marketStock, marketOwned, onBuyMarket, autoClaimUnlocked, autoClaimActive, onBuyAutoClaim, onToggleAutoClaim, onOpenLootbox }) {
   const categorySections = PART_CATEGORIES.map((cat) => ({
@@ -59,7 +60,7 @@ export function ShopScreen({ onBack, ownedItems, core, totalHashrate, onBuy, mar
               className="w-12 h-12 shrink-0 rounded-xl flex items-center justify-center"
               style={{ background: "linear-gradient(160deg, #10b98140 0%, #0d1420 85%)", border: "1px solid #10b98166" }}
             >
-              <Zap size={26} className="text-emerald-300" />
+              <img src={ICON_AUTOCLAIM} alt="" className="w-8 h-8 object-contain" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[12.5px] font-bold text-white">Auto-Claim Module</div>
@@ -106,7 +107,7 @@ export function ShopScreen({ onBack, ownedItems, core, totalHashrate, onBuy, mar
               className="w-12 h-12 shrink-0 rounded-xl flex items-center justify-center"
               style={{ background: "linear-gradient(160deg, #d946ef40 0%, #0d1420 85%)", border: "1px solid #d946ef66" }}
             >
-              <Box size={26} className="text-fuchsia-300" />
+              <img src={ICON_LOOTBOX} alt="" className="w-8 h-8 object-contain" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[12.5px] font-bold text-white">Lucky Loot Box</div>
