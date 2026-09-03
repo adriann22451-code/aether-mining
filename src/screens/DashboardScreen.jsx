@@ -14,6 +14,7 @@ import {
   Swords,
   Target,
   Thermometer,
+  TrendingUp,
   Trophy,
   UserPlus,
   X,
@@ -303,7 +304,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           image. That's what removes the empty top/bottom letterbox strip
           — the box IS the art's size, centered in whatever room this flex
           area has left, instead of being stretched/cropped to fill it. */}
-      <div ref={artWrapRef} className="relative flex-1 min-h-0 flex items-center justify-center">
+      <div ref={artWrapRef} className="relative flex-1 min-h-0 flex flex-col items-center gap-2">
       <div
         className="relative rounded-xl overflow-hidden border"
         style={{
@@ -437,6 +438,51 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
             animation: "smokeRise 3.2s ease-out infinite",
           }}
         />
+      </div>
+
+      {/* SITE INFO / STATS CARD — fills the leftover vertical space below the
+          art box (the box is width-bound to the media's native ratio, so on
+          a tall phone there's room left; this puts it to use instead of
+          leaving it empty). */}
+      <div className="w-full flex-1 min-h-0 rounded-xl bg-white/5 border border-white/10 p-3 flex flex-col gap-2.5 overflow-hidden">
+        <div className="flex items-start gap-2">
+          <div
+            className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: `${site.theme.accent}22`, border: `1px solid ${site.theme.accent}44` }}
+          >
+            <SiteIcon size={16} style={{ color: site.theme.accent }} />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[13px] font-bold text-slate-100 truncate">{site.name}</div>
+            <div className="text-[10.5px] text-slate-400 leading-snug line-clamp-2">{site.desc}</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-1.5">
+          <div className="rounded-lg bg-black/25 px-2 py-1.5 flex flex-col items-center gap-0.5">
+            <Zap size={12} className="text-cyan-300" />
+            <span className="text-[10px] font-bold text-slate-100">{formatHashrate(totalHashrate)}</span>
+            <span className="text-[8px] text-slate-500 uppercase tracking-wide">Hashrate</span>
+          </div>
+          <div className="rounded-lg bg-black/25 px-2 py-1.5 flex flex-col items-center gap-0.5">
+            <TrendingUp size={12} className="text-emerald-300" />
+            <span className="text-[10px] font-bold text-slate-100">×{site.bonus}</span>
+            <span className="text-[8px] text-slate-500 uppercase tracking-wide">Bonus Site</span>
+          </div>
+          <div className="rounded-lg bg-black/25 px-2 py-1.5 flex flex-col items-center gap-0.5">
+            <Thermometer size={12} className={isOverheating ? "text-red-400" : "text-amber-300"} />
+            <span className={`text-[10px] font-bold ${isOverheating ? "text-red-400" : "text-slate-100"}`}>{Math.round(heatLevel)}%</span>
+            <span className="text-[8px] text-slate-500 uppercase tracking-wide">Suhu</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between rounded-lg bg-black/25 px-2.5 py-1.5">
+          <span className="text-[10px] text-slate-400">Total Aether didapat</span>
+          <div className="flex items-center gap-1">
+            <AetherCoinIcon size={12} />
+            <span className="text-[11px] font-bold text-amber-200">{formatCore(totalEarned)}</span>
+          </div>
+        </div>
       </div>
       </div>
 
