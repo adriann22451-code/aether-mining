@@ -1,10 +1,8 @@
-import {
-  Box,
-} from "lucide-react";
 import { AetherCoinIcon } from "../icons/CustomIcons";
 import { LOOTBOX_COST } from "../../data/lootbox";
 import { RARITY_COLORS } from "../../data/parts";
 import { formatInt } from "../../lib/format";
+import ICON_LOOTBOX from "../../assets/images/icon-lootbox.png";
 
 export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
   if (!isOpen) return null;
@@ -23,7 +21,7 @@ export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
       <div className="w-full max-w-[340px] rounded-3xl bg-gradient-to-br from-fuchsia-950 via-[#1a0a2e] to-indigo-950 border border-fuchsia-400/30 p-5 text-center shadow-[0_0_40px_-10px_rgba(217,70,239,0.5)]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-[13px] font-extrabold tracking-[0.1em] text-white">
-            <Box size={15} className="text-fuchsia-300" />
+            <img src={ICON_LOOTBOX} alt="" className="w-4 h-4 object-contain" />
             LOOT BOX
           </div>
           <button type="button" onClick={onClose} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center active:scale-90 transition text-slate-300 text-[12px]">
@@ -87,7 +85,7 @@ export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
                   : "bg-white/5 text-slate-500"
               }`}
             >
-              <Box size={14} />
+              <img src={ICON_LOOTBOX} alt="" className="w-3.5 h-3.5 object-contain" />
               OPEN AGAIN ({formatInt(LOOTBOX_COST)})
             </button>
           </>
@@ -109,7 +107,7 @@ export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
                     : undefined
                 }
               >
-                <Box size={38} className="text-fuchsia-300" />
+                <img src={ICON_LOOTBOX} alt="" className="w-10 h-10 object-contain" />
               </div>
             </div>
             <p className="mt-3 text-[11.5px] text-slate-400">
@@ -125,7 +123,7 @@ export function LootBoxModal({ isOpen, onClose, phase, result, core, onOpen }) {
                   : "bg-white/5 text-slate-500"
               }`}
             >
-              <Box size={14} />
+              <img src={ICON_LOOTBOX} alt="" className="w-3.5 h-3.5 object-contain" />
               {phase === "opening" ? "OPENING…" : `OPEN (${formatInt(LOOTBOX_COST)} AETHER)`}
             </button>
           </>
