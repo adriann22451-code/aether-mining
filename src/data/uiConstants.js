@@ -1,6 +1,5 @@
 export const MACHINE_ANIMATION_CSS = `
 @keyframes droneBob { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
-@keyframes smokeRise { 0% { transform: translateY(0) scale(0.8); opacity: 0.45; } 100% { transform: translateY(-46px) scale(1.7); opacity: 0; } }
 @keyframes snowFall { 0% { transform: translateY(-10%) translateX(0); opacity: 0; } 10% { opacity: 0.95; } 90% { opacity: 0.85; } 100% { transform: translateY(230%) translateX(var(--drift, 12px)); opacity: 0; } }
 @keyframes particleFloat { 0% { transform: translate(0, 0); opacity: 0.9; } 100% { transform: translate(var(--px), var(--py)); opacity: 0; } }
 @keyframes droneFly { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(var(--dx), var(--dy)) rotate(8deg); } }
