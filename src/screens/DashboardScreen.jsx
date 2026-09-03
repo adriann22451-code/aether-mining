@@ -426,18 +426,6 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           </div>
         )}
 
-        {/* SUBTLE SMOKE PARTICLE FROM THE MACHINE */}
-        <div
-          className="absolute z-10 rounded-full"
-          style={{
-            left: "44%",
-            top: "30%",
-            width: 6,
-            height: 6,
-            background: "rgba(255,255,255,0.5)",
-            animation: "smokeRise 3.2s ease-out infinite",
-          }}
-        />
       </div>
 
       {/* SITE INFO / STATS CARD — fills the leftover vertical space below the
