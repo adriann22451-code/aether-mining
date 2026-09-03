@@ -27,6 +27,7 @@ import ROOM_BG_IMG from "../assets/images/room-bg.webp";
 import GARAGE_SPRITE_IMG from "../assets/images/garage-sprite.webp";
 import SMALL_WAREHOUSE_SPRITE_IMG from "../assets/images/small-warehouse-sprite.webp";
 import DESERT_SPRITE_IMG from "../assets/images/desert-sprite.webp";
+import LOCAL_DATA_CENTER_SPRITE_IMG from "../assets/images/local-data-center-sprite.webp";
 import VOLCANO_SPRITE_IMG from "../assets/images/volcano-sprite.webp";
 import ARCTIC_FACILITY_SPRITE_IMG from "../assets/images/arctic-facility-sprite.webp";
 import LUNAR_BASE_SPRITE_IMG from "../assets/images/lunar-base-sprite.webp";
@@ -38,6 +39,7 @@ import { SITES, SITE_BG_IMAGES } from "../data/sites";
 import { GARAGE_SPRITE_FRAMES, GARAGE_SPRITE_META } from "../data/garageSpriteFrames";
 import { SMALL_WAREHOUSE_SPRITE_FRAMES, SMALL_WAREHOUSE_SPRITE_META } from "../data/spriteFrames";
 import { DESERT_SPRITE_FRAMES, DESERT_SPRITE_META } from "../data/desertSpriteFrames";
+import { LOCAL_DATA_CENTER_SPRITE_FRAMES, LOCAL_DATA_CENTER_SPRITE_META } from "../data/localDataCenterSpriteFrames";
 import { VOLCANO_SPRITE_FRAMES, VOLCANO_SPRITE_META } from "../data/volcanoSpriteFrames";
 import { ARCTIC_FACILITY_SPRITE_FRAMES, ARCTIC_FACILITY_SPRITE_META } from "../data/arcticFacilitySpriteFrames";
 import { LUNAR_BASE_SPRITE_FRAMES, LUNAR_BASE_SPRITE_META } from "../data/lunarBaseSpriteFrames";
@@ -53,6 +55,7 @@ const SITE_SPRITES = {
   0: { src: GARAGE_SPRITE_IMG, frames: GARAGE_SPRITE_FRAMES, meta: GARAGE_SPRITE_META },
   1: { src: SMALL_WAREHOUSE_SPRITE_IMG, frames: SMALL_WAREHOUSE_SPRITE_FRAMES, meta: SMALL_WAREHOUSE_SPRITE_META },
   4: { src: MEGA_DATA_CENTER_SPRITE_IMG, frames: MEGA_DATA_CENTER_SPRITE_FRAMES, meta: MEGA_DATA_CENTER_SPRITE_META },
+  3: { src: LOCAL_DATA_CENTER_SPRITE_IMG, frames: LOCAL_DATA_CENTER_SPRITE_FRAMES, meta: LOCAL_DATA_CENTER_SPRITE_META },
   5: { src: DESERT_SPRITE_IMG, frames: DESERT_SPRITE_FRAMES, meta: DESERT_SPRITE_META },
   6: { src: VOLCANO_SPRITE_IMG, frames: VOLCANO_SPRITE_FRAMES, meta: VOLCANO_SPRITE_META },
   7: { src: ARCTIC_FACILITY_SPRITE_IMG, frames: ARCTIC_FACILITY_SPRITE_FRAMES, meta: ARCTIC_FACILITY_SPRITE_META },
