@@ -459,17 +459,17 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
           <div className="rounded-lg bg-black/25 px-2 py-1.5 flex flex-col items-center gap-0.5">
             <TrendingUp size={12} className="text-emerald-300" />
             <span className="text-[10px] font-bold text-slate-100">×{site.bonus}</span>
-            <span className="text-[8px] text-slate-500 uppercase tracking-wide">Bonus Site</span>
+            <span className="text-[8px] text-slate-500 uppercase tracking-wide">Site Bonus</span>
           </div>
           <div className="rounded-lg bg-black/25 px-2 py-1.5 flex flex-col items-center gap-0.5">
             <Thermometer size={12} className={isOverheating ? "text-red-400" : "text-amber-300"} />
             <span className={`text-[10px] font-bold ${isOverheating ? "text-red-400" : "text-slate-100"}`}>{Math.round(heatLevel)}%</span>
-            <span className="text-[8px] text-slate-500 uppercase tracking-wide">Suhu</span>
+            <span className="text-[8px] text-slate-500 uppercase tracking-wide">Temp</span>
           </div>
         </div>
 
         <div className="flex items-center justify-between rounded-lg bg-black/25 px-2.5 py-1.5">
-          <span className="text-[10px] text-slate-400">Total Aether didapat</span>
+          <span className="text-[10px] text-slate-400">Total Aether earned</span>
           <div className="flex items-center gap-1">
             <AetherCoinIcon size={12} />
             <span className="text-[11px] font-bold text-amber-200">{formatCore(totalEarned)}</span>
