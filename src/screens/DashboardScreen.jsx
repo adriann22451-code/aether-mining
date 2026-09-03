@@ -26,12 +26,16 @@ import { FloatingClaimNumbers } from "../components/layout/FloatingClaimNumbers"
 import ROOM_BG_IMG from "../assets/images/room-bg.webp";
 import GARAGE_SPRITE_IMG from "../assets/images/garage-sprite.webp";
 import SMALL_WAREHOUSE_SPRITE_IMG from "../assets/images/small-warehouse-sprite.webp";
+import DESERT_SPRITE_IMG from "../assets/images/desert-sprite.webp";
+import VOLCANO_SPRITE_IMG from "../assets/images/volcano-sprite.webp";
 import GENESIS_CORE_SPRITE_IMG from "../assets/images/genesis-core-sprite.webp";
 import MEGA_DATA_CENTER_SPRITE_IMG from "../assets/images/room-mega-data-center-sprite.webp";
 import { calcPlayerLevel } from "../data/economy";
 import { SITES, SITE_BG_IMAGES } from "../data/sites";
 import { GARAGE_SPRITE_FRAMES, GARAGE_SPRITE_META } from "../data/garageSpriteFrames";
 import { SMALL_WAREHOUSE_SPRITE_FRAMES, SMALL_WAREHOUSE_SPRITE_META } from "../data/spriteFrames";
+import { DESERT_SPRITE_FRAMES, DESERT_SPRITE_META } from "../data/desertSpriteFrames";
+import { VOLCANO_SPRITE_FRAMES, VOLCANO_SPRITE_META } from "../data/volcanoSpriteFrames";
 import { GENESIS_CORE_SPRITE_FRAMES, GENESIS_CORE_SPRITE_META } from "../data/genesisCoreSpriteFrames";
 import { MEGA_DATA_CENTER_SPRITE_FRAMES, MEGA_DATA_CENTER_SPRITE_META } from "../data/megaDataCenterSpriteFrames";
 import { SNOWFLAKES } from "../data/uiConstants";
@@ -43,6 +47,8 @@ const SITE_SPRITES = {
   0: { src: GARAGE_SPRITE_IMG, frames: GARAGE_SPRITE_FRAMES, meta: GARAGE_SPRITE_META },
   1: { src: SMALL_WAREHOUSE_SPRITE_IMG, frames: SMALL_WAREHOUSE_SPRITE_FRAMES, meta: SMALL_WAREHOUSE_SPRITE_META },
   4: { src: MEGA_DATA_CENTER_SPRITE_IMG, frames: MEGA_DATA_CENTER_SPRITE_FRAMES, meta: MEGA_DATA_CENTER_SPRITE_META },
+  5: { src: DESERT_SPRITE_IMG, frames: DESERT_SPRITE_FRAMES, meta: DESERT_SPRITE_META },
+  6: { src: VOLCANO_SPRITE_IMG, frames: VOLCANO_SPRITE_FRAMES, meta: VOLCANO_SPRITE_META },
   10: { src: GENESIS_CORE_SPRITE_IMG, frames: GENESIS_CORE_SPRITE_FRAMES, meta: GENESIS_CORE_SPRITE_META },
 };
 
