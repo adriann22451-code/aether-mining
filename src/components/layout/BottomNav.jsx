@@ -7,17 +7,23 @@ import {
   ShoppingCart,
   User,
 } from "lucide-react";
-import MENU_HOME_IMG from "../../assets/images/menu-home.png";
+import MENU_HOME_IMG from "../../assets/images/icon-dashboard.png";
+import MENU_SHOP_IMG from "../../assets/images/icon-shop.png";
+import MENU_SITE_IMG from "../../assets/images/icon-site.png";
+import MENU_BAG_IMG from "../../assets/images/icon-bag.png";
+import MENU_CRAFT_IMG from "../../assets/images/icon-craft.png";
+import MENU_MARKET_IMG from "../../assets/images/icon-market.png";
+import MENU_PROFILE_IMG from "../../assets/images/icon-profile.png";
 
 export function BottomNav({ screen, setScreen }) {
   const navItems = [
     { icon: Home, image: MENU_HOME_IMG, label: "Dashboard", key: "dashboard" },
-    { icon: Package, label: "Shop", key: "shop" },
-    { icon: Hammer, label: "Site", key: "site" },
-    { icon: Archive, label: "Bag", key: "inventory" },
-    { icon: FlaskConical, label: "Craft", key: "craft" },
-    { icon: ShoppingCart, label: "Market", key: "market" },
-    { icon: User, label: "Profile", key: "profile" },
+    { icon: Package, image: MENU_SHOP_IMG, label: "Shop", key: "shop" },
+    { icon: Hammer, image: MENU_SITE_IMG, label: "Site", key: "site" },
+    { icon: Archive, image: MENU_BAG_IMG, label: "Bag", key: "inventory" },
+    { icon: FlaskConical, image: MENU_CRAFT_IMG, label: "Craft", key: "craft" },
+    { icon: ShoppingCart, image: MENU_MARKET_IMG, label: "Market", key: "market" },
+    { icon: User, image: MENU_PROFILE_IMG, label: "Profile", key: "profile" },
   ];
   return (
     <div className="shrink-0 relative bg-[#0a0a16]/95 backdrop-blur-md border-t border-white/10 px-1.5 pt-2 pb-1.5 flex items-stretch gap-1">
