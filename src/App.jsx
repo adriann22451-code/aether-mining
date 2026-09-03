@@ -104,6 +104,7 @@ export default function MiningDashboard() {
   const [claimedEventIds, setClaimedEventIds] = useState([]);
   // --- referral program ---
   const [telegramId, setTelegramId] = useState(null);
+  const [telegramPhotoUrl, setTelegramPhotoUrl] = useState(null);
   const [referralCount, setReferralCount] = useState(0);
   const [claimedReferralIds, setClaimedReferralIds] = useState([]);
   const [inventory, setInventory] = useState([]); // starts empty — items/materials are earned via mining, missions, marketplace, etc.
@@ -333,6 +334,12 @@ export default function MiningDashboard() {
       if (tg.setHeaderColor) tg.setHeaderColor("#0a0a16");
       if (tg.setBackgroundColor) tg.setBackgroundColor("#0a0a16");
       if (tg.disableVerticalSwipes) tg.disableVerticalSwipes();
+      // profile picture is only present when the user has a public Telegram
+      // avatar — falls back to the default astronaut icon in the UI
+      // whenever it's missing (private profile photo, desktop client that
+      // doesn't send it, or running outside Telegram entirely).
+      const photoUrl = tg.initDataUnsafe?.user?.photo_url;
+      if (photoUrl) setTelegramPhotoUrl(photoUrl);
     } catch (e) {
       // running outside Telegram, or an older client — safe to ignore
     }
@@ -1555,6 +1562,7 @@ export default function MiningDashboard() {
             incomeStats={incomeStats}
             spendStats={spendStats}
             onNavigate={setScreen}
+            telegramPhotoUrl={telegramPhotoUrl}
           />
         ) : screen === "networkStats" ? (
           <NetworkStatsScreen
@@ -1624,6 +1632,7 @@ export default function MiningDashboard() {
             onClaim={handleClaim}
             claimCooldownRemaining={Math.max(0, Math.ceil((claimCooldownUntil - now) / 1000))}
             onNavigate={setScreen}
+            telegramPhotoUrl={telegramPhotoUrl}
             boostActive={boostActive}
             boostEndTime={boostEndTime}
             boostCost={boostCost}
