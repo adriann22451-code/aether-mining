@@ -65,7 +65,7 @@ const SITE_SPRITES = {
   10: { src: GENESIS_CORE_SPRITE_IMG, frames: GENESIS_CORE_SPRITE_FRAMES, meta: GENESIS_CORE_SPRITE_META },
 };
 
-export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onWatchAdBoost, adBoostAvailable, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, referralCount = 0, claimedReferralIds = [], incomeStats, spendStats, onDevPreviewSite }) {
+export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onWatchAdBoost, adBoostAvailable, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, referralCount = 0, claimedReferralIds = [], incomeStats, spendStats, onDevPreviewSite, telegramPhotoUrl }) {
   const coreDisplay = useTween(core, 700);
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
@@ -149,7 +149,11 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
                 className="relative rounded-lg bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-[13px] overflow-hidden ring-1 ring-indigo-300/40"
                 style={{ width: 26, height: 26 }}
               >
-                🧑‍🚀
+                {telegramPhotoUrl ? (
+                  <img src={telegramPhotoUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  "🧑‍🚀"
+                )}
               </div>
               <span className="text-[10px] font-extrabold text-indigo-300 tracking-wide whitespace-nowrap">LV.{calcPlayerLevel(totalEarned).level}</span>
             </button>

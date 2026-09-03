@@ -15,7 +15,7 @@ import { AETHER_MAX_SUPPLY, calcPlayerLevel, miningHalvingEpoch, miningHalvingMu
 import { SITES } from "../data/sites";
 import { formatCore, formatHashrate, formatInt } from "../lib/format";
 
-export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name, onRename, totalMined, isGlobalSupply, incomeStats, spendStats, onNavigate }) {
+export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedIndex, name, onRename, totalMined, isGlobalSupply, incomeStats, spendStats, onNavigate, telegramPhotoUrl }) {
   const profileStats = [
     { id: 1, label: "TOTAL EARNED", value: `${formatCore(totalEarned)} AETHER`, valueColor: "#facc15", icon: AetherCoinIcon, iconColor: "#facc15" },
     { id: 2, label: "CURRENT HASHRATE", value: formatHashrate(totalHashrate), valueColor: "#38bdf8", icon: Gauge, iconColor: "#facc15" },
@@ -57,7 +57,11 @@ export function ProfileScreen({ onBack, totalEarned, totalHashrate, unlockedInde
 
       <div className="mt-4 rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center gap-4 backdrop-blur-sm">
         <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-2xl overflow-hidden ring-2 ring-indigo-300/40 shrink-0">
-          🧑‍🚀
+          {telegramPhotoUrl ? (
+            <img src={telegramPhotoUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            "🧑‍🚀"
+          )}
         </div>
         <div className="flex-1 min-w-0">
           {isEditingName ? (
