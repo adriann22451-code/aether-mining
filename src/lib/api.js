@@ -2,7 +2,8 @@ import {
   Package,
 } from "lucide-react";
 import { parseInventoryQty } from "../data/inventory";
-import { TRADE_ITEM_POOL } from "../data/market";
+import { TRADE_ITEM_POOL, marketCatalog } from "../data/market";
+import { formatHashrate } from "./format";
 
 export const SUPABASE_FUNCTIONS_URL = "https://vcuvuslybplyhonywicg.supabase.co/functions/v1";
 
@@ -48,7 +49,13 @@ export async function callFunction(name, body) {
 // icon/color/desc (looked up by name) and the "xN" tag string the UI expects.
 
 export function resolveInventoryRow(row) {
-  const ref = TRADE_ITEM_POOL.find((p) => p.name === row.name);
+  // Regular tradeable items/materials live in TRADE_ITEM_POOL; Special Items
+  // bought from the Market (RTX Core X9, Cooling System XL, etc.) live in
+  // marketCatalog instead — both need to be checked or a reloaded save loses
+  // Special Items' real icon/image/desc and falls back to a generic Package icon.
+  const tradeRef = TRADE_ITEM_POOL.find((p) => p.name === row.name);
+  const marketRef = marketCatalog.find((m) => m.name === row.name);
+  const ref = tradeRef || marketRef;
   // `qty` is the backend/local-save shape; older/corrupted local saves may
   // instead carry a UI-shaped "xN" tag — fall back to parsing that so a
   // stale save doesn't render as "xundefined".
@@ -59,9 +66,14 @@ export function resolveInventoryRow(row) {
     type: row.type,
     tag: `x${qty}`,
     icon: ref ? ref.icon : Package,
+    image: ref ? ref.image : undefined,
     iconColor: ref ? ref.iconColor : "#94a3b8",
     selected: false,
-    desc: ref ? ref.desc : "",
+    desc: marketRef
+      ? `Bought from the Marketplace (${marketRef.rarity}). Grants +${formatHashrate(marketRef.hpBonus)} permanent hashrate.`
+      : ref
+      ? ref.desc
+      : "",
   };
 }
 
