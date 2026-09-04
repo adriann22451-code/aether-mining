@@ -1,31 +1,46 @@
 import { AetherCoinIcon } from "../icons/CustomIcons";
 import { rarityStyles } from "../../data/market";
+import { RARITY_CARD_FRAMES, RARITY_CARD_FRAME_SLICE } from "../../data/rarityCardFrames";
 import { formatHashrate } from "../../lib/format";
 
 export function MarketItemCard({ item, stock, owned, core, onBuy }) {
   const Icon = item.icon;
   const canAfford = core >= item.price && stock > 0;
   const isShiny = item.rarity === "Epic" || item.rarity === "Legendary";
+  const frame = RARITY_CARD_FRAMES[item.rarity] || RARITY_CARD_FRAMES.Common;
+
   return (
-    <div className="rounded-2xl bg-white/5 border border-white/10 p-2.5 flex flex-col items-center text-center gap-1.5 backdrop-blur-sm">
+    <div
+      className="relative flex flex-col items-center text-center gap-1.5 box-border"
+      style={{
+        borderStyle: "solid",
+        borderWidth: "16px 15px 15px 15px",
+        borderImageSource: `url(${frame})`,
+        borderImageSlice: RARITY_CARD_FRAME_SLICE,
+        borderImageRepeat: "stretch",
+        background: `radial-gradient(120% 90% at 50% 0%, ${item.iconColor}22 0%, #0c0e17 65%)`,
+        padding: "6px 8px 10px",
+      }}
+    >
       <div
-        className="relative w-16 h-16 shrink-0 rounded-xl flex items-center justify-center overflow-hidden"
+        className="relative w-16 h-16 shrink-0 flex items-center justify-center mt-0.5"
         style={{
-          background: `linear-gradient(160deg, ${item.iconColor}40 0%, #0d1420 85%)`,
-          border: `1px solid ${item.iconColor}66`,
           "--rglow": `${item.iconColor}${item.rarity === "Legendary" ? "cc" : "99"}`,
-          boxShadow: isShiny ? undefined : `0 0 16px -4px ${item.iconColor}99`,
           animation: isShiny ? `rarityPulse ${item.rarity === "Legendary" ? "1.6s" : "2.2s"} ease-in-out infinite` : undefined,
         }}
       >
+        <span
+          className="absolute inset-1 rounded-full"
+          style={{ background: `radial-gradient(circle, ${item.iconColor}30 0%, transparent 72%)` }}
+        />
         {item.image ? (
-          <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+          <img src={item.image} alt={item.name} className="relative w-full h-full object-contain" />
         ) : (
-          <Icon size={42} style={{ color: item.iconColor }} />
+          <Icon size={42} className="relative" style={{ color: item.iconColor }} />
         )}
         {isShiny && (
           <span
-            className="pointer-events-none absolute -inset-4"
+            className="pointer-events-none absolute -inset-3"
             style={{
               background: `linear-gradient(115deg, transparent 40%, ${item.iconColor}cc 50%, transparent 60%)`,
               animation: `rarityShine ${item.rarity === "Legendary" ? "1.8s" : "2.6s"} linear infinite`,
