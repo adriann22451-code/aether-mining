@@ -1,7 +1,7 @@
 import { AetherCoinIcon } from "../icons/CustomIcons";
 import { rarityStyles } from "../../data/market";
 import { RARITY_CARD_FRAMES, RARITY_CARD_FRAME_SLICE } from "../../data/rarityCardFrames";
-import { formatHashrate } from "../../lib/format";
+import { STAT_TYPE_LABEL, formatHashrate, marketSecondaryBonusLine } from "../../lib/format";
 
 export function MarketItemCard({ item, stock, owned, core, onBuy }) {
   const Icon = item.icon;
@@ -43,8 +43,12 @@ export function MarketItemCard({ item, stock, owned, core, onBuy }) {
       <div className="w-full min-w-0">
         <span className="text-[12px] font-bold text-white truncate block leading-tight">{item.name}</span>
         <span className={`text-[9.5px] font-bold block ${rarityStyles[item.rarity]}`}>{item.rarity}</span>
-        <div className="mt-0.5 text-[10.5px] font-semibold text-cyan-300 truncate">+{formatHashrate(item.hpBonus)}</div>
-        <div className="text-[9px] text-slate-500">Stock {stock} · Owned {owned}</div>
+        <div className="mt-0.5 text-[8px] font-semibold text-slate-500 uppercase tracking-wide">{STAT_TYPE_LABEL.hashrate}</div>
+        <div className="text-[10.5px] font-semibold text-cyan-300 truncate">+{formatHashrate(item.hpBonus)}</div>
+        {marketSecondaryBonusLine(item) && (
+          <div className="mt-0.5 text-[9.5px] font-semibold text-emerald-400 truncate">{marketSecondaryBonusLine(item)}</div>
+        )}
+        <div className="mt-0.5 text-[9px] text-slate-500">Stock {stock} · Owned {owned}</div>
       </div>
 
       <button

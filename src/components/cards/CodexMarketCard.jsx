@@ -1,5 +1,5 @@
 import { rarityStyles } from "../../data/market";
-import { formatHashrate } from "../../lib/format";
+import { STAT_TYPE_LABEL, formatHashrate, marketSecondaryBonusLine } from "../../lib/format";
 
 export function CodexMarketCard({ item }) {
   const isShiny = item.rarity === "Epic" || item.rarity === "Legendary";
@@ -26,7 +26,12 @@ export function CodexMarketCard({ item }) {
           <span className="text-[12.5px] font-bold text-white truncate">{item.name}</span>
           <span className={`text-[9px] font-bold shrink-0 ${rarityStyles[item.rarity]}`}>{item.rarity}</span>
         </div>
-        <div className="text-[10px] font-semibold text-cyan-300">+{formatHashrate(item.hpBonus)}</div>
+        <div className="text-[10px] font-semibold text-cyan-300">
+          {STAT_TYPE_LABEL.hashrate}: +{formatHashrate(item.hpBonus)}
+        </div>
+        {marketSecondaryBonusLine(item) && (
+          <div className="text-[10px] font-semibold text-emerald-400">{marketSecondaryBonusLine(item)}</div>
+        )}
         {item.desc && <p className="mt-0.5 text-[10.5px] leading-snug text-slate-400">{item.desc}</p>}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { RARITY_COLORS } from "../../data/parts";
 import { RARITY_FRAMES } from "../../data/rarityFrames";
-import { formatStatValue } from "../../lib/format";
+import { STAT_TYPE_LABEL, formatStatValue } from "../../lib/format";
 
 export function CodexPartCard({ item, category, index }) {
   const Icon = category.icon;
@@ -40,7 +40,9 @@ export function CodexPartCard({ item, category, index }) {
             </span>
           )}
         </div>
-        <div className="text-[10px] font-semibold text-cyan-300">{formatStatValue(category.statType, item.hp)}</div>
+        <div className="text-[10px] font-semibold text-cyan-300">
+          {STAT_TYPE_LABEL[category.statType]}: {formatStatValue(category.statType, item.hp)}
+        </div>
         {item.desc && <p className="mt-0.5 text-[10.5px] leading-snug text-slate-400">{item.desc}</p>}
       </div>
     </div>

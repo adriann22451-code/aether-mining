@@ -1,7 +1,7 @@
 import { AetherCoinIcon } from "../icons/CustomIcons";
 import { RARITY_COLORS } from "../../data/parts";
 import { RARITY_CARD_FRAMES, RARITY_CARD_FRAME_SLICE } from "../../data/rarityCardFrames";
-import { formatInt, formatStatValue } from "../../lib/format";
+import { STAT_TYPE_LABEL, formatInt, formatStatValue } from "../../lib/format";
 
 export function ShopItemCard({ item, category, core, onBuy }) {
   const Icon = category.icon;
@@ -48,7 +48,10 @@ export function ShopItemCard({ item, category, core, onBuy }) {
             {item.rarity}
           </span>
         )}
-        <div className="mt-0.5 text-[10.5px] font-semibold truncate" style={{ color: rarityColor }}>
+        <div className="mt-0.5 text-[8px] font-semibold text-slate-500 uppercase tracking-wide truncate">
+          {STAT_TYPE_LABEL[category.statType]}
+        </div>
+        <div className="text-[10.5px] font-semibold truncate" style={{ color: rarityColor }}>
           {formatStatValue(category.statType, item.hp)}
         </div>
       </div>

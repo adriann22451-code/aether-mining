@@ -4,7 +4,7 @@ import {
 import { AetherCoinIcon } from "../icons/CustomIcons";
 import { MAX_LEVEL, RARITY_COLORS, itemHpAtLevel, itemLevelUpCost } from "../../data/parts";
 import { RARITY_FRAMES } from "../../data/rarityFrames";
-import { formatInt, formatStatValue } from "../../lib/format";
+import { STAT_TYPE_LABEL, formatInt, formatStatValue } from "../../lib/format";
 
 export function PartCard({ item, category, level, core, onUpgrade }) {
   const Icon = category.icon;
@@ -55,7 +55,10 @@ export function PartCard({ item, category, level, core, onUpgrade }) {
             </span>
           )}
         </div>
-        <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold">
+        <div className="mt-1 text-[9px] font-semibold text-slate-500 uppercase tracking-wide">
+          {STAT_TYPE_LABEL[category.statType]}
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold">
           <span className="text-cyan-300">{formatStatValue(category.statType, currentHp)}</span>
           {!isMax && (
             <>
