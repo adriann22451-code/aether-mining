@@ -94,6 +94,26 @@ export const MACHINE_ANIMATION_CSS = `
   30% { opacity: 0.9; }
   100% { opacity: 0; }
 }
+@keyframes upgradePop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22); }
+  65% { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+@keyframes upgradeRingBurst {
+  0% { transform: translate(-50%, -50%) scale(0.35); opacity: 0.9; border-width: 3px; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; border-width: 0.5px; }
+}
+@keyframes upgradeLabelPop {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.35); color: #34d399; }
+}
+@keyframes upgradeTextFloat {
+  0% { transform: translate(-50%, 0) scale(0.7); opacity: 0; }
+  20% { transform: translate(-50%, -4px) scale(1.1); opacity: 1; }
+  35% { transform: translate(-50%, -8px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -34px) scale(1); opacity: 0; }
+}
 `;
 
 export const SNOWFLAKES = [
