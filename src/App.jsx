@@ -266,7 +266,14 @@ export default function MiningDashboard() {
   const [heatLevel, setHeatLevel] = useState(20);
   const [isOverheating, setIsOverheating] = useState(false);
   const heatGen = calcHeatGen(ownedItems);
-  const coolingCap = calcCoolingCapacity(ownedItems);
+  const totalMarketBonus = marketCatalog.reduce((sum, item) => sum + item.hpBonus * (marketOwned[item.id] || 0), 0);
+  // Special Items can ALSO carry a secondary thematic bonus on top of their
+  // flat hashrate (see data/market.js) — Cooling System XL helps with heat,
+  // Energy Battery raises the claim cap, Mining Drone Mk.1 boosts income.
+  const marketCoolingBonus = marketCatalog.reduce((sum, item) => sum + (item.coolingBonus || 0) * (marketOwned[item.id] || 0), 0);
+  const marketPendingCapBonus = marketCatalog.reduce((sum, item) => sum + (item.pendingCapBonus || 0) * (marketOwned[item.id] || 0), 0);
+  const marketIncomeBonusPct = marketCatalog.reduce((sum, item) => sum + (item.incomeBonusPct || 0) * (marketOwned[item.id] || 0), 0);
+  const coolingCap = calcCoolingCapacity(ownedItems) + marketCoolingBonus;
   // GPU+Processor hp runs ~10x higher than Cooling hp at matching tiers, so Cooling's
   // effective capacity is scaled up here — a player with matched-tier gear stays safe.
   const heatRatio = heatGen / Math.max(1, coolingCap * COOLING_EFFICIENCY);
@@ -278,7 +285,6 @@ export default function MiningDashboard() {
   const boostActive = now < boostEndTime;
   const boostMultiplier = boostActive ? 2 : 1;
 
-  const totalMarketBonus = marketCatalog.reduce((sum, item) => sum + item.hpBonus * (marketOwned[item.id] || 0), 0);
   // Processor no longer adds flat hashrate — it's a % multiplier on top of
   // GPU+Rack+Market hashrate (see calcHashrateMultiplier)
   const hashrateMultiplier = 1 + calcHashrateMultiplier(ownedItems);
@@ -294,13 +300,13 @@ export default function MiningDashboard() {
     ? myEmissionPerSecond
     : (totalHashrate / INCOME_DIVISOR) * halvingMultiplier;
   // Battery extends the claim cap beyond the base 6h (see calcPendingCapBonusHours)
-  const pendingCap = perSecond * 3600 * (6 + calcPendingCapBonusHours(ownedItems));
+  const pendingCap = perSecond * 3600 * (6 + calcPendingCapBonusHours(ownedItems) + marketPendingCapBonus);
   const boostCost = Math.max(500, Math.round(((hashrateBase * SITES[activeSiteIndex].bonus * prestigeMultiplier) / INCOME_DIVISOR) * 3600 * 1.5));
   const canPrestige = unlockedIndex >= SITES.length - 1;
   // Drone's role: % bonus on Missions/Events/Guild/Daily Streak/Loot Box
   // AETHER rewards — deliberately NOT applied to passive mining or the
   // offline-mining catch-up, and not to auto-sell (that's a trade, not a reward)
-  const applyDroneBonus = (amount) => amount * (1 + calcIncomeBonusPct(ownedItems));
+  const applyDroneBonus = (amount) => amount * (1 + calcIncomeBonusPct(ownedItems) + marketIncomeBonusPct);
 
   // kept fresh on every render so the autosave interval (set up once) always
   // writes the latest values without needing a giant effect dependency list
