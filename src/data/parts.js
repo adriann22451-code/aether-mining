@@ -46,6 +46,7 @@ export const PART_CATEGORIES = [
     icon: GpuIcon,
     color: "#38bdf8",
     statType: "hashrate", // raw hashrate — the core mining muscle
+    roleDesc: "Adds raw Hashrate — your core mining power.",
     generatesHeat: true,
     items: [
       { id: "gpu_0", name: "GTX 1660", hp: 40e6, buyCost: 0, image: GTX1660_IMG, rarity: "Common", desc: "A budget graphics card, reliable enough to get your first rig hashing." },
@@ -61,6 +62,7 @@ export const PART_CATEGORIES = [
     icon: RackIcon,
     color: "#a78bfa",
     statType: "hashrate", // more/better racks = more GPUs housed = more raw hashrate
+    roleDesc: "Adds raw Hashrate — houses more GPU power.",
     generatesHeat: false,
     items: [
       { id: "rack_0", name: "Starter Rack", hp: 10e6, buyCost: 0, image: STARTER_RACK_IMG, rarity: "Common", desc: "A simple frame to mount your first few GPUs." },
@@ -76,6 +78,7 @@ export const PART_CATEGORIES = [
     icon: CoolingIcon,
     color: "#38bdf8",
     statType: "cooling", // NOT hashrate anymore — purely manages heat, see calcCoolingCapacity
+    roleDesc: "Raises Cooling Capacity — prevents the -30% hashrate penalty from overheating.",
     generatesHeat: false,
     items: [
       { id: "cooling_0", name: "Air Cooler", hp: 5e6, buyCost: 0, rarity: "Common", image: AIR_COOLER_IMG, desc: "A basic fan setup to keep temperatures from spiking too fast." },
@@ -91,6 +94,7 @@ export const PART_CATEGORIES = [
     icon: BatteryIcon,
     color: "#facc15",
     statType: "pendingCap", // NOT hashrate — extends how many hours of AETHER can pile up before you hit the claim cap
+    roleDesc: "Raises your Mining Cap — lets unclaimed AETHER pile up longer before it caps out.",
     generatesHeat: false,
     items: [
       { id: "battery_0", name: "Lithium Battery", hp: 0.25, buyCost: 0, rarity: "Common", image: LITHIUM_BATTERY_IMG, desc: "A standard battery pack — stores a bit of extra unclaimed AETHER before you hit the cap." },
@@ -106,6 +110,7 @@ export const PART_CATEGORIES = [
     icon: ProcessorIcon,
     color: "#22d3ee",
     statType: "hashrateMult", // NOT flat hashrate — a % multiplier applied on top of your GPU+Rack hashrate
+    roleDesc: "Applies a % Hashrate Boost on top of your GPU + Rack total.",
     generatesHeat: false,
     items: [
       { id: "processor_0", name: "Basic Processor", hp: 0.05, buyCost: 0, rarity: "Common", image: BASIC_PROCESSOR_IMG, desc: "An entry-level chip that squeezes a little more out of your GPUs." },
@@ -121,6 +126,7 @@ export const PART_CATEGORIES = [
     icon: DroneIcon,
     color: "#c084fc",
     statType: "incomeBonus", // NOT hashrate — boosts AETHER from Missions/Events/Guild/Daily/Loot Box (not passive mining itself)
+    roleDesc: "Adds Bonus Income — boosts Missions/Events/Guild/Daily/Loot Box rewards, not passive mining.",
     generatesHeat: false,
     items: [
       { id: "drone_0", name: "Worker Drone", hp: 0.03, buyCost: 0, rarity: "Common", image: WORKER_DRONE_IMG, desc: "A small automated helper that hauls in a little extra from every reward." },
