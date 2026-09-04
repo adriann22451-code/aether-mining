@@ -4,8 +4,14 @@ import { formatHashrate } from "../../lib/format";
 
 export function ItemDetailModal({ item, onClose }) {
   if (!item) return null;
-  const Icon = item.icon;
   const marketRef = marketCatalog.find((m) => m.name === item.name);
+  // Belt-and-suspenders: prefer the live catalog entry's icon/image/color
+  // whenever the stored item is missing them (e.g. an older save resolved
+  // before marketCatalog was checked — see resolveInventoryRow in lib/api.js).
+  const displayImage = item.image || marketRef?.image;
+  const Icon = item.icon || marketRef?.icon;
+  const displayColor = item.iconColor || marketRef?.iconColor || "#94a3b8";
+  const displayDesc = item.desc || (marketRef ? `Bought from the Marketplace (${marketRef.rarity}). Grants +${formatHashrate(marketRef.hpBonus)} permanent hashrate.` : "");
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
@@ -21,15 +27,15 @@ export function ItemDetailModal({ item, onClose }) {
             className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0"
             style={{
               background: "linear-gradient(160deg, #1a2338 0%, #0d1420 100%)",
-              border: `1px solid ${item.iconColor}55`,
-              boxShadow: `0 0 18px -3px ${item.iconColor}99`,
+              border: `1px solid ${displayColor}55`,
+              boxShadow: `0 0 18px -3px ${displayColor}99`,
             }}
           >
-            {item.image ? (
-              <img src={item.image} alt={item.name} className="w-full h-full object-contain rounded-lg" />
-            ) : (
-              <Icon size={44} style={{ color: item.iconColor }} />
-            )}
+            {displayImage ? (
+              <img src={displayImage} alt={item.name} className="w-full h-full object-contain rounded-lg" />
+            ) : Icon ? (
+              <Icon size={44} style={{ color: displayColor }} />
+            ) : null}
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[15px] font-extrabold text-white truncate">{item.name}</div>
@@ -50,7 +56,7 @@ export function ItemDetailModal({ item, onClose }) {
         )}
 
         <p className="mt-4 text-[12.5px] leading-relaxed text-slate-300">
-          {item.desc || "No description available for this item."}
+          {displayDesc || "No description available for this item."}
         </p>
 
         <button
