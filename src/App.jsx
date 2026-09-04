@@ -16,6 +16,7 @@ import { bumpInventoryTag, parseInventoryQty } from "./data/inventory";
 import { LOOTBOX_COST, rollLootbox } from "./data/lootbox";
 import { AUTO_CLAIM_COST, AUTO_SELL_CAP, MARKET_FEE_RATE, TRADE_BASE_PRICES, TRADE_ITEM_POOL, makeBotListings, marketCatalog } from "./data/market";
 import { MAX_LEVEL, PART_CATEGORIES, findPartItem, itemLevelUpCost } from "./data/parts";
+import { MYSTERY_EVENTS, pickMysteryEvent } from "./data/mysteryEvents";
 import { SITES } from "./data/sites";
 import { MACHINE_ANIMATION_CSS } from "./data/uiConstants";
 import { callFunction, getTelegramWebApp, inventoryToRows, isBackendConfigured, resolveInventoryRow } from "./lib/api";
@@ -245,12 +246,17 @@ export default function MiningDashboard() {
   const [claimCooldownUntil, setClaimCooldownUntil] = useState(0);
   const CLAIM_COOLDOWN_MS = 5000; // anti-spam: locks the Claim button for 5s after each tap
 
-  // --- Mystery Site: random temporary event with a huge hashrate surge ---
+  // --- Mystery Site: random temporary event with a varied hashrate surge
+  //     (multiplier/duration/label picked from MYSTERY_EVENTS on each spawn,
+  //     see src/data/mysteryEvents.js) ---
   const [mysterySiteAvailableUntil, setMysterySiteAvailableUntil] = useState(0);
   const [mysteryBoostEndTime, setMysteryBoostEndTime] = useState(0);
+  const [mysteryCooldownUntil, setMysteryCooldownUntil] = useState(0);
+  const [mysteryEventId, setMysteryEventId] = useState(MYSTERY_EVENTS[0].id);
+  const mysteryEvent = MYSTERY_EVENTS.find((e) => e.id === mysteryEventId) || MYSTERY_EVENTS[0];
   const mysterySiteAvailable = now < mysterySiteAvailableUntil;
   const mysteryBoostActive = now < mysteryBoostEndTime;
-  const mysteryMultiplier = mysteryBoostActive ? 5 : 1;
+  const mysteryMultiplier = mysteryBoostActive ? mysteryEvent.multiplier : 1;
 
   // --- automation: Auto-Claim Module (one-time purchase, toggleable) ---
   const [autoClaimUnlocked, setAutoClaimUnlocked] = useState(false);
@@ -310,7 +316,7 @@ export default function MiningDashboard() {
     inventory: inventoryToRows(inventory), playerName,
     inboxClaimedIds: inboxItems.filter((i) => i.claimed).map((i) => i.id),
     guildPoints, loginStreak, lastClaimDate, marketOwned,
-    autoSellEnabled, prestigeCount, boostEndTime, mysterySiteAvailableUntil, mysteryBoostEndTime,
+    autoSellEnabled, prestigeCount, boostEndTime, mysterySiteAvailableUntil, mysteryBoostEndTime, mysteryEventId, mysteryCooldownUntil,
     autoClaimUnlocked, autoClaimActive, perSecond, savedAt: Date.now(),
   };
 
@@ -397,6 +403,8 @@ export default function MiningDashboard() {
           if (saved.boostEndTime) setBoostEndTime(saved.boostEndTime);
           if (saved.mysterySiteAvailableUntil) setMysterySiteAvailableUntil(saved.mysterySiteAvailableUntil);
           if (saved.mysteryBoostEndTime) setMysteryBoostEndTime(saved.mysteryBoostEndTime);
+          if (saved.mysteryEventId) setMysteryEventId(saved.mysteryEventId);
+          if (saved.mysteryCooldownUntil) setMysteryCooldownUntil(saved.mysteryCooldownUntil);
           setAutoClaimUnlocked(Boolean(saved.autoClaimUnlocked));
           setAutoClaimActive(saved.autoClaimActive !== false);
 
@@ -1366,20 +1374,27 @@ export default function MiningDashboard() {
   const handleActivateMysterySite = () => {
     if (!mysterySiteAvailable) return;
     setMysterySiteAvailableUntil(0);
-    setMysteryBoostEndTime(Date.now() + 10 * 60 * 1000); // 10 minutes of 5x hashrate surge
+    setMysteryBoostEndTime(Date.now() + mysteryEvent.durationMin * 60 * 1000);
   };
 
-  // periodically roll a small chance to spawn a Mystery Site event when none is available or active
+  // periodically roll a small chance to spawn a Mystery Site event when none is
+  // available or active, and not within the post-event cooldown window. Each
+  // spawn picks a random event flavor (see src/data/mysteryEvents.js) so the
+  // surge varies in strength/duration instead of always being the same buff.
   useEffect(() => {
     const t = setInterval(() => {
       const nowTs = Date.now();
-      if (nowTs < mysterySiteAvailableUntil || nowTs < mysteryBoostEndTime) return;
-      if (Math.random() < 0.12) {
+      if (nowTs < mysterySiteAvailableUntil || nowTs < mysteryBoostEndTime || nowTs < mysteryCooldownUntil) return;
+      if (Math.random() < 0.05) {
+        const event = pickMysteryEvent();
+        setMysteryEventId(event.id);
         setMysterySiteAvailableUntil(nowTs + 120000); // 2 minutes to activate before it vanishes
+        // minimum gap before the next one can appear, whether or not this one gets activated
+        setMysteryCooldownUntil(nowTs + 120000 + 6 * 60 * 1000);
       }
-    }, 10000);
+    }, 30000);
     return () => clearInterval(t);
-  }, [mysterySiteAvailableUntil, mysteryBoostEndTime]);
+  }, [mysterySiteAvailableUntil, mysteryBoostEndTime, mysteryCooldownUntil]);
 
   if (!isLoaded) {
     return (
@@ -1652,6 +1667,7 @@ export default function MiningDashboard() {
             mysteryBoostActive={mysteryBoostActive}
             mysterySiteAvailableUntil={mysterySiteAvailableUntil}
             mysteryBoostEndTime={mysteryBoostEndTime}
+            mysteryEvent={mysteryEvent}
             onActivateMysterySite={handleActivateMysterySite}
             halvingEpoch={halvingEpoch}
             inboxUnclaimed={inboxItems.some((i) => !i.claimed)}
