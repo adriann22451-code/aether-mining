@@ -52,3 +52,12 @@ export const STAT_TYPE_LABEL = {
   pendingCap: "Mining Cap Bonus",
   incomeBonus: "Bonus Income",
 };
+
+// Special Items (data/market.js) can carry ONE secondary thematic bonus on
+// top of their flat hashrate — this describes it for card/codex display.
+export function marketSecondaryBonusLine(item) {
+  if (item.coolingBonus) return `${STAT_TYPE_LABEL.cooling}: +${formatHashrate(item.coolingBonus)}`;
+  if (item.pendingCapBonus) return `${STAT_TYPE_LABEL.pendingCap}: ${formatStatValue("pendingCap", item.pendingCapBonus)}`;
+  if (item.incomeBonusPct) return `${STAT_TYPE_LABEL.incomeBonus}: ${formatStatValue("incomeBonus", item.incomeBonusPct)}`;
+  return null;
+}
