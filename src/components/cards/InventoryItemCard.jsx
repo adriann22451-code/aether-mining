@@ -2,11 +2,15 @@ import { marketCatalog } from "../../data/market";
 import { formatHashrate } from "../../lib/format";
 
 export function InventoryItemCard({ item, onSelect }) {
-  const Icon = item.icon;
   // items bought from the SPECIAL ITEM shop grant a permanent hashrate bonus
   // that's already active — cross-reference by name so the Inventory card
   // shows this too (previously only visible back in the Shop screen)
   const marketRef = marketCatalog.find((m) => m.name === item.name);
+  // Belt-and-suspenders: prefer the live catalog entry's icon/image/color
+  // whenever the stored item is missing them (see resolveInventoryRow in lib/api.js)
+  const displayImage = item.image || marketRef?.image;
+  const Icon = item.icon || marketRef?.icon;
+  const displayColor = item.iconColor || marketRef?.iconColor || "#94a3b8";
   return (
     <button
       type="button"
@@ -24,15 +28,15 @@ export function InventoryItemCard({ item, onSelect }) {
         className="w-11 h-11 rounded-lg flex items-center justify-center"
         style={{
           background: "linear-gradient(160deg, #1a2338 0%, #0d1420 100%)",
-          border: `1px solid ${item.iconColor}44`,
-          boxShadow: `0 0 14px -4px ${item.iconColor}88`,
+          border: `1px solid ${displayColor}44`,
+          boxShadow: `0 0 14px -4px ${displayColor}88`,
         }}
       >
-        {item.image ? (
-          <img src={item.image} alt={item.name} className="w-full h-full object-contain rounded-lg" />
-        ) : (
-          <Icon size={32} style={{ color: item.iconColor }} />
-        )}
+        {displayImage ? (
+          <img src={displayImage} alt={item.name} className="w-full h-full object-contain rounded-lg" />
+        ) : Icon ? (
+          <Icon size={32} style={{ color: displayColor }} />
+        ) : null}
       </div>
       <span className="text-[10px] font-bold text-slate-200">{item.tag}</span>
       {marketRef && <span className="text-[9px] font-semibold text-emerald-300">+{formatHashrate(marketRef.hpBonus)}</span>}
