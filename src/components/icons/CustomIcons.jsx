@@ -1,7 +1,7 @@
 import {
   Server,
 } from "lucide-react";
-import BATTERY_IMG from "../../assets/images/battery.png";
+import LITHIUM_BATTERY_IMG from "../../assets/images/lithium-battery.png";
 import CARBON_FIBER_IMG from "../../assets/images/carbon-fiber.png";
 import AIR_COOLER_IMG from "../../assets/images/air-cooler.png";
 import CORE_CRYSTAL_IMG from "../../assets/images/core-crystal.png";
@@ -9,7 +9,7 @@ import GTX1660_IMG from "../../assets/images/gtx1660.png";
 import METAL_INGOT_IMG from "../../assets/images/metal-ingot.png";
 import METAL_PLATE_IMG from "../../assets/images/metal-plate.png";
 import NANO_ALLOY_IMG from "../../assets/images/nano-alloy.png";
-import PROCESSOR_IMG from "../../assets/images/processor.png";
+import BASIC_PROCESSOR_IMG from "../../assets/images/basic-processor.png";
 import QUANTUM_ALLOY_IMG from "../../assets/images/quantum-alloy.png";
 import STARTER_RACK_IMG from "../../assets/images/starter-rack.png";
 import FUEL_BARREL_IMG from "../../assets/images/fuel-barrel.png";
@@ -53,7 +53,7 @@ export function CoolingIcon({ size = 24, style = {}, className = "" }) {
 export function BatteryIcon({ size = 24, style = {}, className = "" }) {
   return (
     <img
-      src={BATTERY_IMG}
+      src={LITHIUM_BATTERY_IMG}
       alt="Battery"
       draggable={false}
       className={className}
@@ -65,7 +65,7 @@ export function BatteryIcon({ size = 24, style = {}, className = "" }) {
 export function ProcessorIcon({ size = 24, style = {}, className = "" }) {
   return (
     <img
-      src={PROCESSOR_IMG}
+      src={BASIC_PROCESSOR_IMG}
       alt="Processor"
       draggable={false}
       className={className}
