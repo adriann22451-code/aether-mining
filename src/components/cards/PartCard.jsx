@@ -37,15 +37,6 @@ export function PartCard({ item, category, level, core, onUpgrade }) {
           ) : (
             <Icon size={26} style={{ color: rarityColor }} />
           )}
-          {isShiny && (
-            <span
-              className="pointer-events-none absolute -inset-2"
-              style={{
-                background: `linear-gradient(115deg, transparent 40%, ${rarityColor}cc 50%, transparent 60%)`,
-                animation: `rarityShine ${item.rarity === "Legendary" ? "1.8s" : "2.6s"} linear infinite`,
-              }}
-            />
-          )}
         </div>
         <img src={frame} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
       </div>

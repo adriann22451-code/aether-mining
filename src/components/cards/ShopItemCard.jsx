@@ -39,15 +39,6 @@ export function ShopItemCard({ item, category, core, onBuy }) {
         ) : (
           <Icon size={38} className="relative" style={{ color: rarityColor }} />
         )}
-        {isShiny && (
-          <span
-            className="pointer-events-none absolute -inset-3"
-            style={{
-              background: `linear-gradient(115deg, transparent 42%, ${rarityColor}cc 50%, transparent 58%)`,
-              animation: `rarityShine ${item.rarity === "Legendary" ? "1.8s" : "2.6s"} linear infinite`,
-            }}
-          />
-        )}
       </div>
 
       <div className="w-full min-w-0">

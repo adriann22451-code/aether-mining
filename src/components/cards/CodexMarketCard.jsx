@@ -20,15 +20,6 @@ export function CodexMarketCard({ item }) {
         ) : (
           <item.icon size={28} style={{ color: item.iconColor }} />
         )}
-        {isShiny && (
-          <span
-            className="pointer-events-none absolute -inset-4"
-            style={{
-              background: `linear-gradient(115deg, transparent 40%, ${item.iconColor}cc 50%, transparent 60%)`,
-              animation: `rarityShine ${item.rarity === "Legendary" ? "1.8s" : "2.6s"} linear infinite`,
-            }}
-          />
-        )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">

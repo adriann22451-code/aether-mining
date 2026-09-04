@@ -38,15 +38,6 @@ export function MarketItemCard({ item, stock, owned, core, onBuy }) {
         ) : (
           <Icon size={42} className="relative" style={{ color: item.iconColor }} />
         )}
-        {isShiny && (
-          <span
-            className="pointer-events-none absolute -inset-3"
-            style={{
-              background: `linear-gradient(115deg, transparent 40%, ${item.iconColor}cc 50%, transparent 60%)`,
-              animation: `rarityShine ${item.rarity === "Legendary" ? "1.8s" : "2.6s"} linear infinite`,
-            }}
-          />
-        )}
       </div>
 
       <div className="w-full min-w-0">
