@@ -1,8 +1,8 @@
-import FRAME_COMMON from "../assets/images/frames/frame-common.png";
-import FRAME_UNCOMMON from "../assets/images/frames/frame-uncommon.png";
-import FRAME_RARE from "../assets/images/frames/frame-rare.png";
-import FRAME_EPIC from "../assets/images/frames/frame-epic.png";
-import FRAME_LEGENDARY from "../assets/images/frames/frame-legendary.png";
+import FRAME_COMMON from "../assets/images/frames/frame-common.webp";
+import FRAME_UNCOMMON from "../assets/images/frames/frame-uncommon.webp";
+import FRAME_RARE from "../assets/images/frames/frame-rare.webp";
+import FRAME_EPIC from "../assets/images/frames/frame-epic.webp";
+import FRAME_LEGENDARY from "../assets/images/frames/frame-legendary.webp";
 
 // Generated sci-fi hardware frames, one per rarity tier. Used as a decorative
 // border overlay around item icons across shop/market/codex cards.
