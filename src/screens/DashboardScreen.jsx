@@ -78,7 +78,7 @@ const SITE_SPRITES = {
   10: { src: GENESIS_CORE_SPRITE_IMG, frames: GENESIS_CORE_SPRITE_FRAMES, meta: GENESIS_CORE_SPRITE_META },
 };
 
-export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onWatchAdBoost, adBoostAvailable, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, referralCount = 0, claimedReferralIds = [], incomeStats, spendStats, onDevPreviewSite, telegramPhotoUrl }) {
+export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex, unlockedIndex, claimPulse, floatingGains, onClaim, claimCooldownRemaining = 0, onNavigate, boostActive, boostEndTime, boostCost, onBoost, onWatchAdBoost, adBoostAvailable, onOpenDaily, dailyUnclaimed, autoClaimActive, heatLevel, isOverheating, mysterySiteAvailable, mysteryBoostActive, mysterySiteAvailableUntil, mysteryBoostEndTime, mysteryEvent = { multiplier: 5, label: "Hashrate Surge" }, onActivateMysterySite, halvingEpoch, inboxUnclaimed, totalEarned, referralCount = 0, claimedReferralIds = [], incomeStats, spendStats, onDevPreviewSite, telegramPhotoUrl }) {
   const coreDisplay = useTween(core, 700);
   const pendingDisplay = useTween(pending, 350);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
@@ -255,7 +255,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
                 <Sparkles size={16} className="text-fuchsia-300 shrink-0" style={{ animation: "sparkleTwinkle 1.1s ease-in-out infinite" }} />
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-extrabold text-white">Mysterious Site Detected!</div>
-                  <div className="text-[9.5px] text-fuchsia-200">Tap to activate a 5x hashrate surge before it vanishes</div>
+                  <div className="text-[9.5px] text-fuchsia-200">Tap to activate a {mysteryEvent.multiplier}x hashrate surge before it vanishes</div>
                 </div>
                 <span
                   className="shrink-0 text-[9px] font-mono font-bold"
@@ -280,7 +280,7 @@ export function DashboardScreen({ core, pending, totalHashrate, site, siteIndex,
                 className="text-fuchsia-300 shrink-0"
                 style={{ filter: "drop-shadow(0 0 5px rgba(217,70,239,0.9))", animation: "surgeFlicker 2.4s linear infinite" }}
               />
-              <div className="flex-1 min-w-0 text-[11px] font-extrabold text-white">Mysterious Surge Active — 5x Hashrate!</div>
+              <div className="flex-1 min-w-0 text-[11px] font-extrabold text-white">{mysteryEvent.label} Active — {mysteryEvent.multiplier}x Hashrate!</div>
               <span className="shrink-0 text-[9px] font-mono font-bold text-fuchsia-200">
                 {Math.max(0, Math.ceil((mysteryBoostEndTime - Date.now()) / 60000))}m left
               </span>
