@@ -76,7 +76,7 @@ export function CodexScreen({ onBack }) {
         <div className="mt-4 flex flex-col gap-4">
           {PART_CATEGORIES.map((cat) => (
             <div key={cat.key}>
-              <div className="flex items-center gap-1.5 mb-2">
+              <div className="flex items-center gap-1.5 mb-1">
                 <div
                   className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                   style={{ background: `${cat.color}22`, border: `1px solid ${cat.color}55` }}
@@ -87,6 +87,7 @@ export function CodexScreen({ onBack }) {
                 <span className="text-[10px] text-slate-500 font-mono">({cat.items.length})</span>
                 <div className="flex-1 h-px bg-white/10" />
               </div>
+              {cat.roleDesc && <p className="mb-2 text-[10.5px] leading-snug text-slate-400 pl-9">{cat.roleDesc}</p>}
               <div className="flex flex-col gap-2">
                 {cat.items.map((item, i) => (
                   <CodexPartCard key={item.id} item={item} category={cat} index={i} />
@@ -138,6 +139,10 @@ export function CodexScreen({ onBack }) {
 
       {tab === "special" && (
         <div className="mt-4 flex flex-col gap-2.5">
+          <p className="text-[10.5px] leading-snug text-slate-400 px-0.5">
+            Premium items from the Shop's Special section. Each always adds Hashrate, and most also carry a second
+            themed bonus (Cooling, Mining Cap, or Bonus Income) shown below their hashrate line.
+          </p>
           {marketCatalog.map((item) => (
             <CodexMarketCard key={item.id} item={item} />
           ))}
