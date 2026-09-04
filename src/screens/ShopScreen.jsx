@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   ChevronLeft,
@@ -8,6 +9,7 @@ import {
 import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import { MarketItemCard } from "../components/cards/MarketItemCard";
 import { ShopItemCard } from "../components/cards/ShopItemCard";
+import { ShopHelpModal } from "../components/modals/ShopHelpModal";
 import { LOOTBOX_COST } from "../data/lootbox";
 import { AUTO_CLAIM_COST, marketCatalog } from "../data/market";
 import { PART_CATEGORIES } from "../data/parts";
@@ -16,6 +18,7 @@ import ICON_AUTOCLAIM from "../assets/images/icon-autoclaim.png";
 import ICON_LOOTBOX from "../assets/images/icon-lootbox.png";
 
 export function ShopScreen({ onBack, ownedItems, core, totalHashrate, onBuy, marketStock, marketOwned, onBuyMarket, autoClaimUnlocked, autoClaimActive, onBuyAutoClaim, onToggleAutoClaim, onOpenLootbox }) {
+  const [showHelp, setShowHelp] = useState(false);
   const categorySections = PART_CATEGORIES.map((cat) => ({
     category: cat,
     items: cat.items.filter((item) => (ownedItems[item.id] || 0) <= 0),
@@ -35,11 +38,14 @@ export function ShopScreen({ onBack, ownedItems, core, totalHashrate, onBuy, mar
         <span className="text-[14px] font-extrabold tracking-[0.15em] text-white">SHOP</span>
         <button
           type="button"
+          onClick={() => setShowHelp(true)}
           className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition"
         >
           <HelpCircle size={15} className="text-cyan-300" />
         </button>
       </div>
+
+      <ShopHelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
       <div className="mt-3 shrink-0 rounded-xl bg-gradient-to-br from-indigo-950/70 via-[#140a2e]/80 to-purple-950/60 border border-indigo-400/20 px-4 py-2 text-center shadow-[0_0_25px_-10px_rgba(124,58,237,0.35)]">
         <div className="text-[9px] tracking-[0.22em] text-slate-400 font-semibold">TOTAL HASHRATE</div>
