@@ -1,17 +1,18 @@
 import { AetherCoinIcon } from "../icons/CustomIcons";
-import { canCraftRecipe } from "../../data/craft";
+import { canCraftRecipe, isRecipeOwned } from "../../data/craft";
 import { getInventoryQty, inventoryCatalog } from "../../data/inventory";
 import { RARITY_COLORS, findPartItem } from "../../data/parts";
 import { formatInt } from "../../lib/format";
 
-export function CraftRecipeCard({ recipe, inventory, core, onCraft }) {
+export function CraftRecipeCard({ recipe, inventory, core, ownedItems, onCraft }) {
   const found = findPartItem(recipe.targetId);
   if (!found) return null;
   const { item, category } = found;
   const Icon = category.icon;
   const rarityColor = RARITY_COLORS[item.rarity] || category.color;
   const isShiny = item.rarity === "Epic" || item.rarity === "Legendary";
-  const canCraft = canCraftRecipe(recipe, inventory, core);
+  const owned = isRecipeOwned(recipe, ownedItems);
+  const canCraft = canCraftRecipe(recipe, inventory, core, ownedItems);
   const canAffordAether = core >= recipe.aetherCost;
 
   return (
@@ -39,29 +40,35 @@ export function CraftRecipeCard({ recipe, inventory, core, onCraft }) {
             {item.rarity}
           </span>
         </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1">
-          {recipe.materials.map((m) => {
-            const have = getInventoryQty(inventory, m.name);
-            const enough = have >= m.qty;
-            const mat = inventoryCatalog.find((c) => c.name === m.name);
-            const MatIcon = mat?.icon;
-            return (
-              <span
-                key={m.name}
-                className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9.5px] font-bold ${
-                  enough ? "bg-white/5 text-slate-300" : "bg-rose-500/10 text-rose-400"
-                }`}
-              >
-                {MatIcon && <MatIcon size={10} style={{ color: mat.iconColor }} />}
-                {have}/{m.qty}
-              </span>
-            );
-          })}
-        </div>
-        <div className={`mt-1.5 text-[10px] font-semibold flex items-center gap-1 ${canAffordAether ? "text-amber-300" : "text-rose-400"}`}>
-          <AetherCoinIcon size={10} />
-          {formatInt(recipe.aetherCost)} AETHER
-        </div>
+        {owned ? (
+          <div className="mt-1.5 text-[10px] font-semibold text-emerald-400">Already owned — level it up from Inventory instead.</div>
+        ) : (
+          <>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+              {recipe.materials.map((m) => {
+                const have = getInventoryQty(inventory, m.name);
+                const enough = have >= m.qty;
+                const mat = inventoryCatalog.find((c) => c.name === m.name);
+                const MatIcon = mat?.icon;
+                return (
+                  <span
+                    key={m.name}
+                    className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9.5px] font-bold ${
+                      enough ? "bg-white/5 text-slate-300" : "bg-rose-500/10 text-rose-400"
+                    }`}
+                  >
+                    {MatIcon && <MatIcon size={10} style={{ color: mat.iconColor }} />}
+                    {have}/{m.qty}
+                  </span>
+                );
+              })}
+            </div>
+            <div className={`mt-1.5 text-[10px] font-semibold flex items-center gap-1 ${canAffordAether ? "text-amber-300" : "text-rose-400"}`}>
+              <AetherCoinIcon size={10} />
+              {formatInt(recipe.aetherCost)} AETHER
+            </div>
+          </>
+        )}
       </div>
       <button
         type="button"
@@ -73,7 +80,7 @@ export function CraftRecipeCard({ recipe, inventory, core, onCraft }) {
             : "bg-white/5 text-slate-500"
         }`}
       >
-        CRAFT
+        {owned ? "OWNED" : "CRAFT"}
       </button>
     </div>
   );
