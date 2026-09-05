@@ -9,7 +9,7 @@
 //
 // POST body:
 //   { initData, action: "list" }
-//   { initData, action: "create", name, tag, color }
+//   { initData, action: "create", name, tag, color, icon }
 //   { initData, action: "join",   guildId }
 //   { initData, action: "leave" }
 //   { initData, action: "disband" }
@@ -27,6 +27,14 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
 const GUILD_CREATE_COST = 500;
 const GUILD_MAX_MEMBERS = 50;
+
+// Must stay in sync with GUILD_ICON_PRESETS in src/data/guild.js — only a
+// preset *key* is ever stored, never an arbitrary string/URL.
+const GUILD_ICON_KEYS = [
+  "flame-core", "cyber-wolf", "quantum-shield", "storm-circuit", "golden-reactor",
+  "iron-fortress", "phoenix-drive", "frost-node", "venom-byte", "star-array",
+];
+const DEFAULT_GUILD_ICON = GUILD_ICON_KEYS[0];
 
 function guildMilestoneFor(n: number): number {
   return Math.round(3000 * Math.pow(1.6, n));
@@ -97,7 +105,7 @@ Deno.serve(async (req) => {
     if (action === "list") {
       const { data: guilds, error } = await admin
         .from("guilds")
-        .select("id, name, tag, color, member_count, total_points, owner_telegram_id")
+        .select("id, name, tag, color, icon, member_count, total_points, owner_telegram_id")
         .order("member_count", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -120,13 +128,14 @@ Deno.serve(async (req) => {
       const name = String(body.name || "").trim().slice(0, 24);
       const tag = String(body.tag || "").trim().toUpperCase().slice(0, 5);
       const color = /^#[0-9a-fA-F]{6}$/.test(body.color) ? body.color : "#38bdf8";
+      const icon = GUILD_ICON_KEYS.includes(body.icon) ? body.icon : DEFAULT_GUILD_ICON;
       if (name.length < 3) return json({ error: "Guild name needs at least 3 characters" }, 400);
       if (tag.length < 2) return json({ error: "Tag needs at least 2 characters" }, 400);
       if (Number(player.core) < GUILD_CREATE_COST) return json({ error: "Not enough AETHER" }, 400);
 
       const { data: newGuild, error: insertErr } = await admin
         .from("guilds")
-        .insert({ name, tag, color, owner_telegram_id: user.id, member_count: 1 })
+        .insert({ name, tag, color, icon, owner_telegram_id: user.id, member_count: 1 })
         .select("*")
         .single();
       if (insertErr) {
