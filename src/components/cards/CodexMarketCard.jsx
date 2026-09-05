@@ -1,25 +1,32 @@
 import { rarityStyles } from "../../data/market";
+import { RARITY_FRAMES } from "../../data/rarityFrames";
 import { STAT_TYPE_LABEL, formatHashrate, marketSecondaryBonusLine } from "../../lib/format";
 
 export function CodexMarketCard({ item }) {
   const isShiny = item.rarity === "Epic" || item.rarity === "Legendary";
+  const frame = RARITY_FRAMES[item.rarity] || RARITY_FRAMES.Common;
   return (
     <div className="rounded-2xl bg-white/5 border border-white/10 p-3 flex items-center gap-3 backdrop-blur-sm">
       <div
-        className="relative w-12 h-12 shrink-0 rounded-xl flex items-center justify-center overflow-hidden"
+        className="relative w-12 h-12 shrink-0"
         style={{
-          background: `linear-gradient(160deg, ${item.iconColor}40 0%, #0d1420 85%)`,
-          border: `1px solid ${item.iconColor}66`,
           "--rglow": `${item.iconColor}${item.rarity === "Legendary" ? "cc" : "99"}`,
-          boxShadow: isShiny ? undefined : `0 0 14px -4px ${item.iconColor}99`,
+          boxShadow: isShiny ? undefined : `0 0 12px -4px ${item.iconColor}88`,
           animation: isShiny ? `rarityPulse ${item.rarity === "Legendary" ? "1.6s" : "2.2s"} ease-in-out infinite` : undefined,
+          borderRadius: "9999px",
         }}
       >
-        {item.image ? (
-          <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
-        ) : (
-          <item.icon size={28} style={{ color: item.iconColor }} />
-        )}
+        <div
+          className="absolute inset-[15%] rounded-lg overflow-hidden flex items-center justify-center"
+          style={{ background: `radial-gradient(circle at 50% 35%, ${item.iconColor}25 0%, #0a0d16 80%)` }}
+        >
+          {item.image ? (
+            <img src={item.image} alt={item.name} className="w-full h-full object-contain p-0.5" />
+          ) : (
+            <item.icon size={20} style={{ color: item.iconColor }} />
+          )}
+        </div>
+        <img src={frame} alt="" className="absolute inset-0 w-full h-full object-contain pointer-events-none" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
