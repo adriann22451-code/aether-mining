@@ -6,6 +6,7 @@ import {
 import MASCOT_IMG from "./assets/images/mascot.png";
 import { BottomNav } from "./components/layout/BottomNav";
 import { DailyStreakModal } from "./components/modals/DailyStreakModal";
+import { CraftingModal } from "./components/modals/CraftingModal";
 import { LootBoxModal } from "./components/modals/LootBoxModal";
 import { OfflineEarningsModal } from "./components/modals/OfflineEarningsModal";
 import { CRAFT_RECIPES, canCraftRecipe } from "./data/craft";
@@ -124,6 +125,11 @@ export default function MiningDashboard() {
   const [showLootboxModal, setShowLootboxModal] = useState(false);
   const [lootboxPhase, setLootboxPhase] = useState("idle");
   const [lootboxResult, setLootboxResult] = useState(null);
+
+  // --- crafting popup (forging animation + result reveal) ---
+  const [showCraftModal, setShowCraftModal] = useState(false);
+  const [craftModalPhase, setCraftModalPhase] = useState("idle");
+  const [craftModalRecipe, setCraftModalRecipe] = useState(null);
 
   // --- daily login streak ---
   const [loginStreak, setLoginStreak] = useState(0);
@@ -1067,7 +1073,7 @@ export default function MiningDashboard() {
   // craft a part directly from Materials + AETHER instead of buying it in the Shop
   const handleCraft = async (recipeId) => {
     const recipe = CRAFT_RECIPES.find((r) => r.id === recipeId);
-    if (!recipe) return;
+    if (!recipe) return false;
     if (isBackendOnline) {
       try {
         const { player: p } = await callFunction("game-actions", { action: "craftItem", recipeId });
@@ -1087,10 +1093,11 @@ export default function MiningDashboard() {
         );
       } catch (e) {
         pushToast(e.message || "Crafting failed.", "warning");
+        return false;
       }
-      return;
+      return true;
     }
-    if (!canCraftRecipe(recipe, inventory, core)) return;
+    if (!canCraftRecipe(recipe, inventory, core)) return false;
     setCore((c) => c - recipe.aetherCost);
     addSpend("crafting", recipe.aetherCost);
     setInventory((prev) =>
@@ -1107,6 +1114,31 @@ export default function MiningDashboard() {
       return { ...prev, [recipe.targetId]: Math.max(1, nextLevel) };
     });
     setDailyCraftCount((c) => c + 1);
+    return true;
+  };
+
+  // Wraps handleCraft with the CraftingModal's forging animation: opens the
+  // modal immediately in "crafting" phase, runs the real craft in the
+  // background, holds the animation for a minimum beat so it never just
+  // flashes, then reveals the result (or quietly closes on failure — the
+  // failure toast from handleCraft already told the user what happened).
+  const handleCraftClick = async (recipeId) => {
+    const recipe = CRAFT_RECIPES.find((r) => r.id === recipeId);
+    if (!recipe) return;
+    setCraftModalRecipe(recipe);
+    setCraftModalPhase("crafting");
+    setShowCraftModal(true);
+    const start = Date.now();
+    const ok = await handleCraft(recipeId);
+    const elapsed = Date.now() - start;
+    const minDelay = 950;
+    if (elapsed < minDelay) await new Promise((resolve) => setTimeout(resolve, minDelay - elapsed));
+    if (ok) {
+      setCraftModalPhase("result");
+    } else {
+      setShowCraftModal(false);
+      setCraftModalPhase("idle");
+    }
   };
 
   const handleUnlockSite = async () => {
@@ -1555,7 +1587,7 @@ export default function MiningDashboard() {
             totalHashrate={totalHashrate}
             inventory={inventory}
             onUpgrade={handleLevelUpItem}
-            onCraft={handleCraft}
+            onCraft={handleCraftClick}
             onUpgradeAll={handleUpgradeAll}
             bulkUpgradeNotice={bulkUpgradeNotice}
           />
@@ -1709,6 +1741,15 @@ export default function MiningDashboard() {
         result={lootboxResult}
         core={core}
         onOpen={handleOpenLootbox}
+      />
+      <CraftingModal
+        isOpen={showCraftModal}
+        onClose={() => {
+          setShowCraftModal(false);
+          setCraftModalPhase("idle");
+        }}
+        phase={craftModalPhase}
+        recipe={craftModalRecipe}
       />
       <BottomNav screen={screen} setScreen={setScreen} />
     </div>
