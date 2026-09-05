@@ -3,6 +3,12 @@ import {
 } from "lucide-react";
 import LITHIUM_BATTERY_IMG from "../../assets/images/lithium-battery.png";
 import CARBON_FIBER_IMG from "../../assets/images/carbon-fiber.png";
+import GRAPHENE_WEAVE_IMG from "../../assets/images/graphene-weave.png";
+import PLASMA_CELL_IMG from "../../assets/images/plasma-cell.png";
+import CRYO_CORE_IMG from "../../assets/images/cryo-core.png";
+import AI_CORE_FRAGMENT_IMG from "../../assets/images/ai-core-fragment.png";
+import NEUTRON_ALLOY_IMG from "../../assets/images/neutron-alloy.png";
+import SINGULARITY_SHARD_IMG from "../../assets/images/singularity-shard.png";
 import AIR_COOLER_IMG from "../../assets/images/air-cooler.png";
 import CORE_CRYSTAL_IMG from "../../assets/images/core-crystal.png";
 import GTX1660_IMG from "../../assets/images/gtx1660.png";
@@ -91,6 +97,78 @@ export function CarbonFiberIcon({ size = 24, style = {}, className = "" }) {
     <img
       src={CARBON_FIBER_IMG}
       alt="Carbon Fiber"
+      draggable={false}
+      className={className}
+      style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
+    />
+  );
+}
+
+export function GrapheneWeaveIcon({ size = 24, style = {}, className = "" }) {
+  return (
+    <img
+      src={GRAPHENE_WEAVE_IMG}
+      alt="Graphene Weave"
+      draggable={false}
+      className={className}
+      style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
+    />
+  );
+}
+
+export function PlasmaCellIcon({ size = 24, style = {}, className = "" }) {
+  return (
+    <img
+      src={PLASMA_CELL_IMG}
+      alt="Plasma Cell"
+      draggable={false}
+      className={className}
+      style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
+    />
+  );
+}
+
+export function CryoCoreIcon({ size = 24, style = {}, className = "" }) {
+  return (
+    <img
+      src={CRYO_CORE_IMG}
+      alt="Cryo Core"
+      draggable={false}
+      className={className}
+      style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
+    />
+  );
+}
+
+export function AiCoreFragmentIcon({ size = 24, style = {}, className = "" }) {
+  return (
+    <img
+      src={AI_CORE_FRAGMENT_IMG}
+      alt="AI Core Fragment"
+      draggable={false}
+      className={className}
+      style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
+    />
+  );
+}
+
+export function NeutronAlloyIcon({ size = 24, style = {}, className = "" }) {
+  return (
+    <img
+      src={NEUTRON_ALLOY_IMG}
+      alt="Neutron Alloy"
+      draggable={false}
+      className={className}
+      style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
+    />
+  );
+}
+
+export function SingularityShardIcon({ size = 24, style = {}, className = "" }) {
+  return (
+    <img
+      src={SINGULARITY_SHARD_IMG}
+      alt="Singularity Shard"
       draggable={false}
       className={className}
       style={{ width: size, height: size, objectFit: "contain", display: "inline-block", ...style }}
