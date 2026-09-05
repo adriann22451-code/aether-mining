@@ -1,6 +1,8 @@
 import { useState } from "react";
 import {
   ArrowUpCircle,
+  Hammer,
+  TrendingUp,
 } from "lucide-react";
 import { CraftRecipeCard } from "../components/cards/CraftRecipeCard";
 import { PartCard } from "../components/cards/PartCard";
@@ -19,29 +21,46 @@ export function CraftScreen({ onBack, ownedItems, core, totalHashrate, inventory
     });
   });
 
+  const tabs = [
+    { key: "upgrade", label: "Upgrade", icon: TrendingUp, count: ownedList.length },
+    { key: "craft", label: "Craft", icon: Hammer, count: CRAFT_RECIPES.length },
+  ];
+
   return (
     <div className="px-4 pt-5 pb-6">
       <ScreenHeader title="CRAFT" onBack={onBack} />
 
-      <div className="mt-4 grid grid-cols-2 gap-1.5 bg-white/5 border border-white/10 rounded-xl p-1">
-        <button
-          type="button"
-          onClick={() => setTab("upgrade")}
-          className={`rounded-lg py-2 text-[11.5px] font-bold tracking-wide transition ${
-            tab === "upgrade" ? "bg-blue-600 text-white shadow-[0_0_14px_rgba(37,99,235,0.55)]" : "text-slate-400"
-          }`}
-        >
-          UPGRADE
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("craft")}
-          className={`rounded-lg py-2 text-[11.5px] font-bold tracking-wide transition ${
-            tab === "craft" ? "bg-blue-600 text-white shadow-[0_0_14px_rgba(37,99,235,0.55)]" : "text-slate-400"
-          }`}
-        >
-          CRAFT
-        </button>
+      <div className="mt-4 flex gap-1.5">
+        {tabs.map((t) => {
+          const TabIcon = t.icon;
+          const active = tab === t.key;
+          return (
+            <button
+              type="button"
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`relative flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2.5 border transition ${
+                active
+                  ? "bg-gradient-to-b from-fuchsia-600/90 to-purple-700/90 border-fuchsia-400/50 shadow-[0_0_16px_-2px_rgba(217,70,239,0.6)]"
+                  : "bg-white/[0.04] border-white/10"
+              }`}
+            >
+              <TabIcon size={14} className={active ? "text-white" : "text-slate-500"} />
+              <span className={`text-[11px] font-extrabold tracking-wide uppercase ${active ? "text-white" : "text-slate-500"}`}>
+                {t.label}
+              </span>
+              {t.count > 0 && (
+                <span
+                  className={`min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[8.5px] font-extrabold ${
+                    active ? "bg-amber-400 text-[#1a1200]" : "bg-white/10 text-slate-300"
+                  }`}
+                >
+                  {t.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {tab === "upgrade" ? (
@@ -79,7 +98,10 @@ export function CraftScreen({ onBack, ownedItems, core, totalHashrate, inventory
         </>
       ) : (
         <>
-          <div className="mt-3 text-[11px] text-slate-500">Combine Materials + AETHER to craft a part directly, no Shop trip needed.</div>
+          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-slate-500">
+            <Hammer size={12} className="text-fuchsia-400 shrink-0" />
+            Combine Materials + AETHER to craft a part directly, no Shop trip needed.
+          </div>
           <div className="mt-3 flex flex-col gap-2.5">
             {CRAFT_RECIPES.map((recipe) => (
               <CraftRecipeCard key={recipe.id} recipe={recipe} inventory={inventory} core={core} onCraft={onCraft} />
