@@ -10,10 +10,38 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ScreenHeader } from "../components/layout/ScreenHeader";
-import { GUILD_COLOR_PRESETS, GUILD_CREATE_COST, GUILD_MAX_MEMBERS, guildMilestoneFor, guildRewardFor } from "../data/guild";
+import {
+  DEFAULT_GUILD_ICON, GUILD_COLOR_PRESETS, GUILD_CREATE_COST, GUILD_ICON_PRESETS, GUILD_MAX_MEMBERS,
+  guildIconSrc, guildMilestoneFor, guildRewardFor,
+} from "../data/guild";
 import { formatHashrate, formatInt } from "../lib/format";
 
 const CONFETTI_COLORS = ["#facc15", "#22d3ee", "#c084fc", "#4ade80", "#f472b6"];
+
+// Guild emblem images live in public/guild-icons and may not have been
+// generated/uploaded yet — fall back to the plain Shield glyph so a
+// missing file never shows a broken-image icon.
+function GuildEmblem({ iconKey, color, size = 44, className = "" }) {
+  const [failed, setFailed] = useState(false);
+  const src = guildIconSrc(iconKey);
+  return (
+    <div
+      className={`shrink-0 rounded-2xl flex items-center justify-center overflow-hidden ${className}`}
+      style={{ width: size, height: size, background: `${color}22`, border: `1.5px solid ${color}66` }}
+    >
+      {!failed && iconKey ? (
+        <img
+          src={src}
+          alt=""
+          className="w-full h-full object-contain"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <Shield size={Math.round(size * 0.5)} style={{ color }} />
+      )}
+    </div>
+  );
+}
 
 export function GuildScreen({
   onBack, core, guildInfo, guildPoints, isOwner, roster, guildList,
@@ -24,6 +52,7 @@ export function GuildScreen({
   const [name, setName] = useState("");
   const [tag, setTag] = useState("");
   const [color, setColor] = useState(GUILD_COLOR_PRESETS[0]);
+  const [icon, setIcon] = useState(DEFAULT_GUILD_ICON);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [kickTarget, setKickTarget] = useState(null);
 
@@ -75,6 +104,26 @@ export function GuildScreen({
                 />
               ))}
             </div>
+
+            <div className="mt-3 text-[10px] font-bold text-slate-400 uppercase tracking-wide">Emblem</div>
+            <div className="mt-1.5 grid grid-cols-5 gap-2">
+              {GUILD_ICON_PRESETS.map((preset) => {
+                const isSel = icon === preset.key;
+                return (
+                  <button
+                    key={preset.key}
+                    type="button"
+                    onClick={() => setIcon(preset.key)}
+                    className="flex flex-col items-center rounded-2xl transition"
+                    style={{ boxShadow: isSel ? `0 0 0 2px #12121e, 0 0 0 4px ${color}` : "none", opacity: isSel ? 1 : 0.55 }}
+                    title={preset.label}
+                  >
+                    <GuildEmblem iconKey={preset.key} color={color} size={40} />
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="mt-3 flex gap-2">
               <button
                 type="button"
@@ -86,7 +135,7 @@ export function GuildScreen({
               <button
                 type="button"
                 disabled={name.trim().length < 3 || tag.trim().length < 2 || core < GUILD_CREATE_COST}
-                onClick={() => onCreateGuild(name.trim(), tag.trim(), color)}
+                onClick={() => onCreateGuild(name.trim(), tag.trim(), color, icon)}
                 className="flex-1 rounded-lg bg-gradient-to-b from-fuchsia-500 to-purple-700 py-2 text-[11.5px] font-extrabold text-white shadow-[0_2px_10px_-2px_rgba(217,70,239,0.6)] active:scale-[0.97] transition disabled:opacity-40"
               >
                 Found it — {formatInt(GUILD_CREATE_COST)}
@@ -108,14 +157,14 @@ export function GuildScreen({
           {(guildList || []).map((g) => (
             <div key={g.id} className="rounded-2xl bg-white/5 border border-white/10 p-3.5 backdrop-blur-sm">
               <div className="flex items-center gap-2.5">
-                <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-[11px] font-extrabold"
-                  style={{ background: `${g.color}22`, border: `1px solid ${g.color}55`, color: g.color }}
-                >
-                  {g.tag}
-                </div>
+                <GuildEmblem iconKey={g.icon} color={g.color} size={44} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-bold text-white truncate">{g.name}</div>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="text-[13px] font-bold text-white truncate">{g.name}</div>
+                    <span className="shrink-0 text-[9px] font-extrabold px-1.5 py-0.5 rounded" style={{ background: `${g.color}22`, color: g.color }}>
+                      {g.tag}
+                    </span>
+                  </div>
                   <div className="text-[10.5px] text-slate-400">
                     {g.member_count}/{GUILD_MAX_MEMBERS} members · led by {g.ownerName}
                   </div>
@@ -154,14 +203,14 @@ export function GuildScreen({
       >
         <Shield size={90} className="absolute -right-3 -bottom-4 opacity-[0.08]" style={{ color: guildInfo.color }} />
         <div className="relative flex items-center gap-3">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-[13px] font-extrabold"
-            style={{ background: `${guildInfo.color}25`, border: `1.5px solid ${guildInfo.color}66`, color: guildInfo.color }}
-          >
-            {guildInfo.tag}
-          </div>
+          <GuildEmblem iconKey={guildInfo.icon} color={guildInfo.color} size={56} />
           <div className="flex-1 min-w-0">
-            <div className="text-[16px] font-extrabold text-white truncate">{guildInfo.name}</div>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="text-[16px] font-extrabold text-white truncate">{guildInfo.name}</div>
+              <span className="shrink-0 text-[9.5px] font-extrabold px-1.5 py-0.5 rounded" style={{ background: `${guildInfo.color}25`, color: guildInfo.color }}>
+                {guildInfo.tag}
+              </span>
+            </div>
             <div className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-slate-300">
               <Users size={11} />
               {guildInfo.member_count}/{GUILD_MAX_MEMBERS} members
