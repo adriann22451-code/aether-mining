@@ -881,7 +881,7 @@ export default function MiningDashboard() {
                   image: poolItem?.image,
                   iconColor: poolItem?.iconColor,
                   selected: false,
-                  desc: "Won from a Loot Box.",
+                  desc: poolItem?.desc || "Won from a Loot Box.",
                 },
               ];
             });
@@ -932,7 +932,7 @@ export default function MiningDashboard() {
               image: result.image,
               iconColor: result.iconColor,
               selected: false,
-              desc: "Won from a Loot Box.",
+              desc: result.desc || "Won from a Loot Box.",
             },
           ];
         });
