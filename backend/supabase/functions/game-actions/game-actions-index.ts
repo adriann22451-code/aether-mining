@@ -195,18 +195,18 @@ const CRAFT_RECIPES: Record<string, { targetId: string; materials: { name: strin
   craft_gpu2: { targetId: "gpu_2", materials: [{ name: "Nano Alloy", qty: 4 }, { name: "Quantum Alloy", qty: 2 }], aetherCost: 4000 },
   craft_drone1: { targetId: "drone_1", materials: [{ name: "Metal Ingot", qty: 3 }, { name: "Nano Alloy", qty: 2 }], aetherCost: 400 },
   // Epic
-  craft_cooling3: { targetId: "cooling_3", materials: [{ name: "Quantum Alloy", qty: 3 }, { name: "Carbon Fiber", qty: 5 }], aetherCost: 12000 },
-  craft_battery3: { targetId: "battery_3", materials: [{ name: "Quantum Alloy", qty: 3 }, { name: "Core Crystal", qty: 3 }], aetherCost: 12000 },
+  craft_cooling3: { targetId: "cooling_3", materials: [{ name: "Cryo Core", qty: 3 }, { name: "Carbon Fiber", qty: 4 }], aetherCost: 12000 },
+  craft_battery3: { targetId: "battery_3", materials: [{ name: "Plasma Cell", qty: 3 }, { name: "Core Crystal", qty: 3 }], aetherCost: 12000 },
   craft_processor3: { targetId: "processor_3", materials: [{ name: "Quantum Alloy", qty: 3 }, { name: "Core Crystal", qty: 4 }], aetherCost: 17500 },
-  craft_rack3: { targetId: "rack_3", materials: [{ name: "Quantum Alloy", qty: 2 }, { name: "Carbon Fiber", qty: 6 }], aetherCost: 15000 },
-  craft_gpu3: { targetId: "gpu_3", materials: [{ name: "Nano Alloy", qty: 5 }, { name: "Quantum Alloy", qty: 3 }], aetherCost: 20000 },
-  // Legendary
-  craft_cooling4: { targetId: "cooling_4", materials: [{ name: "Quantum Alloy", qty: 6 }, { name: "Carbon Fiber", qty: 6 }], aetherCost: 65000 },
-  craft_battery4: { targetId: "battery_4", materials: [{ name: "Quantum Alloy", qty: 6 }, { name: "Core Crystal", qty: 6 }], aetherCost: 65000 },
-  craft_processor4: { targetId: "processor_4", materials: [{ name: "Quantum Alloy", qty: 7 }, { name: "Core Crystal", qty: 6 }], aetherCost: 95000 },
-  craft_rack4: { targetId: "rack_4", materials: [{ name: "Quantum Alloy", qty: 6 }, { name: "Carbon Fiber", qty: 8 }], aetherCost: 80000 },
-  craft_gpu4: { targetId: "gpu_4", materials: [{ name: "Quantum Alloy", qty: 8 }, { name: "Core Crystal", qty: 5 }], aetherCost: 110000 },
-  craft_drone2: { targetId: "drone_2", materials: [{ name: "Quantum Alloy", qty: 5 }, { name: "Core Crystal", qty: 4 }], aetherCost: 32000 },
+  craft_rack3: { targetId: "rack_3", materials: [{ name: "Graphene Weave", qty: 4 }, { name: "Carbon Fiber", qty: 3 }], aetherCost: 15000 },
+  craft_gpu3: { targetId: "gpu_3", materials: [{ name: "Nano Alloy", qty: 4 }, { name: "Graphene Weave", qty: 3 }], aetherCost: 20000 },
+  // Legendary — always gated behind Singularity Shard
+  craft_cooling4: { targetId: "cooling_4", materials: [{ name: "Cryo Core", qty: 6 }, { name: "Singularity Shard", qty: 2 }], aetherCost: 65000 },
+  craft_battery4: { targetId: "battery_4", materials: [{ name: "Plasma Cell", qty: 6 }, { name: "Singularity Shard", qty: 2 }], aetherCost: 65000 },
+  craft_processor4: { targetId: "processor_4", materials: [{ name: "AI Core Fragment", qty: 4 }, { name: "Singularity Shard", qty: 2 }], aetherCost: 95000 },
+  craft_rack4: { targetId: "rack_4", materials: [{ name: "Neutron Alloy", qty: 4 }, { name: "Singularity Shard", qty: 2 }], aetherCost: 80000 },
+  craft_gpu4: { targetId: "gpu_4", materials: [{ name: "Neutron Alloy", qty: 4 }, { name: "Singularity Shard", qty: 2 }], aetherCost: 110000 },
+  craft_drone2: { targetId: "drone_2", materials: [{ name: "Quantum Alloy", qty: 5 }, { name: "Singularity Shard", qty: 1 }], aetherCost: 32000 },
 };
 
 // ---------- Lootbox — keep this table in sync with data/lootbox.js on
@@ -217,12 +217,16 @@ const CRAFT_RECIPES: Record<string, { targetId: string; materials: { name: strin
 const LOOTBOX_COST = 500;
 const MATERIAL_POOL_COMMON = ["Metal Ingot", "Metal Plate", "Storage Unit", "Fuel Barrel"];
 const MATERIAL_POOL_UNCOMMON = ["Nano Alloy", "Core Crystal", "Carbon Fiber"];
+const MATERIAL_POOL_EPIC = ["Graphene Weave", "Plasma Cell", "Cryo Core"];
+const MATERIAL_POOL_LEGENDARY = ["AI Core Fragment", "Neutron Alloy", "Singularity Shard"];
 const LOOTBOX_TABLE: { weight: number; type: "aether" | "material" | "part"; min?: number; max?: number; pool?: string[] }[] = [
   { weight: 40, type: "aether", min: 60, max: 220 },
   { weight: 15, type: "aether", min: 250, max: 600 },
   { weight: 20, type: "material", pool: MATERIAL_POOL_COMMON, min: 3, max: 8 },
   { weight: 12, type: "material", pool: MATERIAL_POOL_UNCOMMON, min: 1, max: 3 },
   { weight: 5, type: "material", pool: ["Quantum Alloy"], min: 1, max: 2 },
+  { weight: 4, type: "material", pool: MATERIAL_POOL_EPIC, min: 1, max: 2 },
+  { weight: 1, type: "material", pool: MATERIAL_POOL_LEGENDARY, min: 1, max: 1 },
   { weight: 3, type: "aether", min: 2000, max: 4000 },
   { weight: 5, type: "part" },
 ];
