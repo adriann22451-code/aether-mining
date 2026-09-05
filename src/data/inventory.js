@@ -1,4 +1,4 @@
-import { BatteryIcon, CarbonFiberIcon, CoolingIcon, CoreCrystalIcon, DroneIcon, FuelBarrelIcon, MetalIngotIcon, MetalPlateIcon, NanoAlloyIcon, QuantumAlloyIcon, RackIcon, StorageUnitIcon } from "../components/icons/CustomIcons";
+import { BatteryIcon, CarbonFiberIcon, CoolingIcon, CoreCrystalIcon, DroneIcon, FuelBarrelIcon, MetalIngotIcon, MetalPlateIcon, NanoAlloyIcon, QuantumAlloyIcon, RackIcon, StorageUnitIcon, GrapheneWeaveIcon, PlasmaCellIcon, CryoCoreIcon, AiCoreFragmentIcon, NeutronAlloyIcon, SingularityShardIcon } from "../components/icons/CustomIcons";
 import HYPER_RIG_IMG from "../assets/images/hyper-rig.png";
 import STARTER_RIG_IMG from "../assets/images/starter-rig.png";
 import MINING_DRONE_ITEM_IMG from "../assets/images/mining-drone-item.png";
@@ -20,6 +20,12 @@ export const inventoryCatalog = [
   { id: 11, name: "Nano Alloy", type: "material", tag: "x9", icon: NanoAlloyIcon, iconColor: "#818cf8", selected: false, desc: "A nano-scale metal alloy with high conductivity, used for precision chip components." },
   { id: 12, name: "Quantum Alloy", type: "material", tag: "x4", icon: QuantumAlloyIcon, iconColor: "#a78bfa", selected: false, desc: "An exotic material engineered through quantum processes. Extremely rare, used for the highest-tier upgrades." },
   { id: 13, name: "Carbon Fiber", type: "material", tag: "x30", icon: CarbonFiberIcon, iconColor: "#7dd3fc", selected: false, desc: "Carbon fiber that's light yet strong, used to cut casing weight without sacrificing strength." },
+  { id: 14, name: "Graphene Weave", type: "material", tag: "x0", icon: GrapheneWeaveIcon, iconColor: "#22d3ee", selected: false, desc: "A hex-lattice graphene sheet, stronger and lighter than carbon fiber. Used in Epic-tier GPU and Rack crafting." },
+  { id: 15, name: "Plasma Cell", type: "material", tag: "x0", icon: PlasmaCellIcon, iconColor: "#ec4899", selected: false, desc: "A sealed canister of contained plasma. Used in Epic and Legendary Battery crafting." },
+  { id: 16, name: "Cryo Core", type: "material", tag: "x0", icon: CryoCoreIcon, iconColor: "#7dd3fc", selected: false, desc: "A frozen crystalline core radiating sub-zero cold. Used in Epic and Legendary Cooling crafting." },
+  { id: 17, name: "AI Core Fragment", type: "material", tag: "x0", icon: AiCoreFragmentIcon, iconColor: "#4ade80", selected: false, desc: "A shard of a shattered neural processor, still tracing live circuits. Used in Legendary Processor crafting." },
+  { id: 18, name: "Neutron Alloy", type: "material", tag: "x0", icon: NeutronAlloyIcon, iconColor: "#a78bfa", selected: false, desc: "A metal denser and rarer than Quantum Alloy. Used in Legendary GPU and Rack crafting." },
+  { id: 19, name: "Singularity Shard", type: "material", tag: "x0", icon: SingularityShardIcon, iconColor: "#d946ef", selected: false, desc: "A fragment torn from a collapsed singularity. The rarest material in existence — required for every Legendary craft." },
 ];
 
 export function bumpInventoryTag(tag) {

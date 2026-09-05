@@ -16,6 +16,8 @@ export const LOOTBOX_REWARDS = [
   { weight: 20, type: "material", pool: ["Metal Ingot", "Metal Plate", "Storage Unit", "Fuel Barrel"], min: 3, max: 8 },
   { weight: 12, type: "material", pool: ["Nano Alloy", "Core Crystal", "Carbon Fiber"], min: 1, max: 3 },
   { weight: 5, type: "material", pool: ["Quantum Alloy"], min: 1, max: 2 },
+  { weight: 4, type: "material", pool: ["Graphene Weave", "Plasma Cell", "Cryo Core"], min: 1, max: 2 },
+  { weight: 1, type: "material", pool: ["AI Core Fragment", "Neutron Alloy", "Singularity Shard"], min: 1, max: 1 },
   { weight: 3, type: "aether", label: "JACKPOT AETHER", min: 2000, max: 4000 },
   { weight: 5, type: "part" },
 ];

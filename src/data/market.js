@@ -64,6 +64,12 @@ export const TRADE_BASE_PRICES = {
   "Nano Alloy": 1200,
   "Quantum Alloy": 4500,
   "Carbon Fiber": 400,
+  "Graphene Weave": 1400,
+  "Plasma Cell": 1600,
+  "Cryo Core": 1500,
+  "AI Core Fragment": 3200,
+  "Neutron Alloy": 5500,
+  "Singularity Shard": 9000,
 };
 
 export const TRADE_ITEM_POOL = inventoryCatalog
