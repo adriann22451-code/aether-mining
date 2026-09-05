@@ -762,13 +762,13 @@ export default function MiningDashboard() {
     }
   };
 
-  const handleCreateGuild = async (name, tag, color) => {
+  const handleCreateGuild = async (name, tag, color, icon) => {
     if (!isBackendOnline) {
       pushToast("Creating a guild needs a live connection.", "warning");
       return;
     }
     try {
-      const { player: p, guild } = await callFunction("guild-actions", { action: "create", name, tag, color });
+      const { player: p, guild } = await callFunction("guild-actions", { action: "create", name, tag, color, icon });
       setCore(Number(p.core));
       setGuildInfo(guild);
       setGuildPoints(0);
