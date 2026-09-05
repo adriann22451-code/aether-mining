@@ -1,6 +1,9 @@
 import { useState } from "react";
 import {
-  Inbox,
+  Boxes,
+  Cpu,
+  LayoutGrid,
+  Layers,
 } from "lucide-react";
 import { AetherCoinIcon } from "../components/icons/CustomIcons";
 import { InventoryItemCard } from "../components/cards/InventoryItemCard";
@@ -13,13 +16,6 @@ import { PART_CATEGORIES } from "../data/parts";
 export function InventoryScreen({ onBack, inventory, autoSellEnabled, onToggleAutoSell, ownedItems, core, onUpgrade }) {
   const [tab, setTab] = useState("all");
   const [selectedItem, setSelectedItem] = useState(null);
-  const tabs = [
-    { key: "all", label: "ALL" },
-    { key: "parts", label: "PARTS" },
-    { key: "item", label: "ITEM" },
-    { key: "material", label: "MATERIAL" },
-  ];
-  const filtered = tab === "all" ? inventory : inventory.filter((i) => i.type === tab);
 
   const ownedList = [];
   PART_CATEGORIES.forEach((cat) => {
@@ -29,23 +25,49 @@ export function InventoryScreen({ onBack, inventory, autoSellEnabled, onToggleAu
     });
   });
 
+  const tabs = [
+    { key: "all", label: "All", icon: LayoutGrid, count: inventory.length },
+    { key: "parts", label: "Parts", icon: Cpu, count: ownedList.length },
+    { key: "item", label: "Items", icon: Boxes, count: inventory.filter((i) => i.type === "item").length },
+    { key: "material", label: "Mats", icon: Layers, count: inventory.filter((i) => i.type === "material").length },
+  ];
+  const filtered = tab === "all" ? inventory : inventory.filter((i) => i.type === tab);
+
   return (
     <div className="px-4 pt-5 pb-6">
       <ScreenHeader title="INVENTORY" onBack={onBack} />
 
-      <div className="mt-4 grid grid-cols-4 gap-1.5 bg-white/5 border border-white/10 rounded-xl p-1">
-        {tabs.map((t) => (
-          <button
-            type="button"
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`rounded-lg py-2 text-[10.5px] font-bold tracking-wide transition ${
-              tab === t.key ? "bg-blue-600 text-white shadow-[0_0_14px_rgba(37,99,235,0.55)]" : "text-slate-400"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="mt-4 flex gap-1.5">
+        {tabs.map((t) => {
+          const TabIcon = t.icon;
+          const active = tab === t.key;
+          return (
+            <button
+              type="button"
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`relative flex-1 flex flex-col items-center justify-center gap-1 rounded-xl py-2.5 border transition ${
+                active
+                  ? "bg-gradient-to-b from-blue-600/90 to-indigo-700/90 border-blue-400/50 shadow-[0_0_16px_-2px_rgba(37,99,235,0.65)]"
+                  : "bg-white/[0.04] border-white/10"
+              }`}
+            >
+              <TabIcon size={15} className={active ? "text-white" : "text-slate-500"} />
+              <span className={`text-[9px] font-extrabold tracking-wide uppercase ${active ? "text-white" : "text-slate-500"}`}>
+                {t.label}
+              </span>
+              {t.count > 0 && (
+                <span
+                  className={`absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[8.5px] font-extrabold ${
+                    active ? "bg-amber-400 text-[#1a1200]" : "bg-white/10 text-slate-300"
+                  }`}
+                >
+                  {t.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {tab === "parts" ? (
@@ -81,11 +103,20 @@ export function InventoryScreen({ onBack, inventory, autoSellEnabled, onToggleAu
             </div>
           )}
 
-          <div className="mt-4 grid grid-cols-3 gap-2.5">
-            {filtered.map((item) => (
-              <InventoryItemCard key={item.id} item={item} onSelect={setSelectedItem} />
-            ))}
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{filtered.length} items</span>
+            <span className="text-[9.5px] text-slate-600">Tap a slot for details</span>
           </div>
+
+          {filtered.length === 0 ? (
+            <div className="text-center text-[12px] text-slate-500 mt-8">Nothing here yet.</div>
+          ) : (
+            <div className="mt-2.5 grid grid-cols-4 gap-2.5">
+              {filtered.map((item) => (
+                <InventoryItemCard key={item.id} item={item} onSelect={setSelectedItem} />
+              ))}
+            </div>
+          )}
 
           <button
             type="button"
