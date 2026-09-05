@@ -1,5 +1,6 @@
 import { Zap } from "lucide-react";
-import { marketCatalog } from "../../data/market";
+import { marketCatalog, resolveInventoryRarity } from "../../data/market";
+import { RARITY_COLORS } from "../../data/parts";
 import { formatHashrate } from "../../lib/format";
 
 export function ItemDetailModal({ item, onClose }) {
@@ -12,6 +13,9 @@ export function ItemDetailModal({ item, onClose }) {
   const Icon = item.icon || marketRef?.icon;
   const displayColor = item.iconColor || marketRef?.iconColor || "#94a3b8";
   const displayDesc = item.desc || (marketRef ? `Bought from the Marketplace (${marketRef.rarity}). Grants +${formatHashrate(marketRef.hpBonus)} permanent hashrate.` : "");
+  const rarity = resolveInventoryRarity(item, marketRef);
+  const rarityColor = RARITY_COLORS[rarity] || displayColor;
+  const isShiny = rarity === "Epic" || rarity === "Legendary";
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
@@ -24,24 +28,32 @@ export function ItemDetailModal({ item, onClose }) {
         <div className="w-10 h-1 rounded-full bg-white/15 mx-auto mb-4 sm:hidden" />
         <div className="flex items-center gap-3">
           <div
-            className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0"
+            className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0"
             style={{
-              background: "linear-gradient(160deg, #1a2338 0%, #0d1420 100%)",
-              border: `1px solid ${displayColor}55`,
-              boxShadow: `0 0 18px -3px ${displayColor}99`,
+              "--rglow": `${rarityColor}${rarity === "Legendary" ? "cc" : "99"}`,
+              background: `linear-gradient(150deg, ${rarityColor}26 0%, #0a0d16 65%)`,
+              border: `1.5px solid ${rarityColor}66`,
+              animation: isShiny ? `rarityPulse ${rarity === "Legendary" ? "1.6s" : "2.2s"} ease-in-out infinite` : undefined,
             }}
           >
-            {displayImage ? (
-              <img src={displayImage} alt={item.name} className="w-full h-full object-contain rounded-lg" />
-            ) : Icon ? (
-              <Icon size={44} style={{ color: displayColor }} />
-            ) : null}
+            <div className="absolute inset-0 flex items-center justify-center p-2.5">
+              {displayImage ? (
+                <img src={displayImage} alt={item.name} className="w-full h-full object-contain" />
+              ) : Icon ? (
+                <Icon size={40} style={{ color: rarityColor }} />
+              ) : null}
+            </div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[15px] font-extrabold text-white truncate">{item.name}</div>
-            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
-              {item.type === "rig" ? "Rig" : item.type === "item" ? "Item" : "Material"} · {item.tag}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
+                {item.type === "rig" ? "Rig" : item.type === "item" ? "Item" : "Material"} · {item.tag}
+              </span>
             </div>
+            <span className="mt-1 inline-block text-[10px] font-extrabold uppercase tracking-wide" style={{ color: rarityColor }}>
+              {rarity}
+            </span>
           </div>
         </div>
 
