@@ -1243,6 +1243,7 @@ export default function MiningDashboard() {
           icon: poolItem ? poolItem.icon : Package,
           image: poolItem ? poolItem.image : undefined,
           iconColor: poolItem ? poolItem.iconColor : "#94a3b8",
+          rarity: poolItem ? poolItem.rarity : "Common",
         };
       });
       setMarketListings(resolved.filter((l) => l.seller !== playerName));
@@ -1562,6 +1563,7 @@ export default function MiningDashboard() {
           <MarketScreen
             onBack={() => setScreen("dashboard")}
             core={core}
+            inventory={inventory}
             marketListings={marketListings}
             myListings={myListings}
             saleNotice={saleNotice}
