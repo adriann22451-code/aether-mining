@@ -4,6 +4,7 @@ import ENERGY_BATTERY_SPECIAL_IMG from "../assets/images/energy-battery-special.
 import MINING_DRONE_MK1_IMG from "../assets/images/mining-drone-mk1.png";
 import RTX_CORE_X9_IMG from "../assets/images/rtx-core-x9.png";
 import { inventoryCatalog } from "./inventory";
+import { RARITY_COLORS } from "./parts";
 
 // Trade materials/items don't carry an explicit rarity in the inventory
 // catalog, so we derive one from the base trade price — gives the P2P
@@ -15,6 +16,22 @@ export function materialRarityForPrice(basePrice) {
   if (basePrice >= 600) return "Rare";
   if (basePrice >= 300) return "Uncommon";
   return "Common";
+}
+
+// Reverse-lookup so items with no explicit rarity (e.g. the starter rigs in
+// inventoryCatalog) can still be slotted into a tier — their iconColor was
+// already chosen to match one of the rarity colors.
+const RARITY_BY_COLOR = Object.fromEntries(Object.entries(RARITY_COLORS).map(([tier, color]) => [color, tier]));
+
+// Single source of truth the Inventory grid + detail modal both use to pick
+// a rarity tier for ANY inventory row — rigs, special-shop items, or plain
+// trade materials — so every card in the Bag gets the same border/glow
+// language as Shop/Market/Codex instead of looking flat.
+export function resolveInventoryRarity(item, marketRef) {
+  if (marketRef?.rarity) return marketRef.rarity;
+  if (TRADE_BASE_PRICES[item.name]) return materialRarityForPrice(TRADE_BASE_PRICES[item.name]);
+  const color = item.iconColor || marketRef?.iconColor;
+  return RARITY_BY_COLOR[color] || "Common";
 }
 
 export const marketCatalog = [
