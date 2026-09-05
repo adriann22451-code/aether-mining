@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  ArrowUpCircle,
   Boxes,
   Cpu,
   LayoutGrid,
@@ -12,8 +13,20 @@ import { ScreenHeader } from "../components/layout/ScreenHeader";
 import { ItemDetailModal } from "../components/modals/ItemDetailModal";
 import { AUTO_SELL_CAP } from "../data/market";
 import { PART_CATEGORIES } from "../data/parts";
+import { formatHashrate } from "../lib/format";
 
-export function InventoryScreen({ onBack, inventory, autoSellEnabled, onToggleAutoSell, ownedItems, core, onUpgrade }) {
+export function InventoryScreen({
+  onBack,
+  inventory,
+  autoSellEnabled,
+  onToggleAutoSell,
+  ownedItems,
+  core,
+  onUpgrade,
+  totalHashrate,
+  onUpgradeAll,
+  bulkUpgradeNotice,
+}) {
   const [tab, setTab] = useState("all");
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -72,7 +85,29 @@ export function InventoryScreen({ onBack, inventory, autoSellEnabled, onToggleAu
 
       {tab === "parts" ? (
         <div className="mt-4 flex flex-col gap-2.5">
-          <div className="text-[10.5px] text-slate-500 -mt-1 mb-1">Your rig parts — tap UPGRADE right on the card to level one up. Need to upgrade a lot at once? Use the Craft menu.</div>
+          <div className="rounded-xl bg-gradient-to-br from-indigo-950/70 via-[#140a2e]/80 to-purple-950/60 border border-indigo-400/20 px-4 py-2 text-center shadow-[0_0_25px_-10px_rgba(124,58,237,0.35)]">
+            <div className="text-[9px] tracking-[0.22em] text-slate-400 font-semibold">TOTAL HASHRATE</div>
+            <div className="mt-0.5 text-xl font-extrabold text-white">{formatHashrate(totalHashrate)}</div>
+          </div>
+
+          {bulkUpgradeNotice && (
+            <div className="rounded-xl bg-emerald-500/10 border border-emerald-400/30 px-3 py-2 text-[11.5px] font-semibold text-emerald-300 text-center">
+              {bulkUpgradeNotice}
+            </div>
+          )}
+
+          {ownedList.length > 0 && (
+            <button
+              type="button"
+              onClick={onUpgradeAll}
+              className="w-full rounded-xl py-2.5 flex items-center justify-center gap-1.5 text-[12px] font-extrabold text-white bg-gradient-to-b from-emerald-500 to-teal-600 shadow-[0_0_14px_-2px_rgba(16,185,129,0.5)] active:scale-[0.98] transition"
+            >
+              <ArrowUpCircle size={14} />
+              UPGRADE ALL (cheapest first)
+            </button>
+          )}
+
+          <div className="text-[10.5px] text-slate-500 -mt-1 mb-1">Your rig parts — tap UPGRADE right on the card to level one up. Need a new part? Use the Craft menu.</div>
           {ownedList.length === 0 && (
             <div className="text-center text-[12px] text-slate-500 mt-6">No parts yet. Check your Inbox or buy some in the SHOP menu.</div>
           )}
