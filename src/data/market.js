@@ -5,6 +5,18 @@ import MINING_DRONE_MK1_IMG from "../assets/images/mining-drone-mk1.png";
 import RTX_CORE_X9_IMG from "../assets/images/rtx-core-x9.png";
 import { inventoryCatalog } from "./inventory";
 
+// Trade materials/items don't carry an explicit rarity in the inventory
+// catalog, so we derive one from the base trade price — gives the P2P
+// Marketplace the same rarity-tier visual language (frames, glow) as the
+// Shop and Codex screens.
+export function materialRarityForPrice(basePrice) {
+  if (basePrice >= 2500) return "Legendary";
+  if (basePrice >= 1000) return "Epic";
+  if (basePrice >= 600) return "Rare";
+  if (basePrice >= 300) return "Uncommon";
+  return "Common";
+}
+
 export const marketCatalog = [
   { id: 1, name: "RTX CORE X9", rarity: "Epic", price: 15000, stock: 24, hpBonus: 120e6, icon: RackIcon, image: RTX_CORE_X9_IMG, iconColor: "#c084fc", desc: "A limited-run overclocked rack module built for serious hashrate gains." },
   { id: 2, name: "Cooling System XL", rarity: "Rare", price: 3250, stock: 18, hpBonus: 25e6, coolingBonus: 45e6, icon: CoolingIcon, image: COOLING_SYSTEM_XL_IMG, iconColor: "#38bdf8", desc: "Adds hashrate AND boosts your Cooling Capacity, so it also helps prevent overheating." },
@@ -39,7 +51,10 @@ export const TRADE_BASE_PRICES = {
 
 export const TRADE_ITEM_POOL = inventoryCatalog
   .filter((i) => i.type !== "rig")
-  .map((i) => ({ name: i.name, icon: i.icon, image: i.image, iconColor: i.iconColor, type: i.type, desc: i.desc, basePrice: TRADE_BASE_PRICES[i.name] || 300 }));
+  .map((i) => {
+    const basePrice = TRADE_BASE_PRICES[i.name] || 300;
+    return { name: i.name, icon: i.icon, image: i.image, iconColor: i.iconColor, type: i.type, desc: i.desc, basePrice, rarity: materialRarityForPrice(basePrice) };
+  });
 
 export const BOT_SELLER_NAMES = ["ZeroCool", "Nyx_Miner", "Kappa88", "GhostRig", "BlokAtomic", "IronCore", "Vexen", "Miru", "Skyfall", "RustyByte", "Pixe1", "Overclockd"];
 
@@ -59,6 +74,7 @@ export function makeBotListing() {
     image: poolItem.image,
     iconColor: poolItem.iconColor,
     type: poolItem.type,
+    rarity: poolItem.rarity,
     price: randomListingPrice(poolItem.basePrice),
   };
 }
