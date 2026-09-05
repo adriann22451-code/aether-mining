@@ -114,6 +114,21 @@ export const MACHINE_ANIMATION_CSS = `
   35% { transform: translate(-50%, -8px) scale(1); opacity: 1; }
   100% { transform: translate(-50%, -34px) scale(1); opacity: 0; }
 }
+@keyframes craftForgeSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes craftOrbit {
+  0% { transform: rotate(0deg) translateX(40px) rotate(0deg) scale(0.7); opacity: 0; }
+  15% { opacity: 1; }
+  50% { transform: rotate(180deg) translateX(40px) rotate(-180deg) scale(0.85); opacity: 1; }
+  85% { opacity: 0.6; }
+  100% { transform: rotate(360deg) translateX(6px) rotate(-360deg) scale(0.2); opacity: 0; }
+}
+@keyframes craftPulseCore {
+  0% { transform: scale(0.92); opacity: 0.55; }
+  100% { transform: scale(1.05); opacity: 0.9; }
+}
 `;
 
 export const SNOWFLAKES = [
