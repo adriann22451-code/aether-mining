@@ -187,13 +187,26 @@ const REFERRAL_TIER_CATALOG: Record<number, { friends: number; reward: number }>
 };
 
 const CRAFT_RECIPES: Record<string, { targetId: string; materials: { name: string; qty: number }[]; aetherCost: number }> = {
+  // Rare
   craft_cooling2: { targetId: "cooling_2", materials: [{ name: "Metal Plate", qty: 4 }, { name: "Nano Alloy", qty: 2 }], aetherCost: 500 },
   craft_battery2: { targetId: "battery_2", materials: [{ name: "Metal Ingot", qty: 3 }, { name: "Core Crystal", qty: 2 }], aetherCost: 500 },
   craft_processor2: { targetId: "processor_2", materials: [{ name: "Nano Alloy", qty: 3 }, { name: "Core Crystal", qty: 2 }], aetherCost: 800 },
   craft_rack2: { targetId: "rack_2", materials: [{ name: "Metal Ingot", qty: 5 }, { name: "Carbon Fiber", qty: 3 }], aetherCost: 700 },
   craft_gpu2: { targetId: "gpu_2", materials: [{ name: "Nano Alloy", qty: 4 }, { name: "Quantum Alloy", qty: 2 }], aetherCost: 4000 },
+  craft_drone1: { targetId: "drone_1", materials: [{ name: "Metal Ingot", qty: 3 }, { name: "Nano Alloy", qty: 2 }], aetherCost: 400 },
+  // Epic
   craft_cooling3: { targetId: "cooling_3", materials: [{ name: "Quantum Alloy", qty: 3 }, { name: "Carbon Fiber", qty: 5 }], aetherCost: 12000 },
   craft_battery3: { targetId: "battery_3", materials: [{ name: "Quantum Alloy", qty: 3 }, { name: "Core Crystal", qty: 3 }], aetherCost: 12000 },
+  craft_processor3: { targetId: "processor_3", materials: [{ name: "Quantum Alloy", qty: 3 }, { name: "Core Crystal", qty: 4 }], aetherCost: 17500 },
+  craft_rack3: { targetId: "rack_3", materials: [{ name: "Quantum Alloy", qty: 2 }, { name: "Carbon Fiber", qty: 6 }], aetherCost: 15000 },
+  craft_gpu3: { targetId: "gpu_3", materials: [{ name: "Nano Alloy", qty: 5 }, { name: "Quantum Alloy", qty: 3 }], aetherCost: 20000 },
+  // Legendary
+  craft_cooling4: { targetId: "cooling_4", materials: [{ name: "Quantum Alloy", qty: 6 }, { name: "Carbon Fiber", qty: 6 }], aetherCost: 65000 },
+  craft_battery4: { targetId: "battery_4", materials: [{ name: "Quantum Alloy", qty: 6 }, { name: "Core Crystal", qty: 6 }], aetherCost: 65000 },
+  craft_processor4: { targetId: "processor_4", materials: [{ name: "Quantum Alloy", qty: 7 }, { name: "Core Crystal", qty: 6 }], aetherCost: 95000 },
+  craft_rack4: { targetId: "rack_4", materials: [{ name: "Quantum Alloy", qty: 6 }, { name: "Carbon Fiber", qty: 8 }], aetherCost: 80000 },
+  craft_gpu4: { targetId: "gpu_4", materials: [{ name: "Quantum Alloy", qty: 8 }, { name: "Core Crystal", qty: 5 }], aetherCost: 110000 },
+  craft_drone2: { targetId: "drone_2", materials: [{ name: "Quantum Alloy", qty: 5 }, { name: "Core Crystal", qty: 4 }], aetherCost: 32000 },
 };
 
 // ---------- Lootbox — keep this table in sync with data/lootbox.js on
@@ -394,6 +407,11 @@ Deno.serve(async (req) => {
       const { recipeId } = body;
       const recipe = CRAFT_RECIPES[recipeId];
       if (!recipe) return json({ error: "Unknown recipe" }, 400);
+      // Craft only ever creates a part you don't have yet — once owned, further
+      // growth for it is Upgrade's job (see action === "upgradePart" above), not Craft.
+      if ((ownedItems[recipe.targetId] || 0) > 0) {
+        return json({ error: "You already own this part — upgrade it from Inventory instead" }, 400);
+      }
       if (Number(player.core) < recipe.aetherCost) return json({ error: "Not enough AETHER" }, 400);
 
       const { data: invRows, error: invErr } = await admin
@@ -418,8 +436,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      const currentLevel = ownedItems[recipe.targetId] || 0;
-      const newOwned = { ...ownedItems, [recipe.targetId]: Math.max(1, Math.min(MAX_LEVEL, currentLevel + 1)) };
+      const newOwned = { ...ownedItems, [recipe.targetId]: 1 };
       const newSpend = { ...spendStats, crafting: (spendStats.crafting || 0) + recipe.aetherCost };
 
       const { data: updated, error } = await admin
