@@ -1578,18 +1578,17 @@ export default function MiningDashboard() {
             ownedItems={ownedItems}
             core={core}
             onUpgrade={handleLevelUpItem}
+            totalHashrate={totalHashrate}
+            onUpgradeAll={handleUpgradeAll}
+            bulkUpgradeNotice={bulkUpgradeNotice}
           />
         ) : screen === "craft" ? (
           <CraftScreen
             onBack={() => setScreen("dashboard")}
             ownedItems={ownedItems}
             core={core}
-            totalHashrate={totalHashrate}
             inventory={inventory}
-            onUpgrade={handleLevelUpItem}
             onCraft={handleCraftClick}
-            onUpgradeAll={handleUpgradeAll}
-            bulkUpgradeNotice={bulkUpgradeNotice}
           />
         ) : screen === "market" ? (
           <MarketScreen
